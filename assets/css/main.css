@@ -18,6 +18,9 @@ h1 {
     margin: 70px 0;
     font-size: 90px;
 }
+.cim {
+    font-size: 400%;
+}
 
 div.container-fluid {
     padding: 0;
@@ -75,11 +78,17 @@ div.kartya-item {
     margin: 20px auto;
 }
 
+div.kartya-item div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 h3 {
     color: black;
-    /* margin: 35px; */
-    font-size: 70px;
+    margin: 35px;
+    font-size: 230%;
     text-transform: capitalize;
 }
 
