@@ -22,6 +22,10 @@ h1 {
     font-size: 400%;
 }
 
+.subsite {
+    font-size: 300%;
+}
+
 div.container-fluid {
     padding: 0;
 }
