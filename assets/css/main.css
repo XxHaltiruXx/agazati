@@ -1,10 +1,17 @@
 body{
-    /* background: linear-gradient(135deg, #000000, #1a1a2e, #662d91, #c039c5, #8e44ad, #2980b9); */
-    background-color: black;
+    background: rgb(62,69,81);
+background: linear-gradient(-60deg, rgba(62,69,81,1) 24%, rgba(0,0,0,1) 100%);
     color: aliceblue;
     text-align: center;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+       margin: 0;
+    padding: 0;
 
+}
+
+html {
+    margin: 0;
+    padding: 0;
 }
 
 p {
@@ -62,18 +69,14 @@ a.nav-link:hover {
     font-weight: bold;
     color: blue !important;
 }
-/* 
-div.karta {
-} */
+
 div.kartya-item:nth-child(even) {
     background-color: #9318f8;
     border: #460a77 solid 12px;
-    /* border-top: 0px; */
 }
 div.kartya-item:nth-child(odd) {
     background-color: #0066ff;
     border: #2f00ff solid 12px;
-    /* border-bottom: 0px; */
 }
 div.kartya-item {
     text-align: center;
@@ -116,14 +119,14 @@ div.kartya div.kartya-item:nth-child(even) button {
     
 }
 
-/* div.kozep {
-    border-top: 0px !important;
-    border-bottom: 0px !important;
-} */
-
+main {
+  min-height: calc(100vh - 50px); /* Footer magasságával csökkentett magasság */
+}
 
 footer {
     border-top: 35px #272a30 solid;
     padding: 50px;
     background-color: #3e4551;
+    margin:0;
+    font-size: 75%;
 }
