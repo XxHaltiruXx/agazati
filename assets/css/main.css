@@ -1,12 +1,11 @@
-body{
-    background: rgb(62,69,81);
-background: linear-gradient(-60deg, rgba(62,69,81,1) 24%, rgba(0,0,0,1) 100%);
+body {
+    background: rgb(62, 69, 81);
+    background: linear-gradient(-60deg, rgba(62, 69, 81, 1) 24%, rgba(0, 0, 0, 1) 100%);
     color: aliceblue;
     text-align: center;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-       margin: 0;
+    margin: 0;
     padding: 0;
-
 }
 
 html {
@@ -23,9 +22,10 @@ h1 {
     color: aliceblue;
     text-align: center;
     text-transform: uppercase;
-    margin: 70px 0;
+    margin: 120px 0 50px 0; /* Növeltük a margót a navbar alatt */
     font-size: 90px;
 }
+
 .cim {
     font-size: 400%;
 }
@@ -43,25 +43,33 @@ nav.navbar {
     background-color: #4c0bce;
     padding: 0px;
     text-shadow: 0 0 15px #000000;
-    z-index: 2; /* Ensure the navbar has a higher z-index */
-
-    
+    z-index: 2; /* A navbar az összes többi elem felett */
+    position: fixed; /* A navbar fixálása a tetejére */
+    width: 100%; /* A navbar teljes szélesség */
+    top: 0; /* A navbar a képernyő tetején helyezkedik el */
+    left: 0;
+    overflow-x: auto;
 }
 
 div.navbar-nav a.nav-link {
     color: rgb(255, 255, 255);
     font-size: 20px;
     text-transform: uppercase;
-    padding: 25px  35px!important ; 
-    flex-grow: 1; /* A linkek egyforma szélességet kapnak */
+    padding: 25px 35px !important;
+    flex-grow: 1;
+    /* A linkek egyforma szélességet kapnak */
     display: block;
 }
 
 div.navbar-nav {
-    display: flex; /* Flexbox aktiválása */
-    justify-content: space-between; /* Egyenlő távolság az elemek között */
-    width: 100%; /* A linkek a teljes szélességet kihasználják */
-    padding: 0; /* Eltávolítja az esetleges alapértelmezett margókat és paddinget */
+    display: flex;
+    /* Flexbox aktiválása */
+    justify-content: space-between;
+    /* Egyenlő távolság az elemek között */
+    width: 100%;
+    /* A linkek a teljes szélességet kihasználják */
+    padding: 0;
+    /* Eltávolítja az esetleges alapértelmezett margókat és paddinget */
 }
 
 a.nav-link:hover {
@@ -79,10 +87,12 @@ div.kartya-item:nth-child(even) {
     background-color: #9318f8;
     border: #460a77 solid 12px;
 }
+
 div.kartya-item:nth-child(odd) {
     background-color: #0066ff;
     border: #2f00ff solid 12px;
 }
+
 div.kartya-item {
     text-align: center;
     border-radius: 20px 0 20px 0;
@@ -111,39 +121,40 @@ button {
 }
 
 div.kartya div.kartya-item:nth-child(odd) button {
-    border: 3px #4c0bce solid; 
-    background-color: #9318f8; 
+    border: 3px #4c0bce solid;
+    background-color: #9318f8;
     border-radius: 25px;
-    
+
 }
 
 div.kartya div.kartya-item:nth-child(even) button {
-    border: 3px #2f00ff solid; 
-    background-color: #0066ff; 
+    border: 3px #2f00ff solid;
+    background-color: #0066ff;
     border-radius: 25px;
-    
+
 }
 
 main {
-  min-height: calc(100vh - 50px); /* Footer magasságával csökkentett magasság */
+    min-height: calc(100vh - 70px); /* A navbar magasságának levonása */
+    padding-top: 70px; /* A navbar magasságának kompenzálása, hogy ne takarja el a tartalmat */
 }
 
 footer {
     border-top: 35px #272a30 solid;
     padding: 50px;
     background-color: #3e4551;
-    margin:0;
+    margin: 0;
     font-size: 75%;
 }
 
-div.oldalsav {
+nav.oldalsav {
     background-color: #2f00ff;
     z-index: 1; /* Alacsonyabb réteg a navbar-nál */
     position: fixed;
-    top: 60px; /* A navigációs sáv alá igazítva */
+    top: 70px; /* A navbar alatt induljon */
     left: 0;
     width: 250px; /* Fix szélesség */
-    height: calc(100vh - 60px); /* A navbar magasságát figyelembe véve */
+    height: calc(100vh - 70px); /* A navbar magasságának levonása */
     display: flex;
     flex-direction: column;
     justify-content: start;
@@ -151,26 +162,32 @@ div.oldalsav {
     color: aliceblue;
     text-align: left;
     overflow-y: auto;
-  }
-
-div.oldalsav a {
-    background-color: #4c0bce;
 
 }
 
-  header {
-    top:0;
+nav.oldalsav ul {
+    padding-top: 20px; /* Néhány pixel eltérés a lista eleje előtt */
+    margin: 0;
+}
+
+nav.oldalsav a {
+    background-color: #4c0bce;
+}
+
+header {
+    top: 0;
     position: fixed;
     width: 100%;
     z-index: 2;
-  }
-  
-  .dropdown {
-    position: relative; /* Relatív pozíció a tartalomhoz képest */
+}
+
+.dropdown {
+    position: relative;
+    /* Relatív pozíció a tartalomhoz képest */
     display: inline-block;
-  }
-  
-  .dropdown-button {
+}
+
+.dropdown-button {
     background-color: #4c0bce;
     color: white;
     padding: 10px 20px;
@@ -179,39 +196,44 @@ div.oldalsav a {
     cursor: pointer;
     border-radius: 5px;
     margin: 0;
-  }
-  
-  .dropdown-button:hover {
+}
+
+.dropdown-button:hover {
     background-color: #6e40ff;
-  }
-  
-  /* Dropdown tartalom */
-  .dropdown-content {
-    display: none; /* Alapértelmezés szerint rejtve */
-    position: absolute; /* A szülőhöz képest pozícionált */
+}
+
+/* Dropdown tartalom */
+.dropdown-content {
+    display: none;
+    /* Alapértelmezés szerint rejtve */
+    position: absolute;
+    /* A szülőhöz képest pozícionált */
     background-color: white;
-    min-width: 160px; /* Minimum szélesség */
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* Árnyék */
-    z-index: 1; /* Előtérben tartás */
+    min-width: 160px;
+    /* Minimum szélesség */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    /* Árnyék */
+    z-index: 1;
+    /* Előtérben tartás */
     border-radius: 5px;
-  }
-  
-  /* Dropdown tartalom linkek */
-  .dropdown-content a {
+}
+
+/* Dropdown tartalom linkek */
+.dropdown-content a {
     color: black;
     padding: 10 15px;
     text-decoration: none;
     display: block;
     border-bottom: 1px solid #f0f0f0;
-  }
-  
-  .dropdown-content a:hover {
+}
+
+.dropdown-content a:hover {
     background-color: black;
-  }
-  
-  /* Hover vagy focus hatás */
-  /* .dropdown:hover .dropdown-content, */
-  .dropdown:focus-within .dropdown-content {
-    display: block; 
+}
+
+/* Hover vagy focus hatás */
+/* .dropdown:hover .dropdown-content, */
+.dropdown:focus-within .dropdown-content {
+    display: block;
     /* Megjeleníti a tartalmat */
-  }
+}
