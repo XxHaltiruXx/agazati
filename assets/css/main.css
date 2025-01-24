@@ -12,6 +12,7 @@ background: linear-gradient(-60deg, rgba(62,69,81,1) 24%, rgba(0,0,0,1) 100%);
 html {
     margin: 0;
     padding: 0;
+    scroll-behavior: smooth;
 }
 
 p {
@@ -31,6 +32,7 @@ h1 {
 
 .subsite {
     font-size: 300%;
+    z-index: -1;
 }
 
 div.container-fluid {
@@ -41,6 +43,9 @@ nav.navbar {
     background-color: #4c0bce;
     padding: 0px;
     text-shadow: 0 0 15px #000000;
+    z-index: 2; /* Ensure the navbar has a higher z-index */
+
+    
 }
 
 div.navbar-nav a.nav-link {
@@ -130,3 +135,82 @@ footer {
     margin:0;
     font-size: 75%;
 }
+
+div.oldalsav {
+    background-color: #2f00ff;
+    z-index: 1; /* Alacsonyabb réteg a navbar-nál */
+    position: fixed;
+    top: 60px; /* A navigációs sáv alá igazítva */
+    left: 0;
+    width: 250px; /* Fix szélesség */
+    height: calc(100vh - 60px); /* A navbar magasságát figyelembe véve */
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    color: aliceblue;
+    text-align: left;
+    overflow-y: auto;
+  }
+
+div.oldalsav a {
+    background-color: #4c0bce;
+
+}
+
+  header {
+    top:0;
+    position: fixed;
+    width: 100%;
+    z-index: 2;
+  }
+  
+  .dropdown {
+    position: relative; /* Relatív pozíció a tartalomhoz képest */
+    display: inline-block;
+  }
+  
+  .dropdown-button {
+    background-color: #4c0bce;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .dropdown-button:hover {
+    background-color: #6e40ff;
+  }
+  
+  /* Dropdown tartalom */
+  .dropdown-content {
+    display: none; /* Alapértelmezés szerint rejtve */
+    position: absolute; /* A szülőhöz képest pozícionált */
+    background-color: white;
+    min-width: 160px; /* Minimum szélesség */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* Árnyék */
+    z-index: 1; /* Előtérben tartás */
+    border-radius: 5px;
+  }
+  
+  /* Dropdown tartalom linkek */
+  .dropdown-content a {
+    color: black;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .dropdown-content a:hover {
+    background-color: black;
+  }
+  
+  /* Hover vagy focus hatás */
+  /* .dropdown:hover .dropdown-content, */
+  .dropdown:focus-within .dropdown-content {
+    display: block; 
+    /* Megjeleníti a tartalmat */
+  }
