@@ -178,6 +178,7 @@ div.oldalsav a {
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    margin: 0;
   }
   
   .dropdown-button:hover {
@@ -198,7 +199,7 @@ div.oldalsav a {
   /* Dropdown tartalom linkek */
   .dropdown-content a {
     color: black;
-    padding: 10px 15px;
+    padding: 10 15px;
     text-decoration: none;
     display: block;
     border-bottom: 1px solid #f0f0f0;
