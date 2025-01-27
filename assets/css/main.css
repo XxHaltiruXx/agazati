@@ -22,7 +22,8 @@ h1 {
     color: aliceblue;
     text-align: center;
     text-transform: uppercase;
-    margin: 120px 0 50px 0; /* Növeltük a margót a navbar alatt */
+    margin: 120px 0 50px 0;
+    /* Növeltük a margót a navbar alatt */
     font-size: 90px;
 }
 
@@ -43,10 +44,14 @@ nav.navbar {
     background-color: #4c0bce;
     padding: 0px;
     text-shadow: 0 0 15px #000000;
-    z-index: 2; /* A navbar az összes többi elem felett */
-    position: fixed; /* A navbar fixálása a tetejére */
-    width: 100%; /* A navbar teljes szélesség */
-    top: 0; /* A navbar a képernyő tetején helyezkedik el */
+    z-index: 2;
+    /* A navbar az összes többi elem felett */
+    position: fixed;
+    /* A navbar fixálása a tetejére */
+    width: 100%;
+    /* A navbar teljes szélesség */
+    top: 0;
+    /* A navbar a képernyő tetején helyezkedik el */
     left: 0;
     overflow-x: auto;
 }
@@ -75,6 +80,7 @@ div.navbar-nav {
 a.nav-link:hover {
     background-color: blue;
     color: aliceblue !important;
+   
 }
 
 [aria-current="page"] {
@@ -82,6 +88,7 @@ a.nav-link:hover {
     font-weight: bold;
     color: blue !important;
 }
+
 
 div.kartya-item:nth-child(even) {
     background-color: #9318f8;
@@ -96,7 +103,7 @@ div.kartya-item:nth-child(odd) {
 div.kartya-item {
     text-align: center;
     border-radius: 20px 0 20px 0;
-    width: 80%;
+    width: 100%;
     margin: 20px auto;
 }
 
@@ -135,8 +142,10 @@ div.kartya div.kartya-item:nth-child(even) button {
 }
 
 main {
-    min-height: calc(100vh - 70px); /* A navbar magasságának levonása */
-    padding-top: 70px; /* A navbar magasságának kompenzálása, hogy ne takarja el a tartalmat */
+    min-height: calc(100vh - 70px);
+    /* A navbar magasságának levonása */
+    padding-top: 70px;
+    /* A navbar magasságának kompenzálása, hogy ne takarja el a tartalmat */
 }
 
 footer {
@@ -147,93 +156,48 @@ footer {
     font-size: 75%;
 }
 
-nav.oldalsav {
-    background-color: #2f00ff;
-    z-index: 1; /* Alacsonyabb réteg a navbar-nál */
-    position: fixed;
-    top: 70px; /* A navbar alatt induljon */
-    left: 0;
-    width: 250px; /* Fix szélesség */
-    height: calc(100vh - 70px); /* A navbar magasságának levonása */
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
-    align-items: center;
-    color: aliceblue;
-    text-align: left;
-    overflow-y: auto;
-
-}
-
-nav.oldalsav ul {
-    padding-top: 20px; /* Néhány pixel eltérés a lista eleje előtt */
-    margin: 0;
-}
-
-nav.oldalsav a {
-    background-color: #4c0bce;
-}
 
 header {
     top: 0;
     position: fixed;
     width: 100%;
     z-index: 2;
+    
 }
 
-.dropdown {
-    position: relative;
-    /* Relatív pozíció a tartalomhoz képest */
-    display: inline-block;
-}
-
-.dropdown-button {
-    background-color: #4c0bce;
-    color: white;
-    padding: 10px 20px;
-    font-size: 16px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    margin: 0;
-}
-
-.dropdown-button:hover {
-    background-color: #6e40ff;
-}
-
-/* Dropdown tartalom */
-.dropdown-content {
-    display: none;
-    /* Alapértelmezés szerint rejtve */
-    position: absolute;
-    /* A szülőhöz képest pozícionált */
-    background-color: white;
-    min-width: 160px;
-    /* Minimum szélesség */
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    /* Árnyék */
+.sidenav {
+    height: calc(100% - 70px); /* A navbar magasságának levonása */
+    width: 0;
+    position: fixed;
     z-index: 1;
-    /* Előtérben tartás */
-    border-radius: 5px;
+    top: 70px; /* A navbar alatt induljon */
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 20px; /* Tetszőlegesen módosítható */
+    text-align: left;
+    
 }
 
-/* Dropdown tartalom linkek */
-.dropdown-content a {
-    color: black;
-    padding: 10 15px;
+
+.sidenav a {
+    padding: 8px 8px 8px 32px;
     text-decoration: none;
+    font-size: 100%;
+    color: #818181;
     display: block;
-    border-bottom: 1px solid #f0f0f0;
+    transition: 0.3s;
 }
 
-.dropdown-content a:hover {
-    background-color: black;
+.sidenav a:hover {
+    color: #f1f1f1;
+    background-color: #4c0bce;
 }
 
-/* Hover vagy focus hatás */
-/* .dropdown:hover .dropdown-content, */
-.dropdown:focus-within .dropdown-content {
-    display: block;
-    /* Megjeleníti a tartalmat */
+span {
+    color: aliceblue;
+    margin: auto 10px; /* Mindkét tengelyen középre helyezi */
+    display: block; /* A gomb egy blokk elemként viselkedik */
+    
 }
