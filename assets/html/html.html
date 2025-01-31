@@ -11,11 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous"></script>
-    <link rel="shortcut icon" href="../images/html&css.ico" type="image/x-icon">
     <script src="..//js/main.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="shortcut icon" href="../images/math.ico" type="image/x-icon">
     <link rel="stylesheet" href="../css/main.css">
-    </style>
-    <title>Összefoglaló - HTML&CSS</title>
+    <title>Összefoglaló - html</title>
 </head>
 
 <body>
@@ -35,7 +34,8 @@
     </header>
 
     <!-- Sidenav -->
-       <div id="mySidenav" class="sidenav">
+    <div id="mySidenav" class="sidenav">
+        <input type="text" id="searchNav" placeholder="Keresés...">
         <a href="#html">HTML alapok</a>
         <a href="#css">CSS alapok</a>
         <a href="#boxmodel">Box modell</a>
@@ -46,22 +46,124 @@
         <a href="#animations">CSS animációk</a>
         <a href="#accessibility">Hozzáférhetőség</a>
     </div>
-    <main>
-        <h1 class="subsite">Html&Css</h1>
+      <main class="container">
+        <h1 class="subsite text-center">HTML & CSS</h1>
 
-        <div style="z-index: 2;" class="kartya">
+        <section id="html" class="kartya">
             <div class="kartya-item">
                 <h3>HTML Alapok</h3>
-                <div>
-                    <p>
-                    </p>
-                </div>
+                <p>A HTML (HyperText Markup Language) az internetes oldalak szerkezetének alapja.</p>
+                <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Példa oldal&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Címsor&lt;/h1&gt;
+    &lt;p&gt;Ez egy bekezdés.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
             </div>
-        </div>
+        </section>
+
+        <section id="css" class="kartya">
+            <div class="kartya-item">
+                <h3>CSS Alapok</h3>
+                <p>A CSS (Cascading Style Sheets) felelős a weboldalak megjelenéséért.</p>
+                <pre><code>body {
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="boxmodel" class="kartya">
+            <div class="kartya-item">
+                <h3>Box Modell</h3>
+                <p>HTML elemek négy rétegből állnak: tartalom, padding, border, margin.</p>
+                <pre><code>.doboz {
+    width: 200px;
+    padding: 10px;
+    border: 2px solid black;
+    margin: 10px;
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="positioning" class="kartya">
+            <div class="kartya-item">
+                <h3>Pozicionálás</h3>
+                <pre><code>.relative {
+    position: relative;
+    left: 50px;
+}
+
+.absolute {
+    position: absolute;
+    top: 20px;
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="flexbox" class="kartya">
+            <div class="kartya-item">
+                <h3>Flexbox</h3>
+                <p>A flexbox segítségével dinamikus elrendezéseket hozhatunk létre.</p>
+                <pre><code>.container {
+    display: flex;
+    justify-content: space-between;
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="grid" class="kartya">
+            <div class="kartya-item">
+                <h3>CSS Grid</h3>
+                <pre><code>.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="responsive" class="kartya">
+            <div class="kartya-item">
+                <h3>Responsív dizájn</h3>
+                <p>A weboldalak különböző eszközökhöz való igazítása.</p>
+                <pre><code>@media screen and (max-width: 600px) {
+    body {
+        background-color: lightblue;
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="animations" class="kartya">
+            <div class="kartya-item">
+                <h3>CSS animációk</h3>
+                <pre><code>@keyframes move {
+    from { transform: translateX(0); }
+    to { transform: translateX(100px); }
+}
+
+.animate {
+    animation: move 2s infinite;
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="accessibility" class="kartya">
+            <div class="kartya-item">
+                <h3>Hozzáférhetőség</h3>
+                <p>Fontos, hogy a weboldal akadálymentes legyen mindenki számára.</p>
+                <pre><code>&lt;img src="kep.jpg" alt="Leírás a képről"&gt;</code></pre>
+            </div>
+        </section>
     </main>
     <footer>
         <p>&copy; 2025 XxHaltiruXx. All Rights Reserved. We do not have affiliation with any real world brands.</p>
     </footer>
 </body>
-
 </html>
