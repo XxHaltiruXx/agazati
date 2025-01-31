@@ -5,6 +5,7 @@ body {
     text-align: center;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     margin: 0;
+    font-size: 90%;
     padding: 0;
 }
 
@@ -101,7 +102,7 @@ div.kartya-item:nth-child(odd) {
 }
 
 div.kartya-item {
-    text-align: center;
+    text-align: left;
     border-radius: 20px 0 20px 0;
     width: 100%;
     margin: 20px auto;
@@ -117,8 +118,9 @@ div.kartya-item div {
 h3 {
     color: black;
     margin: 35px;
-    font-size: 230%;
+    font-size: 220%;
     text-transform: capitalize;
+    text-align: center;
 }
 
 button {
@@ -199,5 +201,14 @@ span {
     color: aliceblue;
     margin: auto 10px; /* Mindkét tengelyen középre helyezi */
     display: block; /* A gomb egy blokk elemként viselkedik */
-    
+}
+
+#searchNav {
+    background-color: black;
+    color: aliceblue;
+
+}
+
+.highlight {
+    font-weight: bold;
 }
