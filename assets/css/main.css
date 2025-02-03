@@ -7,6 +7,7 @@ body {
     margin: 0;
     font-size: 90%;
     padding: 0;
+    
 }
 
 html {
@@ -29,11 +30,11 @@ h1 {
 }
 
 .cim {
-    font-size: 400%;
+    font-size: 500%;
 }
 
 .subsite {
-    font-size: 300%;
+    font-size: 400%;
     z-index: -1;
 }
 
@@ -211,19 +212,127 @@ span {
 
 }
 
-.highlight {
-    margin: 0;
-    color: inherit; /* Ne változtassa meg a betűszínt */
-    font-weight: bold; /* Opció: félkövér kiemelés */
-    display: inline; /* Maradjon egy sorban */
-    white-space: nowrap; /* Ne törje meg a szót */
-}
-
 hr {
     background-color: #9318f8;
     width: 80%;
-    height: 0.25%;
+    height: 4px;
     display: block;
     margin: 0 auto;
     border: 0;
+}
+
+button.eredmeny {
+    border: 3px  #9318f8 solid;
+    background-color: #4c0bce;
+    border-radius: 25px;
+    box-shadow: 0 0 18px #000000;
+    margin: 30px auto;
+    display: block;
+    width: 200px;
+}
+button.eredmeny:hover {
+    background-color: #a031fa;
+}
+
+#results {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px solid #4c0bce;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px;
+}
+
+.question {
+    margin: 20px;
+    padding: 20px;
+    border: 4px solid #4c0bce;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+div.choices {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important; /* Balra igazítja az elemeket */
+    justify-content: flex-start;
+    margin: 10px 0; /* Eltávolítja az automatikus középre igazítást */
+    padding-left: 10px; /* Kis belső térköz, hogy ne tapadjon a szélére */
+}
+
+div.choices label {
+    display: block !important;
+    margin: 5px 0; /* Eltávolítja az automatikus margot */
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 13px;
+} 
+
+.highlight {
+    color: lime;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 13px;
+    display: inline;
+}
+
+ul {
+    margin: 20px;
+    padding: 20px;
+    border: 4px solid #4c0bce;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    columns: 2;
+    column-gap: 1px;
+    list-style-type: none;
+    font-size: 120%;
+}
+
+li {
+    margin: 10px;
+    padding: 10px;
+   
+}
+
+.sidebargomb {
+    font-size: 30px;
+    color: aliceblue;
+    cursor: pointer;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #4c0bce;
+    margin: 0;
+    padding: 17.5px;
+}
+
+.sidebargomb:hover {
+    background-color: #a031fa;
+}
+
+@media screen and (max-width: 800px) {
+    .question, ul{
+        display: flex;
+        flex-direction: column; /* Telefonon oszlopba rendezés */
+        justify-content: center;
+    }
+
+    ul {
+        font-size: 100%;
+    }
+}
+
+@media screen and (max-width: 1000px) {
+    ul {
+        columns: 1;
+    }
+    
+}
+
+@media screen and (max-width: 1070px) {
+    nav.navbar {
+        left: calc(0px + 5.714285714285714%) !important; /* A navbar szélességének kivonása a gomb bal oldaláról */
+    }
+
 }
