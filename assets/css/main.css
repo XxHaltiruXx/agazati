@@ -114,12 +114,14 @@ div.kartya-item div {
     justify-content: center;
 }
 
+div.kartya-item p, div.kartya-item pre{
+    margin: 4%;
+}
 
 h3 {
     color: black;
     margin: 35px;
-    font-size: 220%;
-    text-transform: capitalize;
+    font-size: 200%;
     text-align: center;
 }
 
@@ -210,5 +212,18 @@ span {
 }
 
 .highlight {
-    font-weight: bold;
+    margin: 0;
+    color: inherit; /* Ne változtassa meg a betűszínt */
+    font-weight: bold; /* Opció: félkövér kiemelés */
+    display: inline; /* Maradjon egy sorban */
+    white-space: nowrap; /* Ne törje meg a szót */
+}
+
+hr {
+    background-color: #9318f8;
+    width: 80%;
+    height: 0.25%;
+    display: block;
+    margin: 0 auto;
+    border: 0;
 }
