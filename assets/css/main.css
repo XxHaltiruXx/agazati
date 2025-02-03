@@ -278,7 +278,7 @@ div.choices label {
 }
 
 ul {
-    margin: 20px;
+    margin: 20px auto;
     padding: 20px;
     border: 4px solid #4c0bce;
     border-radius: 10px;
@@ -290,7 +290,7 @@ ul {
 }
 
 li {
-    margin: 10px;
+    margin: 10px auto;
     padding: 10px;
    
 }
@@ -361,6 +361,6 @@ li {
     }
 
     .kepli {
-        font-size: 50% !important;
+        font-size: 70% !important;
     }
 }
