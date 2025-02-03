@@ -311,6 +311,20 @@ li {
     background-color: #a031fa;
 }
 
+@media screen and (max-width: 1070px) {
+    nav.navbar {
+        left: calc(0px + 5.714285714285714%) !important; /* A navbar szélességének kivonása a gomb bal oldaláról */
+    }
+
+}
+
+@media screen and (max-width: 1000px) {
+    ul {
+        columns: 1;
+    }
+    
+}
+
 @media screen and (max-width: 800px) {
     .question, ul{
         display: flex;
@@ -323,16 +337,30 @@ li {
     }
 }
 
-@media screen and (max-width: 1000px) {
-    ul {
-        columns: 1;
+@media screen and (max-width: 550px) {
+    nav.navbar {
+        left: calc(0px + 6%) !important; /* A navbar szélességének kivonása a gomb bal oldaláról */
     }
-    
+
 }
 
-@media screen and (max-width: 1070px) {
+@media screen and (max-width: 500px) {
+    ul{
+        font-size: 90% !important;
+    }
+}
+
+
+@media screen and (max-width: 455px) {
     nav.navbar {
-        left: calc(0px + 5.714285714285714%) !important; /* A navbar szélességének kivonása a gomb bal oldaláról */
+        left: calc(0px + 10%) !important; /* A navbar szélességének kivonása a gomb bal oldaláról */
     }
 
+    ul{
+        font-size: 75% !important;
+    }
+
+    .kepli {
+        font-size: 60% !important;
+    }
 }
