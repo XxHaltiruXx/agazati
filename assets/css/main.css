@@ -7,12 +7,9 @@ body {
     margin: 0;
     font-size: 90%;
     padding: 0;
-    
 }
 
 html {
-    margin: 0;
-    padding: 0;
     scroll-behavior: smooth;
 }
 
@@ -124,6 +121,7 @@ h3 {
     margin: 35px;
     font-size: 200%;
     text-align: center;
+    
 }
 
 button {
@@ -147,10 +145,8 @@ div.kartya div.kartya-item:nth-child(even) button {
 }
 
 main {
+    /* max-height: calc(100vh + 70px); */
     min-height: calc(100vh - 70px);
-    /* A navbar magasságának levonása */
-    padding-top: 70px;
-    /* A navbar magasságának kompenzálása, hogy ne takarja el a tartalmat */
 }
 
 footer {
@@ -187,9 +183,9 @@ header {
 
 
 .sidenav a {
-    padding: 8px 8px 8px 32px;
+    padding: 8px 8px 8px 16px;
     text-decoration: none;
-    font-size: 100%;
+    font-size: 110%;
     color: #818181;
     display: block;
     transition: 0.3s;
@@ -209,6 +205,10 @@ span {
 #searchNav {
     background-color: black;
     color: aliceblue;
+    width: 95%;
+    padding: 0;
+    margin: 0 auto !important;
+    display: block;
 
 }
 
@@ -278,7 +278,7 @@ div.choices label {
 }
 
 ul {
-    margin: 20px auto;
+    margin: 20px 15px;
     padding: 20px;
     border: 4px solid #4c0bce;
     border-radius: 10px;
@@ -310,6 +310,12 @@ li {
 .sidebargomb:hover {
     background-color: #a031fa;
 }
+
+section {
+    padding-top: 70px; /* Állítsd be azt a magasságot, amekkora a navbar */
+    margin-top: -70px; /* Az offset, hogy ne legyen üres hely a navbar alatt */
+  }
+  
 
 @media screen and (max-width: 1070px) {
     nav.navbar {
@@ -363,4 +369,4 @@ li {
     .kepli {
         font-size: 70% !important;
     }
-}
+}  
