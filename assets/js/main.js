@@ -90,3 +90,82 @@ function evaluateQuiz() {
 
     resultsDiv.style.display = "block";
 }
+
+
+// Beállítások modális megnyitása
+function openSettingsModal() {
+    let modal = document.getElementById("settingsModal");
+    let overlay = document.getElementById("overlay");
+
+    modal.style.display = "flex";
+    overlay.style.display = "block";
+
+    // ESC gombbal bezárás
+    document.addEventListener("keydown", closeOnEscape);
+}
+
+// Modális ablak bezárása
+function closeSettingsModal() {
+    let modal = document.getElementById("settingsModal");
+    let overlay = document.getElementById("overlay");
+
+    modal.style.display = "none";
+    overlay.style.display = "none";
+
+    // Eltávolítjuk az eseményfigyelőt az ESC gombra
+    document.removeEventListener("keydown", closeOnEscape);
+}
+
+// ESC gombbal való bezárás
+function closeOnEscape(event) {
+    if (event.key === "Escape") {
+        closeSettingsModal();
+    }
+}
+
+// Színválasztók megnyitása
+function toggleColorPicker(id) {
+    let input = document.getElementById(id);
+    input.click();
+}
+
+// Beállítások mentése sütikbe
+function saveSettings() {
+    let bgColor = document.getElementById("bgColor").value;
+    let textColor = document.getElementById("textColor").value;
+
+    document.body.style.backgroundColor = bgColor;
+    document.body.style.color = textColor;
+
+    document.cookie = `bgColor=${bgColor}; path=/; max-age=31536000`;
+    document.cookie = `textColor=${textColor}; path=/; max-age=31536000`;
+}
+
+// Sütik beolvasása
+function getCookie(name) {
+    let cookies = document.cookie.split("; ");
+    for (let cookie of cookies) {
+        let [key, value] = cookie.split("=");
+        if (key === name) return value;
+    }
+    return null;
+}
+
+// Mentett beállítások betöltése
+function loadSettings() {
+    let savedBgColor = getCookie("bgColor");
+    let savedTextColor = getCookie("textColor");
+
+    if (savedBgColor) {
+        document.body.style.backgroundColor = savedBgColor;
+        document.getElementById("bgColor").value = savedBgColor;
+    }
+
+    if (savedTextColor) {
+        document.body.style.color = savedTextColor;
+        document.getElementById("textColor").value = savedTextColor;
+    }
+}
+
+// Beállítások betöltése az oldal megnyitásakor
+window.onload = loadSettings;
