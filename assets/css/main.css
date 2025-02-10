@@ -13,360 +13,464 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Háttér elhomályosítása */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(50%);
+    z-index: 999;
+}
+
+/* Modális ablak beállítások */
+.settings-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #3e4551;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    min-width: 320px;
+    z-index: 1000;
+}
+
+/* Gombok és szövegek */
+.settings-box button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    border: none;
+    background: #007BFF;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+.settings-box button:hover {
+    background: #0056b3;
+}
+
+/* Színválasztók elrejtése */
+.hidden-input {
+    display: none;
+}
+
+/* Bezárás gomb */
+.close-btn {
+    background: #FF3B30;
+    margin-top: 15px;
+}
+
+.close-btn:hover {
+    background: #C92A20;
+}
 p {
-    font-size: 20px;
+font-size: 20px;
 }
 
 h1 {
-    color: aliceblue;
-    text-align: center;
-    text-transform: uppercase;
-    margin: 120px 0 50px 0;
-    /* Növeltük a margót a navbar alatt */
-    font-size: 90px;
+color: aliceblue;
+text-align: center;
+text-transform: uppercase;
+margin: 120px 0 50px 0;
+/* Növeltük a margót a navbar alatt */
+font-size: 90px;
 }
 
 .cim {
-    font-size: 500%;
+font-size: 500%;
 }
 
 .subsite {
-    font-size: 400%;
-    z-index: -1;
+font-size: 400%;
+z-index: -1;
 }
 
 div.container-fluid {
-    padding: 0;
+padding: 0;
 }
 
 nav.navbar {
-    background-color: #4c0bce;
-    padding: 0px;
-    text-shadow: 0 0 15px #000000;
-    z-index: 2;
-    /* A navbar az összes többi elem felett */
-    position: fixed;
-    /* A navbar fixálása a tetejére */
-    width: 100%;
-    /* A navbar teljes szélesség */
-    top: 0;
-    /* A navbar a képernyő tetején helyezkedik el */
-    left: 0;
-    overflow-x: auto;
+background-color: #4c0bce;
+padding: 0px;
+text-shadow: 0 0 15px #000000;
+z-index: 2;
+/* A navbar az összes többi elem felett */
+position: fixed;
+/* A navbar fixálása a tetejére */
+width: 100%;
+/* A navbar teljes szélesség */
+top: 0;
+/* A navbar a képernyő tetején helyezkedik el */
+left: 0;
+overflow-x: auto;
 }
 
 div.navbar-nav a.nav-link {
-    color: rgb(255, 255, 255);
-    font-size: 20px;
-    text-transform: uppercase;
-    padding: 25px 35px !important;
-    flex-grow: 1;
-    /* A linkek egyforma szélességet kapnak */
-    display: block;
+color: rgb(255, 255, 255);
+font-size: 20px;
+text-transform: uppercase;
+padding: 25px 35px !important;
+flex-grow: 1;
+/* A linkek egyforma szélességet kapnak */
+display: block;
 }
 
 div.navbar-nav {
-    display: flex;
-    /* Flexbox aktiválása */
-    justify-content: space-between;
-    /* Egyenlő távolság az elemek között */
-    width: 100%;
-    /* A linkek a teljes szélességet kihasználják */
-    padding: 0;
-    /* Eltávolítja az esetleges alapértelmezett margókat és paddinget */
+display: flex;
+/* Flexbox aktiválása */
+justify-content: space-between;
+/* Egyenlő távolság az elemek között */
+width: 100%;
+/* A linkek a teljes szélességet kihasználják */
+padding: 0;
+/* Eltávolítja az esetleges alapértelmezett margókat és paddinget */
 }
 
 a.nav-link:hover {
-    background-color: blue;
-    color: aliceblue !important;
-   
+background-color: blue;
+color: aliceblue !important;
+
 }
 
 [aria-current="page"] {
-    background-color: #ADD8E6;
-    font-weight: bold;
-    color: blue !important;
+background-color: #ADD8E6;
+font-weight: bold;
+color: blue !important;
 }
 
 
 div.kartya-item:nth-child(even) {
-    background-color: #9318f8;
-    border: #460a77 solid 12px;
+background-color: #9318f8;
+border: #460a77 solid 12px;
 }
 
 div.kartya-item:nth-child(odd) {
-    background-color: #0066ff;
-    border: #2f00ff solid 12px;
+background-color: #0066ff;
+border: #2f00ff solid 12px;
 }
 
 div.kartya-item {
-    text-align: left;
-    border-radius: 20px 0 20px 0;
-    width: 100%;
-    margin: 20px auto;
+text-align: left;
+border-radius: 20px 0 20px 0;
+width: 100%;
+margin: 20px auto;
 }
 
 div.kartya-item div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+display: flex;
+align-items: center;
+justify-content: center;
 }
 
-div.kartya-item p, div.kartya-item pre{
-    margin: 4%;
+div.kartya-item p, div.kartya-item pre {
+margin: 4%;
 }
 
 h3 {
-    color: black;
-    margin: 35px;
-    font-size: 200%;
-    text-align: center;
-    
+color: black;
+margin: 35px;
+font-size: 200%;
+text-align: center;
+
 }
 
 button {
-    padding: 15px 18px;
-    color: aliceblue;
-    margin: 30px 8px 30px 8px;
+padding: 15px 18px;
+color: aliceblue;
+margin: 30px 8px 30px 8px;
 }
 
 div.kartya div.kartya-item:nth-child(odd) button {
-    border: 3px #4c0bce solid;
-    background-color: #9318f8;
-    border-radius: 25px;
+border: 3px #4c0bce solid;
+background-color: #9318f8;
+border-radius: 25px;
 
 }
 
 div.kartya div.kartya-item:nth-child(even) button {
-    border: 3px #2f00ff solid;
-    background-color: #0066ff;
-    border-radius: 25px;
+border: 3px #2f00ff solid;
+background-color: #0066ff;
+border-radius: 25px;
 
 }
 
 main {
-    /* max-height: calc(100vh + 70px); */
-    min-height: calc(100vh - 70px);
+/* max-height: calc(100vh + 70px); */
+min-height: calc(100vh - 70px);
 }
 
 footer {
-    border-top: 35px #272a30 solid;
-    padding: 50px;
-    background-color: #3e4551;
-    margin: 0;
-    font-size: 75%;
+border-top: 35px #272a30 solid;
+padding: 50px;
+background-color: #3e4551;
+margin: 0;
+font-size: 75%;
 }
 
 
 header {
-    top: 0;
-    position: fixed;
-    width: 100%;
-    z-index: 2;
-    
+top: 0;
+position: fixed;
+width: 100%;
+z-index: 2;
+
 }
 
 .sidenav {
-    height: calc(100% - 70px); /* A navbar magasságának levonása */
-    width: 0;
-    position: fixed;
-    z-index: 1;
-    top: 70px; /* A navbar alatt induljon */
-    left: 0;
-    background-color: #111;
-    overflow-x: hidden;
-    transition: 0.5s;
-    padding-top: 20px; /* Tetszőlegesen módosítható */
-    text-align: left;
-    
+height: calc(100% - 70px);
+/* A navbar magasságának levonása */
+width: 0;
+position: fixed;
+z-index: 1;
+top: 70px;
+/* A navbar alatt induljon */
+left: 0;
+background-color: #111;
+overflow-x: hidden;
+transition: 0.5s;
+padding-top: 20px;
+/* Tetszőlegesen módosítható */
+text-align: left;
+
 }
 
 
 .sidenav a {
-    padding: 8px 8px 8px 16px;
-    text-decoration: none;
-    font-size: 110%;
-    color: #818181;
-    display: block;
-    transition: 0.3s;
+padding: 8px 8px 8px 16px;
+text-decoration: none;
+font-size: 110%;
+color: #818181;
+display: block;
+transition: 0.3s;
 }
 
 .sidenav a:hover {
-    color: #f1f1f1;
-    background-color: #4c0bce;
+color: #f1f1f1;
+background-color: #4c0bce;
 }
 
 span {
-    color: aliceblue;
-    margin: auto 10px; /* Mindkét tengelyen középre helyezi */
-    display: block; /* A gomb egy blokk elemként viselkedik */
+color: aliceblue;
+margin: auto 10px;
+/* Mindkét tengelyen középre helyezi */
+display: block;
+/* A gomb egy blokk elemként viselkedik */
 }
 
 #searchNav {
-    background-color: black;
-    color: aliceblue;
-    width: 95%;
-    padding: 0;
-    margin: 0 auto !important;
-    display: block;
+background-color: black;
+color: aliceblue;
+width: 95%;
+padding: 0;
+margin: 0 auto !important;
+display: block;
 
 }
 
 hr {
-    background-color: #9318f8;
-    width: 80%;
-    height: 4px;
-    display: block;
-    margin: 0 auto;
-    border: 0;
+background-color: #9318f8;
+width: 80%;
+height: 4px;
+display: block;
+margin: 0 auto;
+border: 0;
 }
 
 button.eredmeny {
-    border: 3px  #9318f8 solid;
-    background-color: #4c0bce;
-    border-radius: 25px;
-    box-shadow: 0 0 18px #000000;
-    margin: 30px auto;
-    display: block;
-    width: 200px;
+border: 3px #9318f8 solid;
+background-color: #4c0bce;
+border-radius: 25px;
+box-shadow: 0 0 18px #000000;
+margin: 30px auto;
+display: block;
+width: 200px;
 }
 button.eredmeny:hover {
-    background-color: #a031fa;
+background-color: #a031fa;
 }
 
 #results {
-    display: none;
-    background-color: rgba(0, 0, 0, 0.5);
-    border: 2px solid #4c0bce;
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px;
+display: none;
+background-color: rgba(0, 0, 0, 0.5);
+border: 2px solid #4c0bce;
+border-radius: 10px;
+padding: 20px;
+margin: 20px;
 }
 
 .question {
-    margin: 20px;
-    padding: 20px;
-    border: 4px solid #4c0bce;
-    border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
+margin: 20px;
+padding: 20px;
+border: 4px solid #4c0bce;
+border-radius: 10px;
+background-color: rgba(0, 0, 0, 0.5);
 }
 
 
 div.choices {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important; /* Balra igazítja az elemeket */
-    justify-content: flex-start;
-    margin: 10px 0; /* Eltávolítja az automatikus középre igazítást */
-    padding-left: 10px; /* Kis belső térköz, hogy ne tapadjon a szélére */
+display: flex !important;
+flex-direction: column !important;
+align-items: flex-start !important;
+/* Balra igazítja az elemeket */
+justify-content: flex-start;
+margin: 10px 0;
+/* Eltávolítja az automatikus középre igazítást */
+padding-left: 10px;
+/* Kis belső térköz, hogy ne tapadjon a szélére */
 }
 
 div.choices label {
-    display: block !important;
-    margin: 5px 0; /* Eltávolítja az automatikus margot */
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    padding: 13px;
-} 
+display: block !important;
+margin: 5px 0;
+/* Eltávolítja az automatikus margot */
+background-color: rgba(0, 0, 0, 0.5);
+border-radius: 10px;
+padding: 13px;
+}
 
 .highlight {
-    color: lime;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    padding: 13px;
-    display: inline;
+color: lime;
+background-color: rgba(0, 0, 0, 0.5);
+border-radius: 10px;
+padding: 13px;
+display: inline;
 }
 
 ul {
-    margin: 20px 15px;
-    padding: 20px;
-    border: 4px solid #4c0bce;
-    border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-    columns: 2;
-    column-gap: 1px;
-    list-style-type: none;
-    font-size: 120%;
+margin: 20px 15px;
+padding: 20px;
+border: 4px solid #4c0bce;
+border-radius: 10px;
+background-color: rgba(0, 0, 0, 0.5);
+columns: 2;
+column-gap: 1px;
+list-style-type: none;
+font-size: 120%;
 }
 
 li {
-    margin: 10px auto;
-    padding: 10px;
-   
+margin: 10px auto;
+padding: 10px;
+
 }
 
 .sidebargomb {
-    font-size: 30px;
-    color: aliceblue;
-    cursor: pointer;
-    position: fixed;
-    top: 0;
-    left: 0;
-    background-color: #4c0bce;
-    margin: 0;
-    padding: 17.5px;
+font-size: 30px;
+color: aliceblue;
+cursor: pointer;
+position: fixed;
+top: 0;
+left: 0;
+background-color: #4c0bce;
+margin: 0;
+padding: 17.5px;
 }
 
 .sidebargomb:hover {
-    background-color: #a031fa;
+background-color: #a031fa;
 }
 
 section {
-    padding-top: 70px; /* Állítsd be azt a magasságot, amekkora a navbar */
-    margin-top: -70px; /* Az offset, hogy ne legyen üres hely a navbar alatt */
-  }
-  
+padding-top: 70px;
+/* Állítsd be azt a magasságot, amekkora a navbar */
+margin-top: -70px;
+/* Az offset, hogy ne legyen üres hely a navbar alatt */
+}
+
+
+.settings {
+    border: none;
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    cursor: pointer;
+
+    
+}
+
+.settings img {
+    display:block;
+    margin: auto;
+    padding: 0;
+    width: 25px;
+    height: 25px;
+    filter: invert(100%);
+}
+
+input[type="radio"] {
+    accent-color:#4c0bce;
+}
+
 
 @media screen and (max-width: 1070px) {
-    nav.navbar {
-        left: calc(0px + 5.714285714285714%) !important; /* A navbar szélességének kivonása a gomb bal oldaláról */
-    }
+nav.navbar {
+left: calc(0px + 5.714285714285714%) !important;
+/* A navbar szélességének kivonása a gomb bal oldaláról */
+}
 
 }
 
 @media screen and (max-width: 1000px) {
-    ul {
-        columns: 1;
-    }
-    
+ul {
+columns: 1;
+}
+
 }
 
 @media screen and (max-width: 800px) {
-    .question, ul{
-        display: flex;
-        flex-direction: column; /* Telefonon oszlopba rendezés */
-        justify-content: center;
-    }
-
-    ul {
-        font-size: 100%;
-    }
+.question, ul {
+display: flex;
+flex-direction: column;
+/* Telefonon oszlopba rendezés */
+justify-content: center;
 }
 
+ul {
+font-size: 100%;
+}
+
+
 @media screen and (max-width: 550px) {
-    nav.navbar {
-        left: calc(0px + 6%) !important; /* A navbar szélességének kivonása a gomb bal oldaláról */
-    }
+nav.navbar {
+left: calc(0px + 6%) !important;
+/* A navbar szélességének kivonása a gomb bal oldaláról */
+}
 
 }
 
 @media screen and (max-width: 500px) {
-    ul{
-        font-size: 90% !important;
-    }
+ul {
+font-size: 90% !important;
+}
 }
 
 
 @media screen and (max-width: 455px) {
-    nav.navbar {
-        left: calc(0px + 10%) !important; /* A navbar szélességének kivonása a gomb bal oldaláról */
-    }
+nav.navbar {
+left: calc(0px + 10%) !important;
+/* A navbar szélességének kivonása a gomb bal oldaláról */
+}
 
-    ul{
-        font-size: 74% !important;
-    }
+ul {
+font-size: 74% !important;
+}
 
-    .kepli {
-        font-size: 70% !important;
-    }
-}  
+.kepli {
+font-size: 70% !important;
+}
+}
