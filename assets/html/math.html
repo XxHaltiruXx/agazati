@@ -55,6 +55,20 @@
         <h1 class="subsite">Matematika</h1>
         <p>Itt a matematika</p>
     </main>
+        <div class="settings-modal" id="settingsModal">
+            <div class="settings-box">
+                <h3>Beállítások</h3>
+
+                <button onclick="toggleColorPicker('bgColor')">Háttérszín kiválasztása</button>
+                <input type="color" id="bgColor" class="hidden-input" onchange="saveSettings()">
+
+                <button onclick="toggleColorPicker('textColor')">Betűszín kiválasztása</button>
+                <input type="color" id="textColor" class="hidden-input" onchange="saveSettings()">
+
+                <br>
+                <button onclick="closeSettingsModal()">Bezárás</button>
+            </div>
+        </div>
     <footer>
         <p>&copy; 2025 XxHaltiruXx. All Rights Reserved. We do not have affiliation with any real world brands.</p>
         <p>Version: 1.0.42</p>
