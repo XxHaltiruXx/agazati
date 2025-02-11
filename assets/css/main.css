@@ -60,24 +60,26 @@ html {
     backdrop-filter: blur(10px);
     border: 1px solid #4c0bce;
     border-radius: 15px;
-    padding: 25px;
-    min-width: 400px;
+    padding: 20px;
     z-index: 1000;
     color: white;
+    width: 90%;
+    max-width: 400px;
+    min-width: 300px;
+    box-sizing: border-box;
     opacity: 0;
-    transform: translate(-50%, -55%);
     transition: all 0.3s ease;
 }
 
 .settings-modal[style*="display: flex"] {
     opacity: 1;
-    transform: translate(-50%, -50%);
 }
 
+.settings-box {
+    margin: auto;
+}
 
 .settings-box button {
-    margin-top: 10px;
-    padding: 10px 15px;
     border: none;
     background: #007BFF;
     color: white;
@@ -85,6 +87,10 @@ html {
     cursor: pointer;
     font-size: 16px;
     transition: 0.3s;
+    padding: 12px;
+    font-size: 14px;
+    width: 100%;
+    margin: 5px 0;
 }
 
 .settings-box button:hover {
@@ -420,6 +426,7 @@ input[type="radio"] {
     margin-bottom: 15px;
 }
 
+
 .settings-group {
     margin: 15px 0;
     padding: 15px;
@@ -430,6 +437,10 @@ input[type="radio"] {
 .color-pickers, .text-colors {
     display: grid;
     gap: 10px;
+}
+
+.settings-header h3 {
+    font-size: 18px;
 }
 
 .presets {
@@ -519,6 +530,66 @@ input[type="radio"] {
     }
 }
 
+@media screen and (max-width: 768px) {
+    .settings-modal {
+        top: 5%;
+        transform: translate(-50%, 0);
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 15px;
+    }
+    
+    .settings-group h4 {
+        font-size: 16px;
+    }
+    
+    .color-pickers, .text-colors {
+        grid-template-columns: 1fr;
+    }
+    
+    .presets {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    input[type="color"] {
+        width: 100%;
+        height: 40px;
+    }
+    
+    .settings-box button {
+        padding: 12px;
+        font-size: 14px;
+        min-height: 48px;
+    }
+}
+
+/* Extra kis képernyők (max 480px) */
+@media screen and (max-width: 480px) {
+    .settings-modal {
+        width: 95%;
+        padding: 10px;
+    }
+    
+    .settings-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .presets {
+        grid-template-columns: 1fr;
+    }
+    
+    .preset-btn {
+        height: 50px;
+    }
+    
+    .settings-footer button {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
+
 @font-face {
     font-family: SpaceGrotesk;
     src: url(../fonts/SpaceGrotesk.ttf);
@@ -541,4 +612,3 @@ input[type="radio"] {
     background: #0066ff;
     border-radius: 10px;
 }
-
