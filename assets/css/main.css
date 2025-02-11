@@ -1,12 +1,13 @@
 * {
-    font-family: Coligra;
-} 
+    font-family: SpaceGrotesk;
+}
 
 body {
     background: rgb(62, 69, 81);
     background: linear-gradient(-60deg, rgba(62, 69, 81, 1) 24%, rgba(0, 0, 0, 1) 100%);
     color: aliceblue;
     text-align: center;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     margin: 0;
     font-size: 90%;
     padding: 0;
@@ -476,10 +477,8 @@ font-size: 74% !important;
 .kepli {
 font-size: 70% !important;
 }
-
 }
-
-@font-face {
-    font-family: Coligra;
-    src: url(../fonts/Coligra.ttf);
+    @font-face {
+    font-family:SpaceGrotesk;
+    src: url(../fonts/SpaceGrotesk.ttf);
 }
