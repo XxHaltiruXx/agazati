@@ -1,9 +1,3 @@
-}
-    @font-face {
-    font-family: Coligra;
-    src: url(../fonts/Coligra.ttf);
-}
-
 * {
     font-family: Coligra;
 } 
@@ -484,4 +478,10 @@ font-size: 74% !important;
 
 .kepli {
 font-size: 70% !important;
+}
+
+}
+    @font-face {
+    font-family: Coligra;
+    src: url(../fonts/Coligra.ttf);
 }
