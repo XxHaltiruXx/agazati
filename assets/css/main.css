@@ -1,3 +1,7 @@
+* {
+    font-family: Coligra;
+}
+
 body {
     background: rgb(62, 69, 81);
     background: linear-gradient(-60deg, rgba(62, 69, 81, 1) 24%, rgba(0, 0, 0, 1) 100%);
@@ -473,4 +477,8 @@ font-size: 74% !important;
 .kepli {
 font-size: 70% !important;
 }
+}
+    @font-face {
+    font-family: Coligra;
+    src: url(../fonts/Coligra.ttf);
 }
