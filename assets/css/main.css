@@ -1,5 +1,5 @@
 * {
-    font-family: Coligra;
+    font-family: SpaceGrotesk;
 }
 
 body {
@@ -478,7 +478,8 @@ font-size: 74% !important;
 font-size: 70% !important;
 }
 }
-    @font-face {
-    font-family:Coligra;
-    src: url(../fonts/Coligra.ttf);
+
+@font-face {
+    font-family:SpaceGrotesk;
+    src: url(../fonts/SpaceGrotesk.ttf);
 }
