@@ -121,6 +121,7 @@ h1 {
 
 div.container-fluid {
     padding: 0;
+    width: 10;
 }
 
 nav.navbar {
@@ -238,6 +239,11 @@ div.kartya div.kartya-item:nth-child(even) button {
 
 main {
     min-height: calc(100vh - 70px);
+}
+
+main.kontener {
+    width: 95%;
+    margin: 0 auto;
 }
 
 footer {
@@ -495,6 +501,29 @@ input[type="radio"] {
     font-weight: bold;
 }
 
+.console-holder {
+    display: block !important;
+    border: #2f00ff 12px solid;
+    width: fit-content;
+    margin: 10px;
+    border-radius: 15px;
+}
+
+.console {
+    background-color: black;
+    color: aliceblue;
+    padding: 2px;
+    width: 100%;
+    border-left: #4c0bce 8px solid;
+    text-align: left;
+    display: block !important;
+}
+
+.console p {
+    margin: 10px 10px 3% 10px !important;
+    
+}
+
 @media screen and (max-width: 1000px) {
     ul {
         columns: 1;
@@ -611,4 +640,10 @@ input[type="radio"] {
 ::-webkit-scrollbar-thumb:horizontal {
     background: #0066ff;
     border-radius: 10px;
+}
+
+a.tryit {
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+    display: block;
 }
