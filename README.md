@@ -64,7 +64,7 @@ A projekt az alábbi technológiákat használja:
 
 | **Főoldal** | **Beállítások** |
 |------------|----------------|
-| ![Főoldal](images/main.png) | ![Beállítások](images/setttings.png) |
+| ![Főoldal](assets/images/main.png) | ![Beállítások](assets/images/setttings.png) |
 
 
 ---
