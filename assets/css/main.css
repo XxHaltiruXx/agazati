@@ -652,3 +652,30 @@ hr.black {
     background-color: black;
     width:95%;
 }
+
+div.contacts  {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    background-color: red;
+    gap: 0;
+}
+
+div.contacts p {
+    text-decoration: none;
+    color:aliceblue;
+    margin: auto 0 !important;
+    padding: 0 !important;
+    background-color: lime;
+    display: block;
+}
+
+
+div.contacts img {
+    width: 35%;
+    margin: 0;
+    padding: 0;
+    background-color: blue;
+    display: block;
+}
