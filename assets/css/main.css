@@ -225,7 +225,7 @@ button {
     margin: 30px 8px 30px 8px;
 }
 
-div.kartya div.kartya-item:nth-child(odd) button {
+div.kartya div.kartya-item:nth-child(odd) button, .tryitbtn {
     border: 3px #4c0bce solid;
     background-color: #9318f8;
     border-radius: 25px;
