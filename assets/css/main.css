@@ -225,7 +225,7 @@ button {
     margin: 30px 8px 30px 8px;
 }
 
-div.kartya div.kartya-item:nth-child(odd) button, .tryitbtn {
+div.kartya div.kartya-item:nth-child(odd) button {
     border: 3px #4c0bce solid;
     background-color: #9318f8;
     border-radius: 25px;
@@ -501,10 +501,21 @@ input[type="radio"] {
     font-weight: bold;
 }
 
+.console-bgc{
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    margin: 10px;
+    padding: 10px;
+    display: block !important;
+}
+
+.console-bgc p.console-title {
+    margin: 15px auto 15px 15px !important;
+    font-size: 60px !important;
+}
+
 .console-holder {
     display: block !important;
-    border: #2f00ff 12px solid;
-    width: fit-content;
     margin: 10px;
     border-radius: 15px;
 }
@@ -520,7 +531,7 @@ input[type="radio"] {
 }
 
 .console p {
-    margin: 10px 10px 3% 10px !important;
+    margin: 15px auto 15px 15px !important;
     
 }
 
@@ -642,40 +653,48 @@ input[type="radio"] {
     border-radius: 10px;
 }
 
-a.tryit {
-    color: rgb(255, 255, 255);
-    font-size: 20px;
-    display: block;
-}
-
 hr.black {
     background-color: black;
     width:95%;
 }
 
-div.contacts  {
+div.contacts {
     display: flex;
     align-items: center;
     justify-content: center;
     margin: auto;
-    background-color: red;
-    gap: 0;
+}
+
+div.contacts a {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: aliceblue;
+    font-size: 16px;
+    gap: 8px;
+}
+
+div.contacts img {
+    width: 25px;
+    height: 25px;
 }
 
 div.contacts p {
-    text-decoration: none;
-    color:aliceblue;
-    margin: auto 0 !important;
-    padding: 0 !important;
-    background-color: lime;
-    display: block;
+    margin: auto;
 }
 
+div.contacts div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: auto;
+}
 
-div.contacts img {
-    width: 35%;
-    margin: 0;
-    padding: 0;
-    background-color: blue;
-    display: block;
+.tryitbtn {
+    background-color: #2ecc71;
+    border: #27ae60 3px solid;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: large;
 }
