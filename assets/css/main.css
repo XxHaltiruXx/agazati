@@ -647,3 +647,8 @@ a.tryit {
     font-size: 20px;
     display: block;
 }
+
+hr.black {
+    background-color: black;
+    width:95%;
+}
