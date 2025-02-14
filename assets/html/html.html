@@ -10,10 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js"></script>
     <link rel="shortcut icon" href="../images/math.ico" type="image/x-icon">
     <link rel="stylesheet" href="../css/main.css">
-    <title>Összefoglaló - html</title>
+    <title>Agazati - HTML&CSS</title>
 </head>
 
 <body>
@@ -49,7 +49,7 @@
             <a href="python.html#python">Python alapok</a>
         </div>
         <div class="setting-holder">
-            <button onclick="openSettingsModal()" class="settings"><img src="../images/gear.svg" alt="" /></button>
+            <button onclick="openSettingsModal()" class="settings"><img src="../images/gear.svg" alt="Settings-gomb"></button>
         </div>
     </div>
     <main class="kontener">
@@ -58,7 +58,7 @@
         <section id="html" class="kartya">
             <div class="kartya-item">
                 <h3>HTML Alapok</h3>
-                <hr />
+                <hr>
                 <ul>
                     <li>
                         <span class="highlight"> &lt;p&gt;&lt;/p&gt;</span> - Bekezdés
@@ -98,7 +98,7 @@
         <section id="css" class="kartya">
             <div class="kartya-item">
                 <h3>CSS Alapok</h3>
-                <hr />
+                <hr>
                 <p>
                     A CSS (Cascading Style Sheets) felelős a weboldalak megjelenéséért.
                 </p>
@@ -112,7 +112,7 @@
         <section id="boxmodel" class="kartya">
             <div class="kartya-item">
                 <h3>Box Modell</h3>
-                <hr />
+                <hr>
                 <p>
                     HTML elemek négy rétegből állnak: tartalom, padding, border, margin.
                 </p>
@@ -128,7 +128,7 @@
         <section id="positioning" class="kartya">
             <div class="kartya-item">
                 <h3>Pozicionálás</h3>
-                <hr />
+                <hr>
                 <pre><code>.relative {
                 position: relative;
                 left: 50px;
@@ -144,7 +144,7 @@
         <section id="flexbox" class="kartya">
             <div class="kartya-item">
                 <h3>Flexbox</h3>
-                <hr />
+                <hr>
                 <p>
                     A flexbox segítségével dinamikus elrendezéseket hozhatunk létre.
                 </p>
@@ -158,7 +158,7 @@
         <section id="grid" class="kartya">
             <div class="kartya-item">
                 <h3>CSS Grid</h3>
-                <hr />
+                <hr>
                 <pre><code>.grid-container {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
@@ -170,7 +170,7 @@
         <section id="responsive" class="kartya">
             <div class="kartya-item">
                 <h3>Responsív dizájn</h3>
-                <hr />
+                <hr>
                 <p>
                     A weboldalak különböző eszközökhöz való igazítása.
                 </p>
@@ -185,7 +185,7 @@
         <section id="animations" class="kartya">
             <div class="kartya-item">
                 <h3>CSS animációk</h3>
-                <hr />
+                <hr>
                 <pre><code>@keyframes move {
                 from { transform: translateX(0); }
                 to { transform: translateX(100px); }
@@ -200,7 +200,7 @@
         <section id="accessibility" class="kartya">
             <div class="kartya-item">
                 <h3>Hozzáférhetőség</h3>
-                <hr />
+                <hr>
                 <p>
                     Fontos, hogy a weboldal akadálymentes legyen mindenki számára.
                 </p>
@@ -209,8 +209,8 @@
         </section>
         <div class="quiz-container" id="kerdes">
             <form id="quiz-form">
-                <h1 class="subsite">HTML & CSS Kérdőív</h1>
                 <section class="kartya">
+                    <h2 class="subsite">HTML & CSS Kérdőív</h2>
                     <div class="kartya-item">
                         <div class="question">
                             <p>
@@ -285,8 +285,10 @@
                         </div>
                         <button type="button" onclick="evaluateQuiz()" class="eredmeny">Eredmény</button>
                         <div id="results"></div>
+                    </div>
                 </section>
             </form>
+        </div>
     </main>
     <div class="settings-modal" id="settingsModal">
         <div class="settings-box">
