@@ -25,7 +25,3 @@ footer.innerHTML = `
 
 // Footer hozzáadása az oldalhoz
 document.body.appendChild(footer);
-
-// Verziószám frissítése (opcionális)
-const versionNumber = footer.querySelector('.version-number');
-versionNumber.textContent = '1.2.4'; // Dinamikusan módosíthatod
