@@ -196,16 +196,19 @@ a.nav-link:hover {
 div.kartya-item {
     text-align: left;
     border-radius: 20px 0 20px 0;
-    width: 100%;
+    width: 90%;
     margin: 20px auto;
     background-color: #0066ff;
     border: #2f00ff solid 12px;
 }
 
-div.kartya-item div {
-    display: flex;
+div.kartya-item div:not(.row):not(.col) { /* Kivételezzük a Bootstrap osztályokat */
+    display: block;
+    margin: auto;
     align-items: center;
     justify-content: center;
+    padding: 15px;
+    
 }
 
 div.kartya-item p,
@@ -231,6 +234,13 @@ button {
     padding: 15px 18px;
     color: aliceblue;
     margin: 30px 8px 30px 8px;
+}
+
+div.kartya div.kartya-item button{
+    margin: 20px auto;
+    display: block;
+    padding: 15px 18px;
+    color: aliceblue;
 }
 
 div.kartya div.kartya-item:nth-child(odd) button {
@@ -379,25 +389,58 @@ div.choices label {
     margin: 2px 0;
 }
 
-#html ul {
-    margin: 20px 15px;
-    padding: 20px;
+.html-section {
+    padding: 15px;
+    background: #272a30;
     border: 4px solid #4c0bce;
     border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-    columns: 2;
-    column-gap: 1px;
-    list-style-type: none;
-    font-size: 120%;
+    margin: 5px auto;
 }
 
-#html li {
-    margin: 10px auto;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+.html-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #4c0bce;
+}
+
+.html-divider {
+    width: 150px;
+    height: 4px;
+    background: #4c0bce;
+    margin: 1.5rem auto;
+}
+
+.card-custom {
+    background: #0066ff !important;
+    border: none !important;
+    border-radius: 15px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+}
+
+.card-header-custom {
+    background: #003daf !important;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.5rem !important;
+}
+
+.card-body {
+    text-align: center !important;
+    font-size: 130%;
+}
+
+.html-tag {
+    font-size: 170%;
+    color: aliceblue;
+    letter-spacing: 0.5px;
+}
+
+.text-info {
+    color: aliceblue !important;
 }
 
 #python ul {
@@ -412,6 +455,7 @@ section {
     padding-top: 70px;
     margin-top: -70px;
 }
+
 
 .settings {
     border: none;
@@ -715,18 +759,20 @@ div.contacts div {
     font-size: large;
 }
 
-.code-block {
+
+div.code-block {
     background-color: #2d2d2d;
     border: 1px solid #444;
     border-radius: 8px;
-    padding: 1rem;
+    padding: 1.5rem;
     margin: 1.5rem 0;
     position: relative;
-    overflow-x: auto;
+    height: max-content;
+    
 }
 
 .code-block pre {
-    margin: 0;
+    margin: 15px !important;
     color: #f8f8f2;
     font-family: 'Courier New', monospace;
     font-size: 0.9rem;
@@ -735,19 +781,21 @@ div.contacts div {
 
 .copy-btn {
     position: absolute;
+    padding: 5px 10px;
+    margin: auto;
     right: 10px;
     top: 10px;
-    padding: 5px 10px;
     background: #4CAF50;
     border: none;
     color: white;
     border-radius: 4px;
     cursor: pointer;
-    transition: all 0.3s;
+    width: 60px;
+    transition: all 0.3s;;
 }
 
 .copy-btn:hover {
-    background: #45a049;
+    background: #51b954;
 }
 
 .copy-notification {
@@ -759,7 +807,7 @@ div.contacts div {
     color: white;
     padding: 10px 20px;
     border-radius: 25px;
-    font-size: 0.9rem;
+    font-size: 0.9rem;   
     z-index: 1000;
 }
 
@@ -777,10 +825,11 @@ div.contacts div {
     }
     
     .copy-btn {
-        padding: 3px 8px;
+        padding: 3px 10px;
         font-size: 0.75rem;
-        right: 5px;
-        top: 5px;
+        right: 3px;
+        top: 3px;
+
     }
     
     .kartya-item {
