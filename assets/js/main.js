@@ -1,4 +1,4 @@
-const APP_VERSION = "1.2.5";
+const APP_VERSION = "1.2.6";
 
 // Verziószám frissítése
 document.addEventListener('DOMContentLoaded', function() {
@@ -248,3 +248,10 @@ window.onload = function() {
     document.body.style.opacity = '1';
     loadSettings();
 }
+
+function copyText() {
+    // A <p> tag szövegének lekérése
+    const textToCopy = document.getElementById('myText').innerText;
+    // A Clipboard API használata a szöveg másolásához
+    navigator.clipboard.writeText(textToCopy)
+  }
