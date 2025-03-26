@@ -714,3 +714,76 @@ div.contacts div {
     font-weight: bold;
     font-size: large;
 }
+
+.code-block {
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    position: relative;
+    overflow-x: auto;
+}
+
+.code-block pre {
+    margin: 0;
+    color: #f8f8f2;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.copy-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    padding: 5px 10px;
+    background: #4CAF50;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.copy-btn:hover {
+    background: #45a049;
+}
+
+.copy-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    z-index: 1000;
+}
+
+/* Mobil nézetre media query */
+@media (max-width: 768px) {
+    .code-block {
+        margin: 1rem -15px;
+        border-radius: 0;
+    }
+    
+    .code-block pre {
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    
+    .copy-btn {
+        padding: 3px 8px;
+        font-size: 0.75rem;
+        right: 5px;
+        top: 5px;
+    }
+    
+    .kartya-item {
+        padding: 15px;
+    }
+}

@@ -249,9 +249,25 @@ window.onload = function() {
     loadSettings();
 }
 
-function copyText() {
-    // A <p> tag szövegének lekérése
-    const textToCopy = document.getElementById('myText').innerText;
-    // A Clipboard API használata a szöveg másolásához
-    navigator.clipboard.writeText(textToCopy)
-  }
+function copyText(button) {
+    const codeBlock = button.parentElement.querySelector('code');
+    const textArea = document.createElement('textarea');
+    textArea.value = codeBlock.textContent;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    
+    showCopyNotification('Kód másolva!');
+}
+
+function showCopyNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'copy-notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        document.body.removeChild(notification);
+    }, 2000);
+}
