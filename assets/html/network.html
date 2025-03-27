@@ -46,6 +46,7 @@
             <a href="html.html#animations">CSS animációk</a>
             <a href="html.html#accessibility">Hozzáférhetőség</a>
             <a href="python.html#python">Python alapok</a>
+            <a href="network.html#halozat">Cisco parancsok</a>
         </div>
         <div class="setting-holder">
             <button onclick="openSettingsModal()" class="settings"><img src="../images/gear.svg"
@@ -69,9 +70,9 @@
                 <p>rz gfhribeiebi</p>
             </div>
         </section>
-        <section id="halozat-konfiguracio" class="kartya">
+        <section id="halozat" class="kartya">
             <div class="kartya-item">
-                <h3>Cisco Teljes Konfiguráció</h3>
+                <h3>Cisco Parancsok</h3>
                 <hr>
                 <div class="container-fluid">
 
@@ -81,14 +82,8 @@
                             <h5>VLAN Beállítások</h5>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
-                                <pre><code>vlan 2
-name zold
-vlan 3
-name kek
-vlan 4
-name sarga
-vlan 5
-name piros</code></pre>
+                                <pre><code>vlan [vlan száma]
+name [név]</code></pre>
                             </div>
                         </div>
 
@@ -98,20 +93,8 @@ name piros</code></pre>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
                                 <pre><code>interface range fa0/1-4
-switchport mode access
-switchport access vlan 2
-
-interface range fa0/5-6
-switchport mode access
-switchport access vlan 3
-
-interface range fa0/9-12
-switchport mode access
-switchport access vlan 4
-
-interface range fa0/13-16
-switchport mode access
-switchport access vlan 5</code></pre>
+switchport mode [access-trunk]
+switchport access vlan [vlan száma]</code></pre>
                             </div>
                         </div>
                     </div>
@@ -119,18 +102,20 @@ switchport access vlan 5</code></pre>
                     <!-- DHCP konfiguráció -->
                     <div class="row">
                         <div class="col-12 col-md-6">
-                            <h5>DHCP & Interface</h5>
+                            <h5>DHCP & Ip adás routerben</h5>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
-                                <pre><code>interface fa0/0
-ip add LIP SNM
-ip helper LIP-1
+                                <pre><code>!ip adás
+interface [interface száma]
+ip add [lip] [snm]
+ip helper[lip-1]
 no shut
 
-ip dhcp pool NAME
-network NID SNM
-default-router LIP
-dns-server DNS
+!routerben dhcp létrehozás
+ip dhcp pool [név]
+network [nid] [snm]
+default-router [lip]
+dns-server [dns[
 ip dhcp excluded-address FIP KIOSZTANDÓ_CÍM-1</code></pre>
                             </div>
                         </div>
@@ -140,15 +125,15 @@ ip dhcp excluded-address FIP KIOSZTANDÓ_CÍM-1</code></pre>
                             <h5>Switch/Router Alapok</h5>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
-<pre><code>! Switch
-interface vlan 1
-ip address 10.10.10.11 255.255.255.0
-no shutdown
+<pre><code>!Switch
+int vlan [vlan száma]
+ip address [ip] [snm]
+no shut
 
-! Router
-interface fa0/0
-ip address 10.10.10.22 255.255.255.0
-no shutdown</code></pre>
+!Router
+interface [interface száma]
+ip address [ip] [snm]
+no shut</code></pre>
                             </div>
                         </div>
                     </div>
@@ -159,11 +144,11 @@ no shutdown</code></pre>
                             <h5>SSH Beállítások</h5>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
-                                <pre><code>ip domain-name SSHabc
+                                <pre><code>!SSH beallítás
+ip domain-name [domain név]
 hostname switch/router
 crypto key generate rsa modulus 1024
-username gokhan privilege 15 password abc123
-username inas privilege 1 password csicska
+username [felhasználónév] privilege [1-től 15-ig] password [jelszó]
 line vty 0 4
 transport input ssh
 login local
@@ -175,15 +160,20 @@ ip ssh version 2</code></pre>
                             <h5>Jelszóvédelem</h5>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
-                                <pre><code>line con 0
+                                <pre><code>! console jelszó
+line con 0
 password [jelszó]
 login
 
+!aux jelszó
 line aux 0
 password [jelszó]
 login
 
+!enable jelszó
 enable password [jelszó]
+   
+!titkosított jelszó
 enable secret [jelszó]
 
 line vty 0
@@ -199,7 +189,7 @@ login</code></pre>
                             <h5>FTP Műveletek</h5>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
-                                <pre><code>FTP [ftp szerver név]
+                                <pre><code>ftp [ftp szerver név]
 put [fájl]
 get [fájl]
 dir
@@ -212,10 +202,9 @@ quit</code></pre>
                     <div class="alert alert-dark mt-4">
                         <h5>⚠️ Fontos megjegyzések</h5>
                         <ul>
-                            <li>Cseréld le a <mark>NAGYBETŰS</mark> helyőrzőket valós értékekre</li>
+                            <li>Cseréld le a <mark>[zárójeles]</mark> helyőrzőket valós értékekre</li>
                             <li><code>enable secret</code> mindig elsőbbséget élvez az <code>enable password</code>-hoz
                                 képest</li>
-                            <li>Használj egyedi jelszavakat minden eszközhöz</li>
                         </ul>
                     </div>
                 </div>

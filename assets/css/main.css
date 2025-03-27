@@ -115,7 +115,7 @@ h1, h2 {
 }
 
 .subsite {
-    font-size: 400%;
+    font-size: 350%;
     z-index: -1;
 }
 
@@ -200,6 +200,10 @@ div.kartya-item {
     margin: 20px auto;
     background-color: #0066ff;
     border: #2f00ff solid 12px;
+}
+
+div.kartya-item h3 {
+    font-size: 150%;
 }
 
 div.kartya-item div:not(.row):not(.col) { /* Kivételezzük a Bootstrap osztályokat */
@@ -291,6 +295,7 @@ header {
     transition: 0.5s;
     padding-top: 20px;
     text-align: left;
+    overflow-y: auto;
 }
 
 .sidenav a {
@@ -299,12 +304,12 @@ header {
     font-size: 110%;
     color: #818181;
     display: block;
-    transition: 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidenav a:hover {
     color: #f1f1f1;
-    background-color: #4c0bce;
+    background-color: #333;
 }
 
 span {
@@ -464,10 +469,13 @@ section {
     margin: 0;
     width: 35px;
     height: 35px;
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
+    position: sticky; /* Változtatás absolute -> sticky */
+    bottom: 10px;    /* 10px-re a konténer aljától */
+    right: 10px;     /* 10px-re a konténer jobb szélétől */
+    float: right;     /* Jobbra igazítás */
+    margin-top: calc(100vh - 35px - 10px); /* Automatikus felső margó */
     cursor: pointer;
+    z-index: 1000;
 }
 
 .settings img {
