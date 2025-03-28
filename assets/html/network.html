@@ -55,18 +55,13 @@
 
     </div>
     <main class="kontener">
-        <h1 class="subsite">Hálózat</h1>
+        <h1 class="cim">Hálózat</h1>
         <section id="html" class="kartya">
             <div class="kartya-item">
-                <h3>Számrendszerek</h3>
+                <h2>Számrendszerek</h2>
                 <hr>
-                <p></p>
-            </div>
-        </section>
-        <section id="halozat-szamrendszerek-16-os" class="kartya">
-            <div class="kartya-item">
                 <h3>16 - os Számrendszer</h3>
-                <hr>
+                <p></p>
                 <p>rz gfhribeiebi</p>
             </div>
         </section>
@@ -94,7 +89,8 @@ name [név]</code></pre>
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
                                 <pre><code>interface range fa0/1-4
 switchport mode [access-trunk]
-switchport access vlan [vlan száma]</code></pre>
+switchport access vlan [vlan száma]
+</code></pre>
                             </div>
                         </div>
                     </div>
@@ -146,7 +142,7 @@ no shut</code></pre>
                                 <button class="copy-btn" onclick="copyText(this)">📋</button>
                                 <pre><code>!SSH beallítás
 ip domain-name [domain név]
-hostname switch/router
+hostname [host név]
 crypto key generate rsa modulus 1024
 username [felhasználónév] privilege [1-től 15-ig] password [jelszó]
 line vty 0 4
@@ -205,6 +201,7 @@ quit</code></pre>
                             <li>Cseréld le a <mark>[zárójeles]</mark> helyőrzőket valós értékekre</li>
                             <li><code>enable secret</code> mindig elsőbbséget élvez az <code>enable password</code>-hoz
                                 képest</li>
+                            <li>Egyéb segítség a</li>
                         </ul>
                     </div>
                 </div>
@@ -271,4 +268,4 @@ quit</code></pre>
 
 </html>
 
-<!-- https://users.iit.uni-miskolc.hu/~szkovacs/OpNet/Cisco_osszefoglalo.pdf -->
+<!--  -->

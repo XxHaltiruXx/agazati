@@ -105,9 +105,7 @@ p {
 h1, h2 {
     color: aliceblue;
     text-align: center;
-    text-transform: uppercase;
     margin: 120px 0 50px 0;
-    font-size: 90px;
 }
 
 .cim {
@@ -473,7 +471,7 @@ section {
     bottom: 10px;    /* 10px-re a konténer aljától */
     right: 10px;     /* 10px-re a konténer jobb szélétől */
     float: right;     /* Jobbra igazítás */
-    margin-top: calc(100vh - 35px - 10px); /* Automatikus felső margó */
+    margin-top: calc(50vh - 35px - 10px); /* Automatikus felső margó */
     cursor: pointer;
     z-index: 1000;
 }
