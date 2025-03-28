@@ -46,6 +46,7 @@
             <a href="html.html#animations">CSS animációk</a>
             <a href="html.html#accessibility">Hozzáférhetőség</a>
             <a href="python.html#python">Python alapok</a>
+            <a href="network.html#szamrendszer">Számrendszerek</a>
             <a href="network.html#halozat">Cisco parancsok</a>
         </div>
         <div class="setting-holder">
@@ -56,15 +57,46 @@
     </div>
     <main class="kontener">
         <h1 class="cim">Hálózat</h1>
-        <section id="html" class="kartya">
-            <div class="kartya-item">
+        <section id="szamrendszer" class="kartya">
+            <div class="kartya-item row p-5">
                 <h2>Számrendszerek</h2>
                 <hr>
-                <h3>16 - os Számrendszer</h3>
-                <p></p>
-                <p>rz gfhribeiebi</p>
+                <div class="row">
+                    <div class="szamrendszerek col">
+                        <div class="szam-cim">
+                            <h3 >2-es Számrendszer</h3>
+                        </div>
+                        <div class="text-holder">
+                            <p class="szam-tartalom">A 2-es, vagy bináris számrendszer kizárólag két számjegyet használ: 0 és 1. Ez a rendszer alapvető a számítástechnikában, mivel a számítógépek belső működése ezen az elven alapul.</p>
+                        </div>
+                    </div>
+                    <div class="szamrendszerek col">
+                        <div class="szam-cim">
+                            <h3 >10-es Számrendszer</h3>
+                        </div>
+                        <div class="text-holder">
+                            <p>A 10-es, vagy decimális számrendszer tíz számjegyet használ (0-9) és a mindennapi életben a leggyakrabban alkalmazott rendszer. Ez az alapja a hagyományos számolásnak és pénzügyi tranzakcióknak.</p>
+                        </div>
+                    </div>
+                    <div class="szamrendszerek col">
+                        <div class="szam-cim">
+                            <h3 >16-os Számrendszer</h3>
+                        </div>
+                        <div class="text-holder">
+                            <p>A 16-os, vagy hexadecimális számrendszer 16 számjegyet használ, ahol a 10-15 értékeket A, B, C, D, E és F jelöli. Ezt a rendszert gyakran használják programozásban, különösen a memória címzésnél és a színek kódolásánál a webfejlesztésben.</p>
+                        </div>
+                    </div>
+                    <div class="szamrendszerek col">
+                        <div class="szam-cim">
+                            <h3 >256-os Számrendszer</h3>
+                        </div>
+                        <div class="text-holder">
+                            <p>A 256-os számrendszer az 8-bites számábrázolásra épül, ahol 256 különböző érték létezik. Ez a rendszer fontos szerepet játszik a digitális képek és színkódolások (például RGB értékek) kezelésében.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </section>
+        </section>        
         <section id="halozat" class="kartya">
             <div class="kartya-item">
                 <h3>Cisco Parancsok</h3>
@@ -195,13 +227,13 @@ quit</code></pre>
                     </div>
 
                     <!-- Fontos megjegyzések -->
-                    <div class="alert alert-dark mt-4">
+                    <div id="megjegyzes" class="alert alert-dark mt-4">
                         <h5>⚠️ Fontos megjegyzések</h5>
                         <ul>
                             <li>Cseréld le a <mark>[zárójeles]</mark> helyőrzőket valós értékekre</li>
                             <li><code>enable secret</code> mindig elsőbbséget élvez az <code>enable password</code>-hoz
                                 képest</li>
-                            <li>Egyéb segítség a</li>
+                            <li>Egyéb segítség a <a href="https://users.iit.uni-miskolc.hu/~szkovacs/OpNet/Cisco_osszefoglalo.pdf" target="_blank">Packet Tracer</a>-hez </li>
                         </ul>
                     </div>
                 </div>
@@ -267,5 +299,3 @@ quit</code></pre>
 </body>
 
 </html>
-
-<!--  -->

@@ -232,6 +232,39 @@ h3 {
     text-align: left;
 }
 
+section#szamrendszer div.row {
+    margin-top: 50px;
+}
+
+section#szamrendszer {
+    margin: auto 10px;
+}
+
+section#szamrendszer div.row div.szamrendszerek {
+    border-radius: 15px;
+    margin: 20px auto;
+}
+
+
+div.szamrendszerek div.szam-cim {
+    background-color: #2f00ff;
+    width: 100%;
+    margin: auto;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+
+    
+}
+
+div.szamrendszerek div.text-holder {
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    margin: 0;
+    height: max-content;
+
+
+}
+
 button {
     padding: 15px 18px;
     color: aliceblue;
@@ -471,7 +504,7 @@ section {
     bottom: 10px;    /* 10px-re a konténer aljától */
     right: 10px;     /* 10px-re a konténer jobb szélétől */
     float: right;     /* Jobbra igazítás */
-    margin-top: calc(50vh - 35px - 10px); /* Automatikus felső margó */
+    margin-top: calc(40vh - 35px - 10px); /* Automatikus felső margó */
     cursor: pointer;
     z-index: 1000;
 }
@@ -841,4 +874,8 @@ div.code-block {
     .kartya-item {
         padding: 15px;
     }
+}
+
+#megjegyzes ul li a {
+    text-decoration: none;
 }
