@@ -57,46 +57,66 @@
     </div>
     <main class="kontener">
         <h1 class="cim">Hálózat</h1>
-        <section id="szamrendszer" class="kartya">
-            <div class="kartya-item row p-5">
-                <h2>Számrendszerek</h2>
-                <hr>
-                <div class="row">
-                    <div class="szamrendszerek col">
-                        <div class="szam-cim">
-                            <h3 >2-es Számrendszer</h3>
-                        </div>
-                        <div class="text-holder">
-                            <p class="szam-tartalom">A 2-es, vagy bináris számrendszer kizárólag két számjegyet használ: 0 és 1. Ez a rendszer alapvető a számítástechnikában, mivel a számítógépek belső működése ezen az elven alapul.</p>
-                        </div>
-                    </div>
-                    <div class="szamrendszerek col">
-                        <div class="szam-cim">
-                            <h3 >10-es Számrendszer</h3>
-                        </div>
-                        <div class="text-holder">
-                            <p>A 10-es, vagy decimális számrendszer tíz számjegyet használ (0-9) és a mindennapi életben a leggyakrabban alkalmazott rendszer. Ez az alapja a hagyományos számolásnak és pénzügyi tranzakcióknak.</p>
-                        </div>
-                    </div>
-                    <div class="szamrendszerek col">
-                        <div class="szam-cim">
-                            <h3 >16-os Számrendszer</h3>
-                        </div>
-                        <div class="text-holder">
-                            <p>A 16-os, vagy hexadecimális számrendszer 16 számjegyet használ, ahol a 10-15 értékeket A, B, C, D, E és F jelöli. Ezt a rendszert gyakran használják programozásban, különösen a memória címzésnél és a színek kódolásánál a webfejlesztésben.</p>
-                        </div>
-                    </div>
-                    <div class="szamrendszerek col">
-                        <div class="szam-cim">
-                            <h3 >256-os Számrendszer</h3>
-                        </div>
-                        <div class="text-holder">
-                            <p>A 256-os számrendszer az 8-bites számábrázolásra épül, ahol 256 különböző érték létezik. Ez a rendszer fontos szerepet játszik a digitális képek és színkódolások (például RGB értékek) kezelésében.</p>
-                        </div>
-                    </div>
+       <section id="szamrendszer" class="container py-3">
+    <div class="text-center mb-5">
+        <h2 class="display-4 fw-bold">Számrendszerek</h2>
+        <hr class="mx-auto" style="width: 120px; height: 3px; background: #2f00ff;">
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        <!-- 2-es számrendszer -->
+        <div class="col">
+            <div class="card h-100 border-0 shadow-lg card-custom">
+                <div class="card-header py-3" style="background: #2f00ff;">
+                    <h5 class="mb-0 text-white">2-es</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">A bináris rendszer 0 és 1 számjegyeket használ. Alapvető szerepet játszik a számítástechnikában.</p>
+                    <code class="d-block mt-3 text-info">01000101 01111000</code>
                 </div>
             </div>
-        </section>        
+        </div>
+
+        <!-- 10-es számrendszer -->
+        <div class="col">
+            <div class="card h-100 border-0 shadow-lg card-custom">
+                <div class="card-header py-3" style="background: #2f00ff;">
+                    <h5 class="mb-0 text-white">10-es</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">A hétköznapi életben használt decimális rendszer 0-tól 9-ig terjedő számjegyekkel.</p>
+                    <code class="d-block mt-3 text-info">1234567890</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- 16-os számrendszer -->
+        <div class="col">
+            <div class="card h-100 border-0 shadow-lg card-custom">
+                <div class="card-header py-3" style="background: #2f00ff;">
+                    <h5 class="mb-0 text-white">16-os</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Hexadecimális rendszer A-F betűkkel kiegészítve. Széleskörűen használják programozásban.</p>
+                    <code class="d-block mt-3 text-info">#FF5733</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- 256-os számrendszer -->
+        <div class="col">
+            <div class="card h-100 border-0 shadow-lg card-custom">
+                <div class="card-header py-3" style="background: #2f00ff;">
+                    <h5 class="mb-0 text-white">256-os</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">8 bites ábrázolás, 256 különböző értékkel. Fontos digitális képeknél és színkódoknál.</p>
+                    <code class="d-block mt-3 text-info">RGB(255, 87, 51)</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
         <section id="halozat" class="kartya">
             <div class="kartya-item">
                 <h3>Cisco Parancsok</h3>
@@ -175,7 +195,7 @@ no shut</code></pre>
                                 <pre><code>!SSH beallítás
 ip domain-name [domain név]
 hostname [host név]
-crypto key generate rsa modulus 1024
+crypto key generate rsa general-keys modulus 1024
 username [felhasználónév] privilege [1-től 15-ig] password [jelszó]
 line vty 0 4
 transport input ssh

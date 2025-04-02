@@ -197,7 +197,7 @@ div.kartya-item {
     width: 90%;
     margin: 20px auto;
     background-color: #0066ff;
-    border: #2f00ff solid 12px;
+    border: #2f00ff solid 12px;i80
 }
 
 div.kartya-item h3 {
@@ -230,39 +230,6 @@ h3 {
     margin: 35px;
     font-size: 180%;
     text-align: left;
-}
-
-section#szamrendszer div.row {
-    margin-top: 50px;
-}
-
-section#szamrendszer {
-    margin: auto 10px;
-}
-
-section#szamrendszer div.row div.szamrendszerek {
-    border-radius: 15px;
-    margin: 20px auto;
-}
-
-
-div.szamrendszerek div.szam-cim {
-    background-color: #2f00ff;
-    width: 100%;
-    margin: auto;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-
-    
-}
-
-div.szamrendszerek div.text-holder {
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    margin: 0;
-    height: max-content;
-
-
 }
 
 button {
