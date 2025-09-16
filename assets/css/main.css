@@ -567,6 +567,12 @@ input[type="radio"] {
     font-weight: bold;
 }
 
+.time {
+    color: orange;
+    display: inline;
+    font-weight: bold;
+}
+
 .console-bgc{
     background-color: rgba(0, 0, 0, 0.5);
     border-radius: 15px;
