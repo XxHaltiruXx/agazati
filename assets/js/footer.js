@@ -10,13 +10,13 @@ footer.innerHTML = `
     <div class="contacts">
         <div>
             <a href="https://github.com/XxHaltiruXx/agazati" target="_blank">
-                <img src="../images/github.svg">
+                <img src="../assets/images/github.svg">
                 <p>Github</p>
             </a>
         </div>
         <div>
             <a href="mailto:agazati.info@gmail.com" target="_blank">
-                <img id="mail" src="../images/mail.png">
+                <img id="mail" src="../assets/images/mail.png">
                 <p>Email</p>
             </a>
         </div>
