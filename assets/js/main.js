@@ -95,10 +95,10 @@ function evaluateQuiz() {
 // Beállítások modális megnyitása
 function openSettingsModal() {
     let modal = document.getElementById("settingsModal");
-    let overlay = document.getElementById("overlay");
+    // let overlay = document.getElementById("overlay");
 
     modal.style.display = "flex";
-    overlay.style.display = "block";
+    // overlay.style.display = "block";
 
     // ESC gombbal bezárás
     document.addEventListener("keydown", closeOnEscape);
@@ -107,10 +107,10 @@ function openSettingsModal() {
 // Modális ablak bezárása
 function closeSettingsModal() {
     let modal = document.getElementById("settingsModal");
-    let overlay = document.getElementById("overlay");
+    // let overlay = document.getElementById("overlay");
 
     modal.style.display = "none";
-    overlay.style.display = "none";
+    // overlay.style.display = "none";
 
     // Eltávolítjuk az eseményfigyelőt az ESC gombra
     document.removeEventListener("keydown", closeOnEscape);
