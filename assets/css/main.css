@@ -197,7 +197,7 @@ div.kartya-item {
     width: 90%;
     margin: 20px auto;
     background-color: #0066ff;
-    border: #2f00ff solid 12px;i80
+    border: #2f00ff solid 12px;
 }
 
 div.kartya-item h3 {
@@ -757,13 +757,25 @@ div.contacts div {
     margin: auto;
 }
 
+div.tryitbtn-holder {
+    margin: 20px 0 0 0;
+}
+
 .tryitbtn {
     background-color: #2ecc71;
     border: #27ae60 3px solid;
     border-radius: 8px;
     font-weight: bold;
     font-size: large;
+    color: white;
+    padding: 12px;
+    margin: 15px 0;
+    text-decoration: none;
 }
+
+.tryitbtn:hover {
+    background-color: #27ae60;
+    color: white;
 
 
 div.code-block {
