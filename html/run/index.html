@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Kód Előnézet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+
+        }
+        textarea {
+            width: 100%;
+            height: 100%;
+            font-family: monospace;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #preview {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f4f4f4;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>HTML Kód Előnézet</h1>
+        
+        
+        <textarea id="htmlInput" placeholder="Írd be ide a HTML kódot..."></textarea>
+    </div>
+    <h2>Előnézet:</h2>
+    <div id="preview">
+        <iframe id="previewFrame" width="100%" height="100%" frameborder="0"></iframe>
+    </div>
+
+    <script>
+        const htmlInput = document.getElementById('htmlInput');
+        const previewFrame = document.getElementById('previewFrame');
+
+        htmlInput.addEventListener('input', function() {
+            const htmlContent = htmlInput.value;
+            const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+            previewDoc.open();
+            previewDoc.write(htmlContent);
+            previewDoc.close();
+        });
+    </script>
+</body>
+</html>
