@@ -1,11 +1,9 @@
-// Legutolsó push dátum lekérése GitHub API-ból
 async function updateLastPushDate() {
     try {
         const res = await fetch("https://api.github.com/repos/XxHaltiruXx/agazati/commits?per_page=1");
         const data = await res.json();
         const date = new Date(data[0].commit.committer.date);
-        
-        // dátum formázása
+
         const formattedDate = date.toLocaleDateString("hu-HU", {
             year: "numeric",
             month: "2-digit",
@@ -21,7 +19,14 @@ async function updateLastPushDate() {
 
 updateLastPushDate();
 
+// --- Képek elérési útjának meghatározása meta alapján ---
+const metaDescription = document.querySelector('meta[name="description"]');
+const isMainPage = metaDescription && metaDescription.content === "Agazati - Főoldal";
 
+// Ha főoldal, akkor "assets/images/", ha aloldal, akkor "../assets/images/"
+const imagePath = isMainPage ? "assets/images/" : "../assets/images/";
+
+// Footer elem létrehozása
 const footer = document.createElement('footer');
 footer.innerHTML = `
     <p>&copy; 2025 XxHaltiruXx. Minden jog fenntartva. Nem állunk kapcsolatban valós márkákkal.</p>
@@ -32,19 +37,17 @@ footer.innerHTML = `
     <div class="contacts">
         <div>
             <a href="https://github.com/XxHaltiruXx/agazati" target="_blank">
-                <img src="../assets/images/github.svg">
+                <img src="${imagePath}github.svg" alt="Github">
                 <p>Github</p>
             </a>
         </div>
         <div>
             <a href="mailto:agazati.info@gmail.com" target="_blank">
-                <img id="mail" src="../assets/images/mail.png">
+                <img id="mail" src="${imagePath}mail.png" alt="Email">
                 <p>Email</p>
             </a>
         </div>
     </div>
 `;
 
-
-// Footer hozzáadása az oldalhoz
 document.body.appendChild(footer);
