@@ -20,10 +20,12 @@ async function updateLastPushDate() {
 updateLastPushDate();
 
 // --- Képek elérési útjának meghatározása meta alapján ---
+// --- Képek elérési útjának meghatározása meta alapján ---
 const metaDescription = document.querySelector('meta[name="description"]');
-const isMainPage = metaDescription && metaDescription.content === "Agazati - Főoldal";
+const descContent = metaDescription ? metaDescription.content : "";
 
-// Ha főoldal, akkor "assets/images/", ha aloldal, akkor "../assets/images/"
+// Ha főoldal vagy 404 oldal, akkor "assets/images/", ha aloldal, akkor "../assets/images/"
+const isMainPage = descContent === "Agazati - Főoldal" || descContent.includes("404");
 const imagePath = isMainPage ? "assets/images/" : "../assets/images/";
 
 // Footer elem létrehozása
@@ -51,5 +53,3 @@ footer.innerHTML = `
 `;
 
 document.body.appendChild(footer);
-
-//jfjdj

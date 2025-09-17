@@ -31,8 +31,8 @@ div.background {
 }
 
 div.card {
-    width: 800px;
-    height: 400px;
+    width: 80%;
+    height: 60%;
     background-color: rgba(0, 0, 0, 0.37);
     margin: auto;
     margin-top: 50px;
@@ -58,10 +58,14 @@ hr {
     
 }
 
+h1 {
+     font-size: 90%;
+}
+
 p {
     color: var(--text-color);
     text-align: center;
-    font-size: 18px;
+    font-size: 90%;
 }
 
 .felkialt {
