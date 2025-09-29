@@ -8,23 +8,12 @@
   <!-- INLINE script legyen az első: beállítja a base elemet, így a későbbi relatív href/src helyes lesz -->
   <script>
     (function(){
-      // Ha biztosan tudod, hogy a projekted GitHub Pages-en /agazati/ alatt fut,
-      // itt állítsd be alapértelmezetten '/agazati/'-re.
-      // Ha nem, a következő detektálás próbálja meg kitalálni.
-      var basePath = '/'; // alapértelmezett (pl. username.github.io esetén)
-
-      // Ha az URL-ben /agazati/ szerepel az elején -> projekt-oldal
+      var basePath = '/';
       if (location.pathname.indexOf('/agazati/') === 0) {
         basePath = '/agazati/';
-      } else {
-        // Ha host név usernév.github.io (user site), akkor root marad '/'
-        // Ha külön domainen vagy más alfolderben fut, módosítsd ide a logikát.
-        // További szabályokat adhatsz hozzá szükség szerint.
       }
-
       var base = document.createElement('base');
       base.href = basePath;
-      // fontos: appendeljük a head elejéhez (vagy document.head.appendChild)
       document.head.appendChild(base);
     })();
   </script>
@@ -42,11 +31,14 @@
 
 <body>
   <div class="background">
-    <div class="card">
-      <img src="assets/images/mark.svg" alt="" class="felkialt">
-      <h1>404 — Az oldal nem található</h1>
+    <div class="card" role="main" aria-labelledby="title-404">
+      <img src="assets/images/mark.svg" alt="" class="felkialt" aria-hidden="true">
+      <h1 id="title-404">404 — Az oldal nem található</h1>
       <p>A keresett oldal nem létezik a szerveren.</p>
-      <p><a href="/agazati/">Vissza a főoldalra</a> vagy <a href="index.html">nézz körül</a>.</p>
+      <p class="links">
+        <a href="/agazati/" class="link-primary">Vissza a főoldalra</a> vagy
+        <a href="index.html" class="link-secondary">nézz körül</a>.
+      </p>
     </div>
   </div>
 
