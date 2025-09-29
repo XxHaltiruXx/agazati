@@ -1,18 +1,42 @@
 <!doctype html>
 <html lang="hu">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Agazati - 404" />
+
+  <!-- INLINE script legyen az első: beállítja a base elemet, így a későbbi relatív href/src helyes lesz -->
+  <script>
+    (function(){
+      // Ha biztosan tudod, hogy a projekted GitHub Pages-en /agazati/ alatt fut,
+      // itt állítsd be alapértelmezetten '/agazati/'-re.
+      // Ha nem, a következő detektálás próbálja meg kitalálni.
+      var basePath = '/'; // alapértelmezett (pl. username.github.io esetén)
+
+      // Ha az URL-ben /agazati/ szerepel az elején -> projekt-oldal
+      if (location.pathname.indexOf('/agazati/') === 0) {
+        basePath = '/agazati/';
+      } else {
+        // Ha host név usernév.github.io (user site), akkor root marad '/'
+        // Ha külön domainen vagy más alfolderben fut, módosítsd ide a logikát.
+        // További szabályokat adhatsz hozzá szükség szerint.
+      }
+
+      var base = document.createElement('base');
+      base.href = basePath;
+      // fontos: appendeljük a head elejéhez (vagy document.head.appendChild)
+      document.head.appendChild(base);
+    })();
+  </script>
+
+  <!-- Bootstrap CSS (absolute URL, nem érinti a base) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-    crossorigin="anonymous"></script>
-  <script src="https://raw.githubusercontent.com/XxHaltiruXx/agazati/refs/heads/main/assets/js/main.js"></script>
-  <link rel="stylesheet" href="https://raw.githubusercontent.com/XxHaltiruXx/agazati/refs/heads/main/assets/css/main.css">
-  <link rel="stylesheet" href="https://raw.githubusercontent.com/XxHaltiruXx/agazati/refs/heads/main/assets/css/404.css">
+
+  <!-- Saját stílusok: relatív útok az újonnan beállított base-hez képest -->
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/404.css">
+
   <title>404 — Nem található</title>
 </head>
 
@@ -25,7 +49,14 @@
       <p><a href="/agazati/">Vissza a főoldalra</a> vagy <a href="index.html">nézz körül</a>.</p>
     </div>
   </div>
-  <script src="https://raw.githubusercontent.com/XxHaltiruXx/agazati/refs/heads/main/assets/js/footer.js"></script>
-</body>
 
+  <!-- Bootstrap JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+
+  <!-- Saját JS fájlok (relatív a base-hez) -->
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/footer.js"></script>
+</body>
 </html>
