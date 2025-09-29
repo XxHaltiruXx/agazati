@@ -33,7 +33,7 @@ div.background {
 
 div.card {
     width: 90%;
-    height: 60%;
+    height: 80%;
     background-color: rgba(0, 0, 0, 0.37);
     margin: auto;
     margin-top: 50px;
@@ -46,7 +46,7 @@ div.card {
 
 footer {
     bottom: 0;
-    margin-top: 0;
+    margin-top: 15px;
 }
 
 hr {
