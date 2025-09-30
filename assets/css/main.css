@@ -871,3 +871,34 @@ div.code-block {
 #megjegyzes ul li a {
     text-decoration: none;
 }
+
+/* NAV FIX: mobilon ne ugorjon vissza balra, és maradjon ott ahol görgetted */
+nav.navbar {
+  -webkit-overflow-scrolling: touch; /* sima iOS görgetés */
+  overflow-anchor: none;             /* tiltja a scroll anchoring okozta "ugrást" */
+  overscroll-behavior-x: contain;    /* ne tolassza vissza a body-t */
+  touch-action: pan-x;               /* érintés: vízszintes panelelrendezés */
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;     /* opcionális: szebb snap viselkedés */
+}
+
+/* Mobilra - ne feszítsük szét a linkeket, és ne legyen flex-grow:1 */
+@media (max-width: 768px) {
+  div.navbar-nav {
+    justify-content: flex-start !important; /* maradjon a görgethető sor */
+    gap: 10px;
+    padding-left: 70px;            /* hely a bal oldali hamburger gombnak */
+    min-width: max-content;        /* csak annyi széles legyen, amennyi kell */
+  }
+
+  div.navbar-nav a.nav-link {
+    flex: 0 0 auto !important;     /* ne nyomja szét/terjessze a linkeket */
+    white-space: nowrap;
+    scroll-snap-align: start;      /* ha snapet használunk, ez ad jó viselkedést */
+    padding: 18px 18px !important; /* kisebb / egységesebb padding mobilon */
+  }
+
+  /* csökkentett scrollbar "zavarás" mobilon */
+  nav.navbar::-webkit-scrollbar { height: 6px; }
+  nav.navbar::-webkit-scrollbar-thumb { border-radius: 6px; background: rgba(255,255,255,0.08); }
+}
