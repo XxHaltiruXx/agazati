@@ -135,6 +135,12 @@ nav.navbar {
     overflow-x: auto;
     white-space: nowrap; 
     align-items: center;
+    -webkit-overflow-scrolling: touch; /* sima iOS görgetés */
+  overflow-anchor: none;             /* tiltja a scroll anchoring okozta "ugrást" */
+  overscroll-behavior-x: contain;    /* ne tolassza vissza a body-t */
+  touch-action: pan-x;               /* érintés: vízszintes panelelrendezés */
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;     /* opcionális: szebb snap viselkedés */
 }
 
 div.navbar-nav a.nav-link {
