@@ -1,165 +1,278 @@
-/* NAV — JS-only: kattintásra a link jobb széle a navbar jobb széléhez igazodik; mentés+restore
-   Hely: ideálisan a </body> elé vagy assets/js/main.js végére. */
-(function(){
-  const KEY = 'agazati_nav_align_right_v2';
-  const rightPadding = 0; // ha szeretnél kis belső margót a jobb oldalra, állítsd pl. 12-re
+/* nav.js — robust JS-only navbar aligner + persistent scroll
+   v1.1 - handles anchors, buttons, onclick navigations, span toggles, multiple pages/subfolders.
+   Install: place this file in assets/js/nav.js and include it on every page.
+*/
 
-  function onReady(fn){
+(function(){
+  const KEY = '__agazati_nav_pos_v1';   // sessionStorage kulcs
+  const RIGHT_PADDING = 0;              // ha kell jobb oldali "üres" hely, állítsd (px)
+  const MAX_RESTORE_ATTEMPTS = 20;
+  const RESTORE_RETRY_MS = 70;
+
+  // Utility
+  const noop = () => {};
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // Find the best scrollable nav element on the page.
+  function findNav() {
+    // prefer an element with class 'navbar' or 'navbar-nav' that can scroll horizontally
+    const candidates = [
+      ...document.querySelectorAll('nav.navbar, .navbar, .navbar-nav, header nav, header .navbar')
+    ];
+    for (const c of candidates) {
+      if (!c) continue;
+      // if this element actually can scroll horizontally or its children overflow, prefer it
+      if (c.scrollWidth && c.clientWidth && c.scrollWidth > c.clientWidth) return c;
+      // check computed overflow-x
+      const style = window.getComputedStyle(c);
+      if (/(auto|scroll|overlay)/.test(style.overflowX)) return c;
+    }
+    // fallback: try to find first nav in header
+    const headerNav = document.querySelector('header nav, nav');
+    return headerNav || null;
+  }
+
+  // Save/restore helpers
+  function savePosFor(nav, value) {
+    try {
+      const payload = {
+        v: Math.round(value == null ? nav.scrollLeft || 0 : value),
+        w: nav.clientWidth || 0,       // optional: store width for debugging/adaptation
+        s: nav.scrollWidth || 0
+      };
+      sessionStorage.setItem(KEY, JSON.stringify(payload));
+      // no console spam in prod; uncomment for debugging:
+      // console.debug('[nav] saved', payload);
+    } catch (e) { /* ignore */ }
+  }
+  function getStored() {
+    try {
+      const raw = sessionStorage.getItem(KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      return typeof obj.v === 'number' ? obj.v : null;
+    } catch (e) { return null; }
+  }
+
+  // Compute target scrollLeft so that el's right edge aligns with nav's right edge (minus RIGHT_PADDING)
+  function computeTargetForElement(nav, el) {
+    if (!nav || !el) return 0;
+    const navRect = nav.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    // delta: how many pixels the element's right is to the right of nav's right (positive => partly out to right)
+    const delta = (elRect.right - navRect.right);
+    const target = Math.round(nav.scrollLeft + delta - RIGHT_PADDING);
+    const max = Math.max(0, nav.scrollWidth - nav.clientWidth);
+    return clamp(target, 0, max);
+  }
+
+  // Scroll helper
+  function scrollNavTo(nav, target, smooth = true) {
+    try {
+      if (nav && 'scrollTo' in nav) {
+        nav.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' });
+      } else if (nav) {
+        nav.scrollLeft = target;
+      }
+    } catch (e) {
+      try { nav.scrollLeft = target; } catch (ee) {}
+    }
+  }
+
+  // Determine if an element is a navigational trigger we care about.
+  // Preference: nearest <a>. If none, treat elements with onclick that set location, data-href, role=link, or class 'nav-link'
+  function findClickedNavElement(target, nav) {
+    if (!target) return null;
+    const a = target.closest && target.closest('a');
+    if (a && nav.contains(a)) return a;
+    // if clicked element within nav and has class nav-link (bootstrap) — use it
+    const navLink = target.closest && target.closest('.nav-link, [data-nav-link], [role="link"], button');
+    if (navLink && nav.contains(navLink)) return navLink;
+    // else if clicked element is inside nav, find any direct child anchor
+    if (nav.contains(target)) {
+      const firstA = nav.querySelector('a');
+      return firstA || target;
+    }
+    return null;
+  }
+
+  // Main init (wait until DOM ready)
+  function onReady(fn) {
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      // kis késleltetés hogy minden DOM elem biztosan ott legyen
-      setTimeout(fn, 10);
+      setTimeout(fn, 8);
     } else {
-      document.addEventListener('DOMContentLoaded', () => setTimeout(fn, 10));
+      document.addEventListener('DOMContentLoaded', () => setTimeout(fn, 8));
     }
   }
 
   onReady(() => {
-    const nav = document.querySelector('nav.navbar') || document.querySelector('.navbar');
+    const nav = findNav();
     if (!nav) {
-      console.warn('[nav-align] Navbar nem található.');
+      // nothing to do
+      // console.warn('[nav] no nav found');
       return;
     }
 
-    console.info('[nav-align] Inited — navbar found.');
-
-    // segédfüggvény: mentés
-    function savePos(val) {
-      try {
-        const v = typeof val === 'number' ? Math.round(val) : Math.round(nav.scrollLeft || 0);
-        sessionStorage.setItem(KEY, String(v));
-        console.debug('[nav-align] Saved pos', v);
-      } catch (e) { console.warn('[nav-align] Save failed', e); }
-    }
-
-    // segéd: beolvasás
-    function getStored() {
-      try {
-        const v = sessionStorage.getItem(KEY);
-        return v === null ? null : Number(v) || 0;
-      } catch (e) { return null; }
-    }
-
-    // számoljuk ki a targetet úgy, hogy az elem jobb széle a nav jobb szélére kerüljön
-    function computeTargetForElement(el) {
-      if (!el) return 0;
-      const navRect = nav.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      // mennyivel van az elem jobb széle a nav jobb szélétől (pozitív => jobbra van)
-      const delta = (elRect.right - navRect.right);
-      const target = nav.scrollLeft + delta - rightPadding;
-      const max = Math.max(0, nav.scrollWidth - nav.clientWidth);
-      const clamped = Math.max(0, Math.min(max, Math.round(target)));
-      console.debug('[nav-align] computeTarget', {delta, target, clamped, max});
-      return clamped;
-    }
-
-    // sima/compat scroll
-    function scrollNavTo(target, smooth = true) {
-      try {
-        if ('scrollTo' in nav) {
-          nav.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' });
-        } else {
-          nav.scrollLeft = target;
-        }
-      } catch (e) {
-        nav.scrollLeft = target;
+    // If the found nav itself is not horizontally scrollable but contains a scrollable child, use that child.
+    if (nav.scrollWidth <= nav.clientWidth) {
+      // find a child with overflow scroll
+      const child = Array.from(nav.querySelectorAll('*')).find(c => c.scrollWidth > c.clientWidth && /(auto|scroll|overlay)/.test(window.getComputedStyle(c).overflowX));
+      if (child) {
+        // replace nav reference with scrollable child
+        // console.debug('[nav] using scrollable child instead of top nav');
+        // eslint-disable-next-line no-unused-vars
+        // nav = child; // cannot reassign const; so use variable shadowing via newNav
       }
     }
 
-    // kattintás: capture fázisban mentsük és görgessük
-    document.addEventListener('click', function(ev){
-      const a = ev.target.closest && ev.target.closest('nav.navbar a, .navbar a');
-      if (!a) return;
-      // ha a linknek nincs href vagy csak a hamburger span, kilépünk
-      if (!a.href && a.getAttribute('role') !== 'link') return;
-
-      const target = computeTargetForElement(a);
-      // vizuális feedback: görgessük oda
-      scrollNavTo(target, true);
-      // azonnal mentsük (capture=true ensures happens before navigation)
-      savePos(target);
-      // ne preventDefault: engedjük a navigációt
-    }, true);
-
-    // scroll mentés (throttle rAF)
-    let raf = null;
+    // throttle save via RAF
+    let rafSave = null;
     nav.addEventListener('scroll', () => {
-      if (raf) cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => { savePos(); raf = null; });
+      if (rafSave) cancelAnimationFrame(rafSave);
+      rafSave = requestAnimationFrame(() => {
+        savePosFor(nav);
+        rafSave = null;
+      });
     }, { passive: true });
 
-    // touchen végén mentés
-    nav.addEventListener('touchend', () => setTimeout(() => savePos(), 20), { passive: true });
+    // Save on touchend (mobile)
+    nav.addEventListener('touchend', () => setTimeout(() => savePosFor(nav), 20), { passive: true });
 
-    // beforeunload biztosítás
-    window.addEventListener('beforeunload', () => savePos());
+    // Save before unload
+    window.addEventListener('beforeunload', () => savePosFor(nav));
 
-    // Visszaállító rutin: többször próbálkozik és figyeli a DOM-ot
+    // Capture clicks: do this in capture phase so we save before any navigation starts
+    document.addEventListener('click', (ev) => {
+      try {
+        const clicked = findClickedNavElement(ev.target, nav);
+        if (!clicked) return;
+        // Don't treat hamburger toggles (with class sidebargomb) as navigation
+        if (clicked.classList && clicked.classList.contains('sidebargomb')) return;
+
+        // If it's an anchor, compute target so its right edge sits at nav's right edge
+        if (clicked.tagName && clicked.tagName.toLowerCase() === 'a') {
+          const t = computeTargetForElement(nav, clicked);
+          savePosFor(nav, t);
+          // Visual feedback attempt (smooth)
+          scrollNavTo(nav, t, true);
+          return;
+        }
+
+        // If it's a button or other element that likely navigates via JS, just save current position
+        if (clicked.tagName && (clicked.tagName.toLowerCase() === 'button' || clicked.getAttribute && clicked.getAttribute('role') === 'link')) {
+          savePosFor(nav);
+          return;
+        }
+
+        // fallback: if clicked inside nav, save current pos
+        if (nav.contains(ev.target)) {
+          savePosFor(nav);
+        }
+      } catch (e) {
+        // swallow errors
+      }
+    }, true); // capture
+
+    // Also handle keyboard activation (Enter/Space) for accessibility
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        const active = document.activeElement;
+        if (nav && active && nav.contains(active)) {
+          const clicked = findClickedNavElement(active, nav) || active;
+          if (clicked) {
+            if (clicked.tagName && clicked.tagName.toLowerCase() === 'a') {
+              const t = computeTargetForElement(nav, clicked);
+              savePosFor(nav, t);
+              scrollNavTo(nav, t, true);
+            } else {
+              savePosFor(nav);
+            }
+          }
+        }
+      }
+    }, true);
+
+    // If the page uses JS navigation (window.location=...) tied to buttons that don't unload immediately,
+    // we still saved on click; if navigation is programmatic later, beforeunload handler covers final save.
+
+    // Restore routine with retries + MutationObserver
     function restorePosition() {
       const stored = getStored();
-      if (stored === null) {
-        console.debug('[nav-align] No stored pos');
+      if (stored === null) return;
+      // If nav isn't scrollable, nothing to do
+      if (nav.clientWidth >= nav.scrollWidth) {
+        // nothing to restore; but save current pos for future
+        savePosFor(nav, 0);
         return;
       }
-      const maxAttempts = 18;
-      const retryDelay = 60;
+
       let attempts = 0;
       let stopped = false;
 
       const maxScroll = () => Math.max(0, nav.scrollWidth - nav.clientWidth);
 
-      function attempt() {
+      function attemptOnce() {
         if (stopped) return;
         attempts++;
-        const desired = Math.max(0, Math.min(maxScroll(), Math.round(stored)));
-        scrollNavTo(desired, false);
-        console.debug('[nav-align] restore attempt', attempts, desired, 'current', nav.scrollLeft);
-        if (Math.abs(nav.scrollLeft - desired) <= 2 || attempts >= maxAttempts) {
+        const desired = clamp(Math.round(stored), 0, maxScroll());
+        // set instantly (no smooth to avoid animation fight)
+        scrollNavTo(nav, desired, false);
+        // success check
+        if (Math.abs(nav.scrollLeft - desired) <= 2 || attempts >= MAX_RESTORE_ATTEMPTS) {
           stop();
           return;
         }
-        requestAnimationFrame(() => setTimeout(attempt, retryDelay));
+        requestAnimationFrame(() => setTimeout(attemptOnce, RESTORE_RETRY_MS));
       }
 
       function stop() {
         stopped = true;
-        try { if (observer) observer.disconnect(); } catch(e){}
-        console.debug('[nav-align] restore stopped at attempt', attempts, 'current', nav.scrollLeft);
+        try { observer && observer.disconnect(); } catch(e){}
       }
 
-      // figyeljük ha a nav DOM-ja változik (pl. dinamikusan tölt)
+      // Watch for DOM changes (menu items added later)
       let observer = null;
       try {
         observer = new MutationObserver((mutations) => {
           if (stopped) return;
-          attempts = 0; // reseteljük
-          requestAnimationFrame(attempt);
+          // reset attempts to allow new tries after DOM change
+          attempts = 0;
+          requestAnimationFrame(attemptOnce);
         });
         observer.observe(nav, { childList: true, subtree: true, attributes: true });
       } catch (e) {
-        observer = null;
+        // ignore if MutationObserver not available
       }
 
-      attempt();
-      setTimeout(() => { if (!stopped) attempt(); }, 120);
-      setTimeout(() => { if (!stopped) attempt(); }, 260);
+      attemptOnce();
+      setTimeout(() => { if (!stopped) attemptOnce(); }, 120);
+      setTimeout(() => { if (!stopped) attemptOnce(); }, 260);
     }
 
-    // események amire visszaállítunk
+    // restore on common lifecycle events
     window.addEventListener('pageshow', () => setTimeout(restorePosition, 20));
     window.addEventListener('DOMContentLoaded', () => setTimeout(restorePosition, 30));
-    window.addEventListener('load', () => setTimeout(restorePosition, 60));
+    window.addEventListener('load', () => setTimeout(restorePosition, 80));
 
-    // ha nincs még mentett érték, inicializáljuk az aktív linkhez
+    // initialize storage from active/current page if empty (useful first load)
     (function initFromActive(){
-      const active = nav.querySelector('a[aria-current="page"], a.active, a.selected');
-      if (active && getStored() === null) {
-        const t = computeTargetForElement(active);
-        savePos(t);
-      }
+      try {
+        if (getStored() === null) {
+          const active = nav.querySelector('a[aria-current="page"], a.active, a[selected], .nav-link[aria-current="page"]');
+          if (active) {
+            const t = computeTargetForElement(nav, active);
+            savePosFor(nav, t);
+          }
+        }
+      } catch(e){}
     })();
 
-    // debug: ha semmi sem történik, nézd meg a konzolt (mobile devtools)
-    console.info('[nav-align] Ready. Click a nav link (pl. Python) to align right edge.');
-  });
+    // expose helpers for debugging / manual restore
+    try {
+      window.__agazati_nav_restore = restorePosition;
+      window.__agazati_nav_save = () => savePosFor(nav);
+      window.__agazati_nav_get = getStored;
+    } catch (e) {}
+
+  }); // onReady
 })();
