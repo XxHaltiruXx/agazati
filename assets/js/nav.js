@@ -1,162 +1,145 @@
-/* NAV - JS-ONLY scroll position persist (place at the end of assets/js/main.js) */
-(function () {
-  const KEY = 'agazati_nav_scroll_js_only_v1';
-  const MAX_RESTORE_ATTEMPTS = 20;   // hány próbálkozásig ismételjen
-  const RESTORE_RETRY_MS = 60;       // timeout köztük
+// NAV: JS-only — amikor kattintasz egy nav-linkre, az elem jobb széle a nav jobb szélére kerül,
+// pozíció mentése sessionStorage-ba és visszaállítás oldalbetöltéskor (többször próbálkozva).
+(function(){
+  const KEY = 'agazati_nav_align_right_v1';
   const nav = document.querySelector('nav.navbar') || document.querySelector('.navbar');
+  if(!nav) return;
 
-  if (!nav) {
-    // nincs navbar: semmi dolga
-    return;
-  }
+  // Segéd: clamp
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-  // --------------------------
-  // Mentés funkció
-  // --------------------------
-  function savePosition() {
+  // Save current scrollLeft
+  function savePos() {
     try {
-      // Math.round csökkenti a felesleges értékváltozásokat
       sessionStorage.setItem(KEY, String(Math.round(nav.scrollLeft || 0)));
-    } catch (e) {
-      // sessionStorage hibától független marad az oldal
-      console.warn('Nav position save failed', e);
+    } catch(e) { /* ignore */ }
+  }
+
+  // Compute target so that elem's right edge aligns with nav's right edge
+  function computeTargetForElement(el) {
+    if(!el) return 0;
+    // offsetLeft is relative to offsetParent; nav may be the offset parent in typical cases
+    // to be robust, compute cumulative offset relative to nav
+    let left = 0, node = el;
+    while(node && node !== nav && node !== document.body) {
+      left += node.offsetLeft || 0;
+      node = node.offsetParent;
+    }
+    const elRight = left + (el.offsetWidth || 0);
+    const target = elRight - nav.clientWidth;
+    // clamp between 0 and maxScroll
+    const max = Math.max(0, nav.scrollWidth - nav.clientWidth);
+    return clamp(Math.round(target), 0, max);
+  }
+
+  // Smoothly scroll nav to target (fallback to instant if not supported)
+  function scrollNavTo(target, smooth = true) {
+    try {
+      if ('scrollTo' in nav) {
+        nav.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' });
+      } else {
+        nav.scrollLeft = target;
+      }
+    } catch(e) {
+      nav.scrollLeft = target;
     }
   }
 
-  // Throttle mentés scroll közben (raf alapú)
-  let rafId = null;
-  nav.addEventListener('scroll', () => {
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(() => {
-      savePosition();
-      rafId = null;
-    });
-  }, { passive: true });
-
-  // Mentsünk kattintásnál (capture-ban, hogy navigáció előtt elmentsen)
-  document.addEventListener('click', (ev) => {
+  // On click inside nav: if click on anchor, align its right edge, save pos (capture phase so we save before navigation)
+  document.addEventListener('click', function(ev){
     const a = ev.target.closest && ev.target.closest('nav.navbar a, .navbar a');
-    if (a) savePosition();
-  }, true);
+    if(!a) return;
+    // compute target for the clicked link
+    const target = computeTargetForElement(a);
+    // set scroll immediately for visual feedback (smooth)
+    scrollNavTo(target, true);
+    // save for next page load
+    try { sessionStorage.setItem(KEY, String(target)); } catch(e){}
+    // don't prevent default: allow navigation
+  }, true); // use capture so save happens before navigation
 
-  // Ments touch végekor is (mobil)
-  nav.addEventListener('touchend', () => {
-    // kis késleltetés, hogy a scrollLeft befejeződjön
-    setTimeout(savePosition, 20);
+  // Also save on touchend / scroll (throttled by rAF)
+  let raf = null;
+  nav.addEventListener('scroll', () => {
+    if(raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { savePos(); raf = null; });
   }, { passive: true });
 
-  // Biztonsági mentés unload előtt
-  window.addEventListener('beforeunload', savePosition);
+  nav.addEventListener('touchend', () => { setTimeout(savePos, 20); }, { passive: true });
 
-  // Ha az oldal hash-változást produkál (pl. anchor link), akkor mentünk és később restore-olunk
-  window.addEventListener('hashchange', () => {
-    savePosition();
-    // kis delay után visszaállítunk, mert a hash gyakran okoz native jumpot
-    setTimeout(restorePosition, 40);
-  });
+  window.addEventListener('beforeunload', savePos);
 
-  // --------------------------
-  // Visszaállítás funkció
-  // --------------------------
+  // Restore routine with retries + MutationObserver (in case menu items are injected later)
   function getStored() {
-    try {
-      const v = sessionStorage.getItem(KEY);
-      return v === null ? null : Number(v) || 0;
-    } catch (e) {
-      return null;
-    }
+    try { const v = sessionStorage.getItem(KEY); return v === null ? null : Number(v) || 0; }
+    catch(e){ return null; }
   }
 
   function restorePosition() {
     const stored = getStored();
-    if (stored === null) return;
-
-    // Ha a nav elemei még nem töltődtek be, vagy a scrollWidth később nő,
-    // próbáljuk többször beállítani, és figyeljük a DOM változásait.
+    if(stored === null) return;
+    const maxAttempts = 18;
+    const retryDelay = 60;
     let attempts = 0;
-    let cancelled = false;
+    let stopped = false;
+    const maxScroll = Math.max(0, nav.scrollWidth - nav.clientWidth);
 
-    // Ha a nav jelenleg kisebb, mint stored, akkor várjunk, mert nem fér el
-    function attemptOnce() {
-      if (cancelled) return;
+    function attempt() {
+      if(stopped) return;
       attempts++;
-      // beállítjuk
-      nav.scrollLeft = stored;
+      // clamp stored to current max (in case layout changed)
+      const desired = clamp(Math.round(stored), 0, maxScroll);
+      // set it (try smooth = false to avoid interfering with page load animations)
+      scrollNavTo(desired, false);
 
-      // ha elég közel vagyunk, vége
-      if (Math.abs(nav.scrollLeft - stored) <= 2) {
+      // if close enough or max attempts reached => stop
+      if (Math.abs(nav.scrollLeft - desired) <= 2 || attempts >= maxAttempts) {
         stop();
         return;
       }
-
-      if (attempts >= MAX_RESTORE_ATTEMPTS) {
-        stop();
-        return;
-      }
-
-      // újrapróbálkozás: rAF + timeout kettőse jobb esély a stabil layoutra
-      requestAnimationFrame(() => {
-        setTimeout(attemptOnce, RESTORE_RETRY_MS);
-      });
+      // otherwise schedule another try (rAF + timeout increases chance layout settled)
+      requestAnimationFrame(() => setTimeout(attempt, retryDelay));
     }
 
     function stop() {
-      cancelled = true;
-      if (observer) observer.disconnect();
+      stopped = true;
+      if(observer) observer.disconnect();
     }
 
-    // Ha a DOM később változik (pl. menü JS generálja a linkeket), akkor újraindítjuk a próbálkozást
+    // observe DOM changes inside nav and restart attempts when children change
     const observer = new MutationObserver((mutations) => {
-      // ha van változás a children-ben vagy attribútumban, próbálkozzunk újra
-      if (mutations && mutations.length) {
-        if (!cancelled) {
-          attempts = 0; // reset próbálatok, mert most frissült a DOM
-          attemptOnce();
-        }
-      }
+      if(stopped) return;
+      // reset attempts and try again when things change
+      attempts = 0;
+      requestAnimationFrame(attempt);
     });
 
-    // figyeljük a navbar változásait (children, subtree) és attribútumokat
-    try {
-      observer.observe(nav, { childList: true, subtree: true, attributes: true });
-    } catch (e) {
-      // ha az observe nem támogatott vagy hiba van, folytatjuk observer nélkül
-    }
+    try { observer.observe(nav, { childList: true, subtree: true, attributes: true }); }
+    catch(e){ /* MutationObserver not supported -> proceed without it */ }
 
-    // Első próbálkozások: azonnal + kis késleltések
-    attemptOnce();
+    // initial tries
+    attempt();
+    // a couple of delayed retries to help with slow resources
+    setTimeout(() => { if(!stopped) attempt(); }, 120);
+    setTimeout(() => { if(!stopped) attempt(); }, 250);
   }
 
-  // Restore különböző eseményekre: history (pageshow), DOMContentLoaded, load,
-  // és egy kis késleltetésre is, hogy képek/egyéb erőforrások betöltése után sikeres legyen.
-  window.addEventListener('pageshow', () => {
-    // pageshow lefut, ha historyból visszajön a felhasználó
-    setTimeout(restorePosition, 20);
-    setTimeout(restorePosition, 120);
-  });
+  // Restore on common events
+  window.addEventListener('pageshow', () => { setTimeout(restorePosition, 20); });
+  window.addEventListener('DOMContentLoaded', () => { setTimeout(restorePosition, 30); });
+  window.addEventListener('load', () => { setTimeout(restorePosition, 50); });
 
-  window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(restorePosition, 20);
-    setTimeout(restorePosition, 120);
-  });
+  // expose for debugging if needed
+  try { window.__agazati_nav_align_right_restore = restorePosition; } catch(e){}
 
-  window.addEventListener('load', () => {
-    setTimeout(restorePosition, 40);
-    setTimeout(restorePosition, 200);
-  });
+  // If no stored value yet, optionally initialize by aligning current active element (if any)
+  (function initFromActive(){
+    const active = nav.querySelector('a.active, a[aria-current="page"], a.selected');
+    if(active && getStored() === null) {
+      const t = computeTargetForElement(active);
+      sessionStorage.setItem(KEY, String(t));
+      // don't force-scroll right away; let restorePosition handle it on pageshow/load
+    }
+  })();
 
-  // Ha fókusz kerül linkre (pl. tab vagy JS focus), akkor is próbáljuk helyre tenni a scrollt
-  nav.addEventListener('focusin', () => {
-    setTimeout(restorePosition, 10);
-  });
-
-  // Ha a user kinyitja a menüt (ha van custom toggle), akkor érdemes lehet manuálisan hívni restorePosition()
-  // Exportáljuk ide az ablakra, hogy dev-kód tudja hívni ha kell:
-  try {
-    window.__agazati_nav_restore = restorePosition;
-    window.__agazati_nav_save = savePosition;
-  } catch (e) {/* ignore */ }
-
-  // első mentés, ha nincs még semmi
-  if (getStored() === null) savePosition();
 })();
