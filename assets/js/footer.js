@@ -1,3 +1,13 @@
+const APP_VERSION = "1.3.3";
+
+// Verziószám frissítése
+document.addEventListener('DOMContentLoaded', function() {
+    const versionElements = document.querySelectorAll('.version-number');
+    versionElements.forEach(element => {
+        element.textContent = APP_VERSION;
+    });
+});
+
 // ==== Konfig ====
 const repoName = "agazati"; // ha máshova költözteted, ezt változtasd
 const githubRawBase = `https://raw.githubusercontent.com/XxHaltiruXx/${repoName}/main/assets/images/`;
@@ -8,33 +18,26 @@ function computeBasePath(repo) {
     const path = location.pathname; // pl. "/agazati/page.html" vagy "/index.html"
     let base = "";
 
-    // GitHub Pages: username.github.io/repo/ => parts[1] === repo
     if (host.includes("github.io")) {
         const parts = path.split("/");
         if (parts[1] === repo) base = `/${repo}`;
-        // ha user site (username.github.io) akkor base lesz ""
     } else {
-        // Egyéb host: ha az URL-ben szerepel a repoName, vegyük mint base (pl fejlesztésnél)
         const m = path.match(new RegExp(`(/${repo})(/|$)`));
         if (m) base = m[1];
     }
 
-    // Normalizálás: ne legyen végén dupla /
     if (base.endsWith("/")) base = base.slice(0, -1);
     return base;
 }
 
 function getImagePath() {
     const base = computeBasePath(repoName);
-    // ha base üres => gyökérrel dolgozunk ("/assets/images/...")
     return `${base}/assets/images/`;
 }
 
-// beállítja az onerror fallbacket minden kép elemre ami a footerben van
 function applyImageFallbacks(container) {
     const imgs = container.querySelectorAll("img");
     imgs.forEach(img => {
-        // ha a src nem létezik vagy hibára fut, cseréljük a raw.githubusercontent URL-re
         const filename = img.getAttribute("data-filename") || img.src.split("/").pop();
         const fallback = githubRawBase + filename;
         img.onerror = function () {
@@ -43,10 +46,25 @@ function applyImageFallbacks(container) {
     });
 }
 
-// ==== GitHub commit dátum lekérése ====
+// ==== GitHub commit dátum lekérése (cache-elve 24h) ====
 async function updateLastPushDate() {
+    const timeEl = document.querySelector(".time");
+    if (!timeEl) return;
+
+    const cacheKey = "lastPushDate";
+    const cacheExpiryKey = "lastPushDateExpiry";
+    const now = Date.now();
+
+    const cached = localStorage.getItem(cacheKey);
+    const expiry = localStorage.getItem(cacheExpiryKey);
+
+    if (cached && expiry && now < parseInt(expiry)) {
+        timeEl.textContent = cached;
+        return;
+    }
+
     try {
-        const res = await fetch("https://api.github.com/repos/XxHaltiruXx/agazati/commits?per_page=1");
+        const res = await fetch(`https://api.github.com/repos/XxHaltiruXx/${repoName}/commits?per_page=1`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (!Array.isArray(data) || !data[0] || !data[0].commit || !data[0].commit.committer) {
@@ -60,12 +78,13 @@ async function updateLastPushDate() {
             day: "2-digit"
         });
 
-        const timeEl = document.querySelector(".time");
-        if (timeEl) timeEl.textContent = formattedDate;
+        timeEl.textContent = formattedDate;
+
+        localStorage.setItem(cacheKey, formattedDate);
+        localStorage.setItem(cacheExpiryKey, (now + 24 * 60 * 60 * 1000).toString());
     } catch (err) {
         console.error("Nem sikerült lekérni a dátumot:", err);
-        const timeEl = document.querySelector(".time");
-        if (timeEl) timeEl.textContent = "N/A";
+        timeEl.textContent = "N/A";
     }
 }
 
@@ -97,7 +116,6 @@ async function updateLastPushDate() {
     `;
     document.body.appendChild(footer);
 
-    // alkalmazzuk a fallback logikát: ha a relatív kép nem elérhető -> raw.githubusercontent
     applyImageFallbacks(footer);
 })();
 

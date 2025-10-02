@@ -1,47 +1,70 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hu">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Try Python — Pyodide példa</title>
-  <style>
-    body{font-family:system-ui,Arial;padding:18px;background:#f6f7fb}
-    textarea{width:100%;height:220px;font-family:monospace;padding:8px}
-    pre#output{white-space:pre-wrap;background:#111;color:#dcdcdc;padding:12px;border-radius:6px;height:160px;overflow:auto}
-    .row{display:flex;gap:8px;margin-top:8px}
-  </style>
-</head>
-<body>
-  <h1>Try it — Python (Pyodide)</h1>
-  <p>Írj ide Python kódot, majd nyomd meg a Futtatás gombot.</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Try Python — Pyodide példa</title>
+    <style>
+      body {
+        font-family: system-ui, Arial;
+        padding: 18px;
+        background: #f6f7fb;
+      }
+      textarea {
+        width: 100%;
+        height: 220px;
+        font-family: monospace;
+        padding: 8px;
+      }
+      pre#output {
+        white-space: pre-wrap;
+        background: #111;
+        color: #dcdcdc;
+        padding: 12px;
+        border-radius: 6px;
+        height: 160px;
+        overflow: auto;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Try it — Python (Pyodide)</h1>
+    <p>Írj ide Python kódot, majd nyomd meg a Futtatás gombot.</p>
 
-  <textarea id="code">print("Helló Agazati!")</textarea>
-  <div class="row">
-    <button id="run">Futtatás</button>
-    <button id="clear">Töröl</button>
-  </div>
+    <textarea id="code">print("Helló Agazati!")</textarea>
+    <div class="row">
+      <button id="run">Futtatás</button>
+      <button id="clear">Töröl</button>
+    </div>
 
-  <h3>Kimenet</h3>
-  <pre id="output"></pre>
+    <h3>Kimenet</h3>
+    <pre id="output"></pre>
 
-  <!-- Pyodide betöltése (CDN) -->
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-  <script>
-    let pyodide = null;
-    const outputEl = document.getElementById('output');
-    const codeEl = document.getElementById('code');
+    <!-- Pyodide betöltése (CDN) -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <script>
+      let pyodide = null;
+      const outputEl = document.getElementById("output");
+      const codeEl = document.getElementById("code");
 
-    async function init() {
-      outputEl.textContent = 'Pyodide betöltése... várj';
-      pyodide = await loadPyodide({indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/"});
-      outputEl.textContent = 'Készen áll. Használhatsz standard könyvtárat.';
-    }
-    init();
+      async function init() {
+        outputEl.textContent = "Pyodide betöltése... várj";
+        pyodide = await loadPyodide({
+          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/",
+        });
+        outputEl.textContent = "Készen áll. Használhatsz standard könyvtárat.";
+      }
+      init();
 
-    // Segédfüggvény a print elfogásához
-    function runUserCode(code) {
-      // beágyazunk egy kis Python wrapper-t, ami elkülöníti a stdout-ot
-      const wrapper = `
+      // Segédfüggvény a print elfogásához
+      function runUserCode(code) {
+        // beágyazunk egy kis Python wrapper-t, ami elkülöníti a stdout-ot
+        const wrapper = `
 import sys, io, traceback
 _out = io.StringIO()
 _old_stdout = sys.stdout
@@ -49,7 +72,10 @@ _old_stderr = sys.stderr
 sys.stdout = _out
 sys.stderr = _out
 try:
-${code.split('\n').map(l => '    ' + l).join('\n')}
+${code
+  .split("\n")
+  .map((l) => "    " + l)
+  .join("\n")}
 except Exception:
     traceback.print_exc()
 finally:
@@ -57,36 +83,37 @@ finally:
     sys.stderr = _old_stderr
 print(_out.getvalue(), end="")
 `;
-      return pyodide.runPythonAsync(wrapper);
-    }
-
-    document.getElementById('run').addEventListener('click', async () => {
-      if (!pyodide) return outputEl.textContent = 'A Pyodide még töltődik...';
-      outputEl.textContent = 'Futtatás...';
-      try {
-        const code = codeEl.value;
-        await runUserCode(code);
-        // a runPythonAsync által kiírt print a pyodide stdout-jába került,
-        // és a következő futtatással visszaolvashatjuk a JS console-ba:
-        // egyszerűbb: lekérjük a __builtins__ printelését vissza:
-        // Olvassuk ki az utolsó printet: (az előző wrapper maga írja ki a tartalmat,
-        // így itt csak a pyodide stdout-ot kell lekérdezni)
-        const result = pyodide.runPython('""') // no-op, kompatibilitás miatt
-        // alternatív: használjunk pyodide.globals (de egyszerűbb a következő)
-        // Helyette egyszerű: a wrapper már kiíratott mindent a print()-tel,
-        // ezért lekérhetjük a value a pyodide._module... - túl mély, így
-        // aktívan kérdezzük le újra a _out tartalmát:
-        const out = pyodide.runPython('_out.getvalue()') || '';
-        outputEl.textContent = out;
-      } catch (err) {
-        outputEl.textContent = err.toString();
+        return pyodide.runPythonAsync(wrapper);
       }
-    });
 
-    document.getElementById('clear').addEventListener('click', () => {
-      codeEl.value = '';
-      outputEl.textContent = '';
-    });
-  </script>
-</body>
+      document.getElementById("run").addEventListener("click", async () => {
+        if (!pyodide)
+          return (outputEl.textContent = "A Pyodide még töltődik...");
+        outputEl.textContent = "Futtatás...";
+        try {
+          const code = codeEl.value;
+          await runUserCode(code);
+          // a runPythonAsync által kiírt print a pyodide stdout-jába került,
+          // és a következő futtatással visszaolvashatjuk a JS console-ba:
+          // egyszerűbb: lekérjük a __builtins__ printelését vissza:
+          // Olvassuk ki az utolsó printet: (az előző wrapper maga írja ki a tartalmat,
+          // így itt csak a pyodide stdout-ot kell lekérdezni)
+          const result = pyodide.runPython('""'); // no-op, kompatibilitás miatt
+          // alternatív: használjunk pyodide.globals (de egyszerűbb a következő)
+          // Helyette egyszerű: a wrapper már kiíratott mindent a print()-tel,
+          // ezért lekérhetjük a value a pyodide._module... - túl mély, így
+          // aktívan kérdezzük le újra a _out tartalmát:
+          const out = pyodide.runPython("_out.getvalue()") || "";
+          outputEl.textContent = out;
+        } catch (err) {
+          outputEl.textContent = err.toString();
+        }
+      });
+
+      document.getElementById("clear").addEventListener("click", () => {
+        codeEl.value = "";
+        outputEl.textContent = "";
+      });
+    </script>
+  </body>
 </html>

@@ -133,12 +133,10 @@
 
   // highlight element briefly so you see what's matched
   function flashElement(el) {
-    if(!el || !el.style) return;
-    const origOutline = el.style.outline || '';
-    el.style.outline = '3px solid rgba(255,200,0,0.95)';
-    el.style.transition = 'outline 0.25s ease';
-    setTimeout(()=> { el.style.outline = origOutline; }, 900);
-  }
+  // szándékosan üres: ne legyen outline/box-shadow/kiemelés semmi
+  return;
+}
+
 
   // Main restore routine on page load
   function tryRestoreOnLoad() {

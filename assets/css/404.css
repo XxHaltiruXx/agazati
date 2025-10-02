@@ -1,11 +1,3 @@
-/* 404.css — responsive változat, design megtartva */
-
-/* alapok */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
 
 :root {
   --gradient-start: #3e4551;
@@ -13,16 +5,14 @@
   --text-color: aliceblue;
   --title-color: aliceblue;
   --default-color: #4c0bce;
-
-  /* responsive alap méretezés (rem alap = 16px) */
   --base-font-size: 16px;
   --card-radius: 10px;
 }
 
-/* Font family: ha nincs telepítve SpaceGrotesk rendszerben, fallback */
+
 html {
   font-family: "SpaceGrotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  font-size: 16px; /* 1rem = 16px */
+  font-size: 16px;
 }
 
 body, html {
@@ -36,7 +26,7 @@ body, html {
   transition: background-color 0.3s ease;
 }
 
-/* Általános stílus a 404 kártyához */
+
 div.background {
   background-color: var(--default-color);
   min-height: calc(100vh - 0px);
@@ -46,10 +36,10 @@ div.background {
   padding: 20px;
 }
 
-/* Kártya — rugalmas méretezés mindkét eszközön */
+
 div.card {
   width: 90%;
-  max-width: 980px;     /* nagy képernyőn ne legyen túl széles */
+  max-width: 980px;    
   background-color: rgba(0, 0, 0, 0.37);
   padding: 28px;
   border-radius: var(--card-radius);
@@ -60,16 +50,16 @@ div.card {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  min-height: 45vh;     /* desktopon szép arány */
+  min-height: 45vh;    
   max-height: 80vh;
   overflow: auto;
   transition:
-    transform 0.3s ease-in-out,
-    background-color 0.3s ease,
-    box-shadow 0.3s ease;
+  transform 0.3s ease-in-out,
+  background-color 0.3s ease,
+  box-shadow 0.3s ease;
 }
 
-/* Kép */
+
 .felkialt {
   width: 60px;
   height: auto;
@@ -77,27 +67,28 @@ div.card {
   margin: 0 auto;
 }
 
-/* Szövegek */
+
 h1 {
   color: var(--title-color);
-  font-size: 1.4rem; /* ~22.4px */
+  font-size: 1.4rem; 
   margin: 6px 0 0 0;
   text-align: center;
   line-height: 1.08;
   font-weight: 600;
 }
 
+
 p {
   color: var(--text-color);
   text-align: center;
-  font-size: 1rem; /* 16px */
-  margin: 6px 0;
+  font-size: 1rem; 
+  /* margin: 6px 0; */
 }
 
-/* Linkek — megtartjuk a színhangulatot, de láthatóvá tesszük őket */
+
 .links {
   display: flex;
-  gap: 10px;
+  gap: auto;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
@@ -105,7 +96,7 @@ p {
 
 a.link-primary,
 a.link-secondary {
-  color: #dcd6ff; /* világosabb lila / majdnem aliceblue, elütést ad */
+  color: #dcd6ff; 
   text-decoration: none;
   padding: 6px 12px;
   border-radius: 8px;
@@ -119,27 +110,20 @@ a.link-secondary:hover {
   box-shadow: 0 6px 18px rgba(0,0,0,0.45);
 }
 
-/* Finom vonal (ha használsz hr-t) */
+
 hr {
   background-color: #9318f8;
   width: 80%;
   height: 4px;
   display: block;
-  margin: 0 auto;
+  margin: 5px auto;
   border: 0;
 }
 
-/* Footer távolság-biztosítás */
-footer {
-  bottom: 0;
-  margin-top: 12px;
-}
 
-/* ---- Media queries: mobil és kis képernyő ---- */
 
-/* Mobil: max szélesség 599px (okostelefonok) */
 @media (max-width: 599px) {
-  html { font-size: 15px; } /* kicsit kisebb alap betű */
+  html { font-size: 15px; } 
   div.card {
     width: 96%;
     padding: 18px;
@@ -148,33 +132,19 @@ footer {
     margin: 16px auto;
     border-radius: 8px;
   }
-
+  
   .felkialt {
     width: 48px;
     margin-bottom: 2px;
   }
-
-  h1 {
-    font-size: 1.15rem; /* ~17.5px */
-  }
-
-  p {
-    font-size: 0.96rem;
-  }
-
-  .links {
-    gap: 8px;
-    font-size: 0.95rem;
-  }
-
-  /* érintőbarát linkek */
+  
+  
   a.link-primary,
   a.link-secondary {
     padding: 10px 14px;
   }
 }
 
-/* Tabletek és kisebb laptopok: 600 - 991px */
 @media (min-width: 600px) and (max-width: 991px) {
   html { font-size: 15.5px; }
   div.card {
@@ -182,12 +152,13 @@ footer {
     padding: 22px;
     min-height: 50vh;
   }
-
+  
   .felkialt { width: 56px; }
   h1 { font-size: 1.25rem; }
 }
 
-/* Nagy képernyők: 992px fölött — finomítás */
+
+
 @media (min-width: 992px) {
   html { font-size: 16px; }
   div.card {
@@ -198,14 +169,22 @@ footer {
     margin-top: 50px;
     margin-bottom: 50px;
   }
-
+  
   .felkialt { width: 64px; }
   h1 { font-size: 1.6rem; }
   p { font-size: 1.03rem; }
 }
 
-/* Kisebb vizuális finomítás fókuszkor (accessibility) */
 a:focus, button:focus {
   outline: 3px solid rgba(147,24,248,0.25);
   outline-offset: 3px;
+}
+
+
+h3 {
+    color: black;
+    margin: 35px;
+    text-align: center;
+    line-height: 1.2;
+    font-size: 21.6px;
 }
