@@ -1,0 +1,64 @@
+/* Global alapok, változók, tipográfia */
+* {
+    font-family: SpaceGrotesk;
+    transition:
+        transform 0.3s ease-in-out,
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+:root {
+    --gradient-start: #3e4551;
+    --gradient-end: #000000;
+    --text-color: aliceblue;
+    --title-color: aliceblue;
+    --default-color: #4c0bce;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: rgb(62, 69, 81);
+    background: linear-gradient(-60deg, var(--gradient-start) 24%, var(--gradient-end) 100%);
+    color: var(--text-color);
+    text-align: center;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    margin: 0;
+    font-size: 90%;
+    padding: 0;
+    transition: opacity 0.3s ease;
+}
+
+h1, h2, h3, h4, .cim, .subsite {
+    color: var(--title-color) ;
+}
+
+p {
+    font-size: 20px;
+}
+
+/* Globális utilities */
+.hidden-input {
+    display: none;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(50px);
+    z-index: 999;
+}
+
+/* kis common tweak-ek */
+span {
+    color: aliceblue;
+    margin: auto 10px;
+    display: block;
+}

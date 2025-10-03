@@ -1,16 +1,18 @@
 footer {
-    border-top: 35px #272a30 solid;
-    padding: 50px;
-    background-color: #3e4551;
-    margin: 0;
-    font-size: 75%;
+  border-top: 35px #272a30 solid;
+  padding: 50px;
+  background-color: #3e4551;
+  margin: 0;
+  font-size: 75%;
+  text-align: center;
+  height: 450px;
 }
 
 p {
-    font-size: 20px;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: white;
+  font-size: 20px;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: white;
 }
 
 hr {
@@ -21,58 +23,62 @@ hr {
   margin: 5px auto;
   border: 0;
 }
+
 h3 {
-    color: white;
-    text-align: center;
-    line-height: 1.2;
-    font-size: 21.6px;
+  color: white;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 21.6px;
+  margin: 35px;
 }
 
 hr.black {
-    background-color: black;
-    width:95%;
+  background-color: black;
+  width: 95%;
 }
 
 div.contacts {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
 }
 
 div.contacts a {
-    display: inline-flex;
-    align-items: center;
-    text-decoration: none;
-    color: aliceblue;
-    font-size: 16px;
-    gap: 8px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: aliceblue;
+  font-size: 16px;
+  gap: 8px;
 }
 
 div.contacts img {
-    width: 25px;
-    height: 25px;
+  width: 25px;
+  height: 25px;
 }
 
 div.contacts p {
-    margin: auto;
+  margin: auto;
 }
 
 div.contacts div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: auto;
 }
 
 .version-number {
-    color: lime;
-    display: inline;
-    font-weight: bold;
+  color: lime;
+  display: inline;
+  font-weight: bold;
 }
 
 .time {
-    color: orange;
-    font-weight: bold;
+  color: orange;
+  font-weight: bold;
+  margin: 0 10px;
+  display: block;
 }

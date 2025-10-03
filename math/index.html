@@ -1,64 +1,77 @@
 <!DOCTYPE html>
 <html lang="hu">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="description" content="Itt tanulhatsz matematikát.">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Itt tanulhatsz matematikát." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
     <script src="../assets/js/main.js"></script>
- 
-    <link rel="shortcut icon" href="../assets/images/math.ico" type="image/x-icon">
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <title>Agazati - Matematika</title>
-</head>
 
- <script src="../assets/js/nav.js"></script>
-<body>
+    <link
+      rel="shortcut icon"
+      href="../assets/images/math.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="../assets/css/base.css" />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="stylesheet" href="../assets/css/nav.css" />
+    <link rel="stylesheet" href="../assets/css/utilities.css" />
+    <link rel="stylesheet" href="../assets/css/footer.css" />
+    <title>Agazati - Matematika</title>
+  </head>
+
+  <script src="../assets/js/nav.js"></script>
+  <body>
     <header>
-        <nav class="navbar navbar-expand">
-            <div class="container-fluid d-flex align-items-center">
-                <span onclick="toggleNav()" class="sidebargomb">&#9776;</span>
-                <div class="navbar-nav">
-                    <a class="nav-link" href="../">főoldal</a>
-                    <a class="nav-link" href="../html">html&css</a>
-                    <a class="nav-link" href="../python">python</a>
-                    <a class="nav-link" href="../network">hálózat</a>
-                    <a class="nav-link" aria-current="page" href="../math">matek</a>
-                </div>
-            </div>
-        </nav>
+      <nav class="navbar navbar-expand">
+        <div class="container-fluid d-flex align-items-center">
+          <span onclick="toggleNav()" class="sidebargomb">&#9776;</span>
+          <div class="navbar-nav">
+            <a class="nav-link" href="../">főoldal</a>
+            <a class="nav-link" href="../html">html&css</a>
+            <a class="nav-link" href="../python">python</a>
+            <a class="nav-link" href="../network">hálózat</a>
+            <a class="nav-link" aria-current="page" href="../math">matek</a>
+          </div>
+        </div>
+      </nav>
     </header>
 
     <!-- Sidenav -->
     <div id="mySidenav" class="sidenav">
-        <div>
-            <input type="text" id="searchNav" placeholder="🔍Keresés...">
-            <a href="html.html#html">HTML alapok</a>
-            <a href="html.html#css">CSS alapok</a>
-            <a href="html.html#boxmodel">Box modell</a>
-            <a href="html.html#positioning">Pozicionálás</a>
-            <a href="html.html#flexbox">Flexbox</a>
-            <a href="html.html#grid">CSS Grid</a>
-            <a href="html.html#responsive">Responsív dizájn</a>
-            <a href="html.html#animations">CSS animációk</a>
-            <a href="html.html#accessibility">Hozzáférhetőség</a>
-            <a href="python.html#python">Python alapok</a>
-            <a href="network.html#szamrendszer">Számrendszerek</a>
-            <a href="network.html#halozat">Cisco parancsok</a>
-        </div>
-        <div class="setting-holder">
+      <div>
+        <input type="text" id="searchNav" placeholder="🔍Keresés..." />
+        <a href="html.html#html">HTML alapok</a>
+        <a href="html.html#css">CSS alapok</a>
+        <a href="html.html#boxmodel">Box modell</a>
+        <a href="html.html#positioning">Pozicionálás</a>
+        <a href="html.html#flexbox">Flexbox</a>
+        <a href="html.html#grid">CSS Grid</a>
+        <a href="html.html#responsive">Responsív dizájn</a>
+        <a href="html.html#animations">CSS animációk</a>
+        <a href="html.html#accessibility">Hozzáférhetőség</a>
+        <a href="python.html#python">Python alapok</a>
+        <a href="network.html#szamrendszer">Számrendszerek</a>
+        <a href="network.html#halozat">Cisco parancsok</a>
+      </div>
+      <!-- <div class="setting-holder">
             <button onclick="openSettingsModal()" class="settings"><img src="../assets/images/gear.svg"
                     alt="Settings-gomb"></button>
-        </div>
+        </div> -->
     </div>
     <main>
-        <h1 class="subsite">Matematika</h1>
-        <p>Itt a matematika</p>
+      <h1 class="subsite">Matematika</h1>
+      <p>Itt a matematika</p>
     </main>
     <!-- <div class="settings-modal" id="settingsModal">
         <div class="settings-box">
@@ -116,6 +129,5 @@
         </div>
     </div> -->
     <script src="../assets/js/footer.js"></script>
-</body>
-
+  </body>
 </html>

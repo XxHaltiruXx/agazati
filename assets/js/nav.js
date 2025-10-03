@@ -1,11 +1,14 @@
-// nav.js - align-on-target (debugged, robust)
-// v2 - use this file, place it just before </body> on every page.
+// nav.js - mobile-only, instant (no animation) align-on-target
+// Replace your existing file with this. Designed to run on small screens only.
+// v2.1 - instant restore, no smooth scroll, runs only when window.matchMedia("(max-width:768px)").matches
+
 (function(){
   const CLICK_KEY = '__agazati_nav_target_v2';
   const POS_KEY = '__agazati_nav_pos_v2';
-  const RIGHT_PADDING = 0;          // px, ha akarsz kis margót a jobb oldalra
+  const RIGHT_PADDING = 0;          // px, ha kell kis margó, ide írd
   const MAX_ATTEMPTS = 40;
-  const RETRY_MS = 80;
+  const RETRY_MS = 70;
+  const MOBILE_QUERY = '(max-width: 768px)';
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -21,12 +24,10 @@
     return segs.length ? segs[segs.length-1] : '';
   }
 
-  // Find navbar: prefer nav.navbar, else header nav, else first nav
   function findNav() {
     return document.querySelector('nav.navbar') || document.querySelector('header nav') || document.querySelector('nav') || null;
   }
 
-  // Save clicked target (absolute href)
   function saveClicked(abs) {
     try { sessionStorage.setItem(CLICK_KEY, String(abs)); }
     catch(e){}
@@ -48,7 +49,6 @@
     try { const v = sessionStorage.getItem(POS_KEY); return v === null ? null : Number(v) || 0; } catch(e){ return null; }
   }
 
-  // compute target scrollLeft so el's right edge aligns with nav right edge (minus RIGHT_PADDING)
   function computeTarget(nav, el) {
     if(!nav || !el) return 0;
     const navRect = nav.getBoundingClientRect();
@@ -59,42 +59,51 @@
     return clamp(target, 0, max);
   }
 
-  function scrollNavTo(nav, target, smooth=false) {
+  function instantScrollNavTo(nav, target) {
+    // Ensure NO smooth animation: temporarily force 'scroll-behavior: auto' inline,
+    // set scrollLeft directly, then restore previous inline value.
+    if (!nav) return;
+    const prev = nav.style.scrollBehavior;
     try {
-      if('scrollTo' in nav) nav.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' });
-      else nav.scrollLeft = target;
-    } catch(e){ try { nav.scrollLeft = target; } catch(_){} }
+      nav.style.scrollBehavior = 'auto';
+      // set directly to reduce flicker
+      nav.scrollLeft = target;
+    } catch(e) {
+      try { nav.scrollLeft = target; } catch(_) {}
+    } finally {
+      // restore original inline style after a tick (so it won't affect other code)
+      requestAnimationFrame(() => {
+        // keep whatever inline style was before
+        nav.style.scrollBehavior = prev || '';
+      });
+    }
   }
 
-  // On click: store abs href, but DO NOT scroll now
+  // click handler: store absolute href only (no scrolling now)
   document.addEventListener('click', function(ev){
     try {
       const a = ev.target.closest && ev.target.closest('nav.navbar a, .navbar a, nav a');
       if(!a) return;
-      if (a.classList && a.classList.contains('sidebargomb')) return; // skip hamburger
+      if (a.classList && a.classList.contains('sidebargomb')) return;
       const href = a.getAttribute && a.getAttribute('href');
       if(!href) return;
       const abs = absHref(href);
       saveClicked(abs);
-      // also save raw pos as fallback
       const nav = findNav(); if (nav) saveRawPos(nav);
-      // do not prevent default navigation
     } catch(e){}
   }, true);
 
-  // make sure we also save position during manual scrolls
   function attachSaveDuringScroll(nav) {
     if(!nav) return;
     let raf = null;
     nav.addEventListener('scroll', () => {
-      if(raf) cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => { saveRawPos(nav); raf = null; });
     }, { passive: true });
     nav.addEventListener('touchend', () => setTimeout(()=> saveRawPos(nav), 20), { passive: true });
     window.addEventListener('beforeunload', () => saveRawPos(nav));
   }
 
-  // attempt to find best matching anchor inside nav for stored target href
   function findBestMatch(nav, storedAbs) {
     if(!nav) return null;
     const anchors = Array.from(nav.querySelectorAll('a')).filter(a => a.getAttribute('href'));
@@ -131,32 +140,27 @@
     return null;
   }
 
-  // highlight element briefly so you see what's matched
-  function flashElement(el) {
-  // szándékosan üres: ne legyen outline/box-shadow/kiemelés semmi
-  return;
-}
-
-
-  // Main restore routine on page load
+  // Restore routine — MOBILE ONLY and INSTANT (no animation)
   function tryRestoreOnLoad() {
+    // run only on mobile-sized viewports
+    if (!window.matchMedia || !window.matchMedia(MOBILE_QUERY).matches) return;
     const nav = findNav();
     if(!nav) return;
     attachSaveDuringScroll(nav);
 
     const storedAbs = getClicked();
     if(!storedAbs) {
-      // no specific click target -> optional raw pos restore
+      // fallback: raw pos restore
       const raw = getRawPos();
       if(raw !== null) {
-        // try to restore raw pos quickly
         let attempts = 0; let stopped = false;
         function attemptRaw() {
           if(stopped) return;
           attempts++;
           const max = Math.max(0, nav.scrollWidth - nav.clientWidth);
           const desired = clamp(Math.round(raw), 0, max);
-          scrollNavTo(nav, desired, false);
+          // instant scroll (no animation)
+          instantScrollNavTo(nav, desired);
           if(Math.abs(nav.scrollLeft - desired) <= 2 || attempts >= MAX_ATTEMPTS) stopped = true;
           else requestAnimationFrame(()=> setTimeout(attemptRaw, RETRY_MS));
         }
@@ -187,8 +191,8 @@
       if (!match.el) match.el = findBestMatch(nav, storedAbs);
       if (match.el) {
         const desired = computeTarget(nav, match.el);
-        scrollNavTo(nav, desired, false);
-        flashElement(match.el);
+        // instant set (no smooth)
+        instantScrollNavTo(nav, desired);
         // success condition
         if (Math.abs(nav.scrollLeft - desired) <= 2) {
           stop(true);
@@ -205,30 +209,27 @@
     function stop(success){
       stopped = true;
       try { mo && mo.disconnect(); } catch(e){}
-      // if success clear the stored clicked href so it won't trigger again
+      // clear stored click only on success to avoid repeated attempts indefinitely
       if(success) clearClicked();
-      else {
-        // no match found: clear to avoid trying forever
-        clearClicked();
-      }
+      else clearClicked();
     }
 
     attempt();
   }
 
-  // Run restore after DOM ready + load events (multiple hooks)
+  // Hook into load lifecycle — we try to run as early as possible + retries
   function onReady(fn){
     if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 8);
     else document.addEventListener('DOMContentLoaded', () => setTimeout(fn, 8));
   }
   onReady(() => {
-    // try also on load and pageshow to be extra robust
     tryRestoreOnLoad();
-    window.addEventListener('load', () => setTimeout(tryRestoreOnLoad, 30));
-    window.addEventListener('pageshow', () => setTimeout(tryRestoreOnLoad, 20));
+    // extra hooks to increase chance of restoring before visible paint
+    window.addEventListener('pageshow', () => tryRestoreOnLoad());
+    window.addEventListener('load', () => tryRestoreOnLoad());
   });
 
-  // small helper for debugging: expose methods on window
+  // Expose debug helpers (safe)
   try {
     window.__agazati_nav_debug = {
       saveClicked, getClicked, clearClicked, computeTarget, findNav, getRawPos

@@ -1,0 +1,95 @@
+@media screen and (max-width: 500px) {
+  ul {
+    font-size: 90% !important;
+  }
+}
+
+@media screen and (max-width: 455px) {
+  ul {
+    font-size: 74% !important;
+  }
+
+  .kepli {
+    font-size: 70% !important;
+  }
+}
+
+/* Extra kis képernyők (max 480px) */
+@media screen and (max-width: 480px) {
+  .settings-modal {
+    width: 95%;
+    padding: 10px;
+  }
+
+  .settings-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .presets {
+    grid-template-columns: 1fr;
+  }
+
+  .preset-btn {
+    height: 50px;
+  }
+
+  .settings-footer button {
+    width: 100%;
+    margin: 5px 0;
+  }
+}
+@font-face {
+  font-family: SpaceGrotesk;
+  src: url(../fonts/SpaceGrotesk.ttf);
+}
+
+.hidden-input {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  width: 1px;
+  height: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: #4c0bce;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0066ff;
+  border-radius: 10px;
+}
+
+/* Mobil nézetre media query */
+@media (max-width: 768px) {
+  .code-block {
+    margin: 1rem -15px;
+    border-radius: 0;
+  }
+
+  .code-block pre {
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .copy-btn {
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    right: 3px;
+    top: 3px;
+  }
+
+  .kartya-item {
+    padding: 15px;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  ul {
+    columns: 1;
+  }
+}

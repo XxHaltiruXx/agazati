@@ -1,7 +1,116 @@
-footer {
-    border-top: 35px #272a30 solid;
-    padding: 50px;
-    background-color: #3e4551;
-    margin: 0;
-    font-size: 75%;
+nav.navbar {
+  background-color: #4c0bce;
+  padding: 0 12px !important;
+  padding-left: 60px !important;
+  text-shadow: 0 0 15px #000000;
+  z-index: 2;
+  position: fixed;
+  width: 100%;
+  display: flex;
+  top: 0;
+  left: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  align-items: center;
+  --webkit-overflow-scrolling: touch;
+  overflow-anchor: none;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  text-align: center;
+}
+
+.container-fluid {
+    --bs-gutter-x: 0 !important;
+}
+
+div.navbar-nav a.nav-link {
+  color: rgb(255, 255, 255);
+  font-size: 20px;
+  text-transform: uppercase;
+  padding: 25px 35px !important;
+  flex-grow: 1;
+  display: block;
+}
+
+div.navbar-nav {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  min-width: calc(100vw - 60px);
+}
+
+
+.sidenav {
+  height: calc(100% - 70px);
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 70px;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 20px;
+  text-align: left;
+  overflow-y: auto;
+}
+
+.sidebargomb {
+  font-size: 30px;
+  color: aliceblue;
+  cursor: pointer;
+  background-color: #4c0bce;
+  padding: 17.5px;
+  margin: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+}
+
+.sidebargomb:hover {
+  background-color: #470db9;
+}
+
+[aria-current="page"] {
+  background-color: #470db9;
+  font-weight: bold;
+  color: rgb(194, 188, 188) !important;
+}
+
+a.nav-link:hover {
+  background-color: #470db9;
+  color: aliceblue !important;
+}
+
+.sidenav a {
+  padding: 8px 8px 8px 16px;
+  text-decoration: none;
+  font-size: 110%;
+  color: #818181;
+  display: block;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidenav a:hover {
+  color: #f1f1f1;
+  background-color: #333;
+}
+
+span {
+  color: aliceblue;
+  margin: auto 10px;
+  display: block;
+}
+
+#searchNav {
+  background-color: black;
+  color: aliceblue;
+  width: 95%;
+  padding: 0;
+  margin: 0 auto;
+  display: block;
 }
