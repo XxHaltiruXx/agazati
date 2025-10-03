@@ -13,12 +13,6 @@
     --title-color: aliceblue;
     --default-color: #4c0bce;
 }
-
-body {
-    background: linear-gradient(-60deg, var(--gradient-start) 24%, var(--gradient-end) 100%);
-    color: var(--text-color);
-}
-
 h1, h2, h3,h4, .cim, .subsite {
     color: var(--title-color) !important;
 }
@@ -197,7 +191,7 @@ a.nav-link:hover {
 div.kartya-item {
     text-align: left;
     border-radius: 20px 0 20px 0;
-    width: 90%;
+    width: 100%;
     margin: 20px auto;
     background-color: #0066ff;
     border: #2f00ff solid 12px;
@@ -265,7 +259,6 @@ main {
 }
 
 main.kontener {
-    width: 95%;
     margin: 0 auto;
 }
 
