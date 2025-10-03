@@ -118,10 +118,6 @@ h1, h2 {
     z-index: -1;
 }
 
-div.container-fluid {
-    padding: 0;
-}
-
 nav.navbar {
     background-color: #4c0bce;
     padding: 0px;
@@ -769,8 +765,11 @@ div.contacts div {
     margin: auto;
 }
 
-div.tryitbtn-holder {
-    margin: 20px 0 0 0;
+.tryitbtn-holder {
+    display: flex;
+    justify-content: center;
+    margin: 20px auto;
+    width:90%;
 }
 
 .tryitbtn {
@@ -778,11 +777,13 @@ div.tryitbtn-holder {
     border: #27ae60 3px solid;
     border-radius: 8px;
     font-weight: bold;
-    font-size: large;
+    font-size: 90%;
     color: white;
     padding: 12px;
-    margin: 15px 0;
+    margin: 15px auto;
     text-decoration: none;
+    display: block;
+    white-space: nowrap;
 }
 
 .tryitbtn:hover {
