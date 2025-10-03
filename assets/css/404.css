@@ -49,13 +49,6 @@ h1 {
 }
 
 
-p {
-  color: var(--text-color);
-  text-align: center;
-  font-size: 1rem; 
-}
-
-
 .links {
   display: flex;
   gap: auto;
@@ -148,13 +141,4 @@ hr {
 a:focus, button:focus {
   outline: 3px solid rgba(147,24,248,0.25);
   outline-offset: 3px;
-}
-
-
-h3 {
-    color: black;
-    margin: 35px;
-    text-align: center;
-    line-height: 1.2;
-    font-size: 21.6px;
 }
