@@ -106,16 +106,16 @@ async function updateLastPushDate() {
                     <p>Github</p>
                 </a>
             </div>
-            <div>
-                <a href="mailto:agazati.info@gmail.com" target="_blank" rel="noopener">
-                    <img id="mail" data-filename="mail.png" src="${imagePath}mail.png" alt="Email">
-                    <p>Email</p>
+    <div>
+             <a href="https://trello.com/b/p69OnOBH/%C3%A1gazati" target="_blank" rel="noopener">
+                    <img data-filename="trello.svg" src="${imagePath}trello.svg" alt="Trello">
+                    <p>Trello</p>
                 </a>
             </div>
     <div>
-             <a href="https://github.com/XxHaltiruXx/${repoName}" target="_blank" rel="noopener">
-                    <img data-filename="trello.svg" src="${imagePath}trello.svg" alt="Trello">
-                    <p>Trello</p>
+                <a href="mailto:agazati.info@gmail.com" target="_blank" rel="noopener">
+                    <img id="mail" data-filename="mail.png" src="${imagePath}mail.png" alt="Email">
+                    <p>Email</p>
                 </a>
             </div>
         </div>

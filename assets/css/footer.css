@@ -42,6 +42,7 @@ div.contacts {
   align-items: center;
   justify-content: center;
   margin: auto;
+  
 }
 
 div.contacts a {
@@ -50,24 +51,25 @@ div.contacts a {
   text-decoration: none;
   color: aliceblue;
   font-size: 16px;
-  gap: 8px;
+  gap: 1vh;
 }
 
 div.contacts img {
   width: 25px;
   height: 25px;
+  margin: 0;
+  padding: 0;
 }
 
 div.contacts p {
-  margin: auto;
+  margin: 0;
+  padding: 0;
 }
 
 div.contacts div {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: auto;
+  
+  margin: auto 10px;
+  
 }
 
 .version-number {
