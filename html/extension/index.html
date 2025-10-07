@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="description" content="Itt tanulhatsz HTML és CSS-t." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>      (function () {
+      var basePath = "/";
+      if (location.pathname.indexOf("/agazati/") === 0) {
+        basePath = "/agazati/";
+      }
+      var base = document.createElement("base");
+      base.href = basePath;
+      document.head.appendChild(base);
+    })();</script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+  <script src="assets/js/main.js"></script>
+  <link rel="shortcut icon" href="assets/images/html&css.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/nav.css" />
+  <link rel="stylesheet" href="assets/css/utilities.css" />
+  <link rel="stylesheet" href="assets/css/footer.css" />
+  <title>HTML&CSS - Bővítmények</title>
+</head>
+<script src="assets/js/nav.js"></script>
+
+<body>
+  <header>
+    <nav class="navbar navbar-expand">
+      <div class="container-fluid align-items-center">
+        <span onclick="toggleNav()" class="sidebargomb">&#9776;</span>
+        <div class="navbar-nav">
+          <a class="nav-link" href="">főoldal</a>
+          <a class="nav-link" aria-current="page" href="html">html&css</a>
+          <a class="nav-link" href="python">python</a>
+          <a class="nav-link" href="network">hálózat</a>
+          <a class="nav-link" href="math">matek</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Sidenav -->
+  <div id="mySidenav" class="sidenav">
+    <div>
+      <input type="text" id="searchNav" placeholder="🔍Keresés..." />
+      <a href="#html">HTML alapok</a>
+      <a href="#css">CSS alapok</a>
+      <a href="#boxmodel">Box modell</a>
+      <a href="#positioning">Pozicionálás</a>
+      <a href="#flexbox">Flexbox</a>
+      <a href="#grid">CSS Grid</a>
+      <a href="#responsive">Responsív dizájn</a>
+      <a href="#animations">CSS animációk</a>
+      <a href="#accessibility">Hozzáférhetőség</a>
+      <a href="python.html#python">Python alapok</a>
+      <a href="network.html#szamrendszer">Számrendszerek</a>
+      <a href="network.html#halozat">Cisco parancsok</a>
+    </div>
+    <!-- <div class="setting-holder">
+            <button onclick="openSettingsModal()" class="settings"><img src="assets/images/gear.svg"
+                    alt="Settings-gomb"></button>
+        </div> -->
+  </div>
+  <main>
+    <h1 class="cim text-center">Bővítmények</h1>
+
+    <section id="downloads">
+
+      <p>Letöltheted a <code>vsc-extensions.bat</code> fájlt az alábbi gombbal:</p>
+
+      <a class="btn download" href="assets/downloads/vsc-extensions.bat" download title="Letöltés: vsc-extension.bat"
+        rel="noopener noreferrer">
+        ⬇ vsc-extension.bat letöltése
+      </a>
+    </section>
+
+  </main>
+
+
+  </main>
+  <!-- <div class="settings-modal" id="settingsModal">
+        <div class="settings-box">
+            <div class="settings-header">
+                <h3>🎨 Testreszabás</h3>
+                <button onclick="closeSettingsModal()" class="close-btn">&times;</button>
+            </div>
+
+            <div class="settings-group">
+                <h4>🌈 Háttér</h4>
+                <div class="color-pickers">
+                    <div>
+                        <label>Kezdő szín:</label>
+                        <input type="color" id="gradientStart" class="hidden-input">
+                        <button onclick="toggleColorPicker('gradientStart')">Válassz</button>
+                    </div>
+                    <div>
+                        <label>Vég szín:</label>
+                        <input type="color" id="gradientEnd" class="hidden-input">
+                        <button onclick="toggleColorPicker('gradientEnd')">Válassz</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h4>🔤 Szövegszínek</h4>
+                <div class="text-colors">
+                    <div>
+                        <label>Alap szöveg:</label>
+                        <input type="color" id="textColor" class="hidden-input">
+                        <button onclick="toggleColorPicker('textColor')">Válassz</button>
+                    </div>
+                    <div>
+                        <label>Címek:</label>
+                        <input type="color" id="titleColor" class="hidden-input">
+                        <button onclick="toggleColorPicker('titleColor')">Válassz</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h4>🎚 Presetek</h4>
+                <div class="presets">
+                    <button class="preset-btn red" onclick="applyPreset('red')">Piros</button>
+                    <button class="preset-btn blue" onclick="applyPreset('blue')">Kék</button>
+                    <button class="preset-btn dark" onclick="applyPreset('dark')">Sötét</button>
+                    <button class="preset-btn matrix" onclick="applyPreset('matrix')">Mátrix</button>
+                </div>
+            </div>
+
+            <div class="settings-footer">
+                <button onclick="applySettings()" class="apply-btn">💾 Alkalmaz</button>
+                <button onclick="resetSettings()" class="reset-btn">⏮ Alaphelyzet</button>
+            </div>
+        </div>
+    </div> -->
+  <script src="assets/js/footer.js"></script>
+</body>
+
+</html>

@@ -19,7 +19,7 @@ for %%e in (
     ritwickdey.liveserver
     ms-vsliveshare.vsliveshare
     robbowen.synthwave-vscode
-    prasadbobby.auto-rename-tag
+    formulahendry.auto-rename-tag
     pkief.material-icon-theme
 ) do (
     echo Telepítés: %%e

@@ -137,25 +137,7 @@ div.kartya div.kartya-item:nth-child(even) button {
 
 main {
   min-height: calc(100vh - 70px);
-}
-
-main.kontener {
   margin: 0 auto;
-}
-
-footer {
-  border-top: 35px #272a30 solid;
-  padding: 50px;
-  background-color: #3e4551;
-  margin: 0;
-  font-size: 75%;
-}
-
-header {
-  top: 0;
-  position: fixed;
-  width: 100%;
-  z-index: 2;
 }
 
 hr {
@@ -165,54 +147,6 @@ hr {
   display: block;
   margin: 0 auto;
   border: 0;
-}
-
-button.eredmeny {
-  border: 3px #9318f8 solid;
-  background-color: #4c0bce;
-  border-radius: 25px;
-  box-shadow: 0 0 18px #000000;
-  margin: 30px auto;
-  display: block;
-  width: 200px;
-}
-
-button.eredmeny:hover {
-  background-color: #a031fa;
-}
-
-#results {
-  display: none;
-  background-color: rgba(0, 0, 0, 0.5);
-  border: 2px solid #4c0bce;
-  border-radius: 10px;
-  padding: 20px;
-  margin: 20px;
-}
-
-.question {
-  margin: 20px;
-  padding: 20px;
-  border: 4px solid #4c0bce;
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-div.choices {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  justify-content: flex-start;
-  margin: 10px 0;
-  padding-left: 10px;
-}
-
-div.choices label {
-  display: block !important;
-  margin: 5px 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  border-radius: 10px;
-  padding: 13px;
 }
 
 .highlight {
@@ -471,4 +405,24 @@ div.code-block {
 
 #megjegyzes ul li a {
   text-decoration: none;
+}
+
+.download {
+  background-color: #4c0bce;
+  border: #2f00ff 3px solid;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 90%;
+  color: white;
+  padding: 18px;
+  margin: 15px auto;
+  text-decoration: none;
+  display: block;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.download:hover {
+  background-color: #2f00ff;
+  color: white;
 }

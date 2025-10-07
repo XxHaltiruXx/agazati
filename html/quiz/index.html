@@ -15,32 +15,44 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
-       <script src="../../assets/js/main.js"></script>
-    <script src="../../assets/js/quiz.js"></script>
+    <script>
+      (function () {
+        var basePath = "/";
+        if (location.pathname.indexOf("/agazati/") === 0) {
+          basePath = "/agazati/";
+        }
+        var base = document.createElement("base");
+        base.href = basePath;
+        document.head.appendChild(base);
+      })();
+    </script>
+       <script src="assets/js/main.js"></script>
+    <script src="assets/js/quiz.js"></script>
     <link
       rel="shortcut icon"
-      href="../assets/images/math.ico"
+      href="assets/images/math.ico"
       type="image/x-icon"
     />
-    <link rel="stylesheet" href="../../assets/css/base.css">
-    <link rel="stylesheet" href="../../assets/css/main.css">
-    <link rel="stylesheet" href="../../assets/css/nav.css" />
-    <link rel="stylesheet" href="../../assets/css/utilities.css" />
-    <link rel="stylesheet" href="../../assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/quiz.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
     <title>HTML&CSS - Kérdőív</title>
   </head>
-  <script src="../../assets/js/nav.js"></script>
+  <script src="assets/js/nav.js"></script>
   <body>
     <header>
       <nav class="navbar navbar-expand">
         <div class="container-fluid align-items-center">
           <span onclick="toggleNav()" class="sidebargomb">&#9776;</span>
           <div class="navbar-nav">
-            <a class="nav-link" href="../">főoldal</a>
-            <a class="nav-link" aria-current="page" href="../html">html&css</a>
-            <a class="nav-link" href="../python">python</a>
-            <a class="nav-link" href="../network">hálózat</a>
-            <a class="nav-link" href="../math">matek</a>
+            <a class="nav-link" href="">főoldal</a>
+            <a class="nav-link" aria-current="page" href="html">html&css</a>
+            <a class="nav-link" href="python">python</a>
+            <a class="nav-link" href="network">hálózat</a>
+            <a class="nav-link" href="math">matek</a>
           </div>
         </div>
       </nav>
@@ -64,7 +76,7 @@
         <a href="network.html#halozat">Cisco parancsok</a>
       </div>
       <!-- <div class="setting-holder">
-            <button onclick="openSettingsModal()" class="settings"><img src="../assets/images/gear.svg"
+            <button onclick="openSettingsModal()" class="settings"><img src="assets/images/gear.svg"
                     alt="Settings-gomb"></button>
         </div> -->
     </div>
@@ -227,6 +239,6 @@
         </form>
       </div>
   </main>
-<script src="../../assets/js/footer.js"></script>
+<script src="assets/js/footer.js"></script>
   </body>
 </html>
