@@ -5,7 +5,7 @@ footer {
   margin: 0;
   font-size: 75%;
   text-align: center;
-  height: 450px;
+  height: fit-content;
 }
 
 p {
