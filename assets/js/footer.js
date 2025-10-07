@@ -112,6 +112,12 @@ async function updateLastPushDate() {
                     <p>Email</p>
                 </a>
             </div>
+    <div>
+             <a href="https://github.com/XxHaltiruXx/${repoName}" target="_blank" rel="noopener">
+                    <img data-filename="trello.svg" src="${imagePath}trello.svg" alt="Trello">
+                    <p>Trello</p>
+                </a>
+            </div>
         </div>
     `;
     document.body.appendChild(footer);
