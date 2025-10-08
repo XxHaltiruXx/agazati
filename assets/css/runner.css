@@ -1,5 +1,5 @@
 div.row{
-    margin: 0; 
+    margin: 0;
 }
 /*html runner*/
 
@@ -30,7 +30,7 @@ div#preview iframe {
 
 div#pyeditor,div#outputArea {
     margin: 0;
-    padding: 3px;
+    /* padding: auto 300px; */
     height: 700px;
 }
 
@@ -40,11 +40,11 @@ div#pyeditor textarea{
     color: aliceblue;
     resize: none;
     border-radius: 5px;
+    border: none;
     background: #111;
     border:  none;
     height: 80%;
-    margin: 0;
-    padding: 5px;
+    margin: 0px;
     order: 1;
 }
 
@@ -53,6 +53,7 @@ div#pyeditor {
     border: 1px solid #0066ff;
     border-radius: 5px;
     height: 700px;
+    padding-top: 8px;
 }
 
 div#pyeditor div{
@@ -66,11 +67,15 @@ pre#output {
     height: 700px;
     overflow: auto;
     text-align: left;
-    padding: 5px;
     border: 1px solid #0066ff;
     border-radius: 5px;
     margin-bottom: 0px;
 
+}
+
+textarea#code , pre#output {
+    padding: 10px;
+    font-size: 16px;
 }
 
 button#run {
