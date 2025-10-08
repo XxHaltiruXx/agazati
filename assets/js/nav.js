@@ -2,6 +2,29 @@
 // Replace your existing file with this. Designed to run on small screens only.
 // v2.1 - instant restore, no smooth scroll, runs only when window.matchMedia("(max-width:768px)").matches
 
+function toggleNav() {
+    const sidenav = document.getElementById("mySidenav");
+    sidenav.style.width = sidenav.style.width === "250px" ? "0" : "250px";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("searchNav").addEventListener("input", function () {
+        let filter = this.value.toLowerCase().trim();
+        let links = document.querySelectorAll(".sidenav a");
+
+        if (filter === "") {
+            links.forEach(link => {
+                link.style.display = "";
+            });
+            return;
+        }
+        
+        links.forEach(link => {
+            link.style.display = link.textContent.toLowerCase().includes(filter) ? "" : "none";
+        });
+    });
+});
+
 (function(){
   const CLICK_KEY = '__agazati_nav_target_v2';
   const POS_KEY = '__agazati_nav_pos_v2';

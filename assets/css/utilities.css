@@ -14,7 +14,6 @@
   }
 }
 
-/* Extra kis képernyők (max 480px) */
 @media screen and (max-width: 480px) {
   .settings-modal {
     width: 95%;
@@ -63,7 +62,6 @@
   border-radius: 10px;
 }
 
-/* Mobil nézetre media query */
 @media (max-width: 768px) {
   .code-block {
     margin: 1rem -15px;

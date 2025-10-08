@@ -64,11 +64,11 @@
   margin: 0;
   width: 35px;
   height: 35px;
-  position: sticky; /* Változtatás absolute -> sticky */
-  bottom: 10px; /* 10px-re a konténer aljától */
-  right: 10px; /* 10px-re a konténer jobb szélétől */
-  float: right; /* Jobbra igazítás */
-  margin-top: calc(40vh - 35px - 10px); /* Automatikus felső margó */
+  position: sticky;
+  bottom: 10px;
+  right: 10px;
+  float: right;
+  margin-top: calc(40vh - 35px - 10px);
   cursor: pointer;
   z-index: 1000;
 }

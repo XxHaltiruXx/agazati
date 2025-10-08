@@ -97,7 +97,6 @@ div.kartya-item h3 {
 }
 
 div.kartya-item div:not(.row):not(.col) {
-  /* Kivételezzük a Bootstrap osztályokat */
   display: block;
   margin: auto;
   align-items: center;
@@ -155,8 +154,8 @@ hr {
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
   padding: 13px;
-  display: inline-block; /* Váltás inline-blockra */
-  white-space: nowrap; /* Megakadályozza a sortörést */
+  display: inline-block;
+  white-space: nowrap;
   margin: 2px 0;
 }
 
