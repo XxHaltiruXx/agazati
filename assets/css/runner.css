@@ -1,0 +1,60 @@
+div.row{
+    margin: 0; 
+}
+/*html runner*/
+
+div#editor,div#preview {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+}
+
+div#editor textarea {
+    width: 100%;
+    height: 800px;
+    resize: none;
+    margin: 0 auto;
+}
+ 
+div#preview iframe {
+    width: 100%;
+    height: 800px;
+    border: 1px solid #ccc;
+    padding: 0;
+    margin: 0 auto;
+}
+
+textarea#code {
+    width: 100%;
+    height: 220px;
+    font-family: monospace;
+    padding: 8px;
+    background-color: rgb(62, 69, 81);
+}
+
+/* python, runner */
+pre#output {
+    white-space: pre-wrap;
+    background: #111;
+    color: #dcdcdc;
+    padding: 12px;
+    height: 160px;
+    overflow: auto;
+}
+
+
+button#run {
+  background-color: #4c0bce;
+  border: #2f00ff 3px solid;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 90%;
+  color: white;
+  padding: 25px;
+  margin: 10px;
+  text-decoration: none;
+  display: block;
+  white-space: nowrap;
+  width: max-content;
+}

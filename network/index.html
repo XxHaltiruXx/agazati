@@ -15,7 +15,6 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
-    <script src="../assets/js/main.js"></script>
     <link
       rel="shortcut icon"
       href="../assets/images/network.ico"
@@ -47,7 +46,6 @@
       </nav>
     </header>
 
-    <!-- Sidenav -->
     <div id="mySidenav" class="sidenav">
       <div>
         <input type="text" id="searchNav" placeholder="🔍Keresés..." />
@@ -64,11 +62,6 @@
         <a href="network.html#szamrendszer">Számrendszerek</a>
         <a href="network.html#halozat">Cisco parancsok</a>
       </div>
-      <div class="setting-holder">
-        <button onclick="openSettingsModal()" class="settings">
-          <img src="../assets/images/gear.svg" alt="Settings-gomb" />
-        </button>
-      </div>
     </div>
     <main>
       <h1 class="cim">Hálózat</h1>
@@ -82,7 +75,6 @@
         </div>
 
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-          <!-- 2-es számrendszer -->
           <div class="col">
             <div class="card h-100 border-0 shadow-lg card-custom">
               <div class="card-header py-3" style="background: #2f00ff">
@@ -98,7 +90,6 @@
             </div>
           </div>
 
-          <!-- 10-es számrendszer -->
           <div class="col">
             <div class="card h-100 border-0 shadow-lg card-custom">
               <div class="card-header py-3" style="background: #2f00ff">
@@ -114,7 +105,6 @@
             </div>
           </div>
 
-          <!-- 16-os számrendszer -->
           <div class="col">
             <div class="card h-100 border-0 shadow-lg card-custom">
               <div class="card-header py-3" style="background: #2f00ff">
@@ -130,7 +120,6 @@
             </div>
           </div>
 
-          <!-- 256-os számrendszer -->
           <div class="col">
             <div class="card h-100 border-0 shadow-lg card-custom">
               <div class="card-header py-3" style="background: #2f00ff">
@@ -152,7 +141,6 @@
           <h3>Cisco Parancsok</h3>
           <hr />
           <div class="container-fluid">
-            <!-- VLAN konfiguráció -->
             <div class="row">
               <div class="col-12 col-md-6">
                 <h5>VLAN Beállítások</h5>
@@ -163,7 +151,6 @@ name [név]</code></pre>
                 </div>
               </div>
 
-              <!-- Portok konfigurációja -->
               <div class="col-12 col-md-6">
                 <h5>Portok hozzárendelése</h5>
                 <div class="code-block">
@@ -176,7 +163,6 @@ switchport access vlan [vlan száma]
               </div>
             </div>
 
-            <!-- DHCP konfiguráció -->
             <div class="row">
               <div class="col-12 col-md-6">
                 <h5>DHCP & Ip adás routerben</h5>
@@ -197,7 +183,6 @@ ip dhcp excluded-address FIP KIOSZTANDÓ_CÍM-1</code></pre>
                 </div>
               </div>
 
-              <!-- Switch/Router Alapok -->
               <div class="col-12 col-md-6">
                 <h5>Switch/Router Alapok</h5>
                 <div class="code-block">
@@ -215,7 +200,6 @@ no shut</code></pre>
               </div>
             </div>
 
-            <!-- Biztonsági beállítások -->
             <div class="row">
               <div class="col-12 col-md-6">
                 <h5>SSH Beállítások</h5>
@@ -260,7 +244,6 @@ login</code></pre>
               </div>
             </div>
 
-            <!-- FTP beállítások -->
             <div class="row">
               <div class="col-12 col-md-12">
                 <h5>FTP Műveletek</h5>
@@ -275,7 +258,6 @@ quit</code></pre>
               </div>
             </div>
 
-            <!-- Fontos megjegyzések -->
             <div id="megjegyzes" class="alert alert-dark mt-4">
               <h5>⚠️ Fontos megjegyzések</h5>
               <ul>
@@ -301,61 +283,6 @@ quit</code></pre>
         </div>
       </section>
     </main>
-    <!-- <div class="settings-modal" id="settingsModal">
-        <div class="settings-box">
-            <div class="settings-header">
-                <h3>🎨 Testreszabás</h3>
-                <button onclick="closeSettingsModal()" class="close-btn">&times;</button>
-            </div>
-
-            <div class="settings-group">
-                <h4>🌈 Háttér</h4>
-                <div class="color-pickers">
-                    <div>
-                        <label>Kezdő szín:</label>
-                        <input type="color" id="gradientStart" class="hidden-input">
-                        <button onclick="toggleColorPicker('gradientStart')">Válassz</button>
-                    </div>
-                    <div>
-                        <label>Vég szín:</label>
-                        <input type="color" id="gradientEnd" class="hidden-input">
-                        <button onclick="toggleColorPicker('gradientEnd')">Válassz</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-group">
-                <h4>🔤 Szövegszínek</h4>
-                <div class="text-colors">
-                    <div>
-                        <label>Alap szöveg:</label>
-                        <input type="color" id="textColor" class="hidden-input">
-                        <button onclick="toggleColorPicker('textColor')">Válassz</button>
-                    </div>
-                    <div>
-                        <label>Címek:</label>
-                        <input type="color" id="titleColor" class="hidden-input">
-                        <button onclick="toggleColorPicker('titleColor')">Válassz</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-group">
-                <h4>🎚 Presetek</h4>
-                <div class="presets">
-                    <button class="preset-btn red" onclick="applyPreset('red')">Piros</button>
-                    <button class="preset-btn blue" onclick="applyPreset('blue')">Kék</button>
-                    <button class="preset-btn dark" onclick="applyPreset('dark')">Sötét</button>
-                    <button class="preset-btn matrix" onclick="applyPreset('matrix')">Mátrix</button>
-                </div>
-            </div>
-
-            <div class="settings-footer">
-                <button onclick="applySettings()" class="apply-btn">💾 Alkalmaz</button>
-                <button onclick="resetSettings()" class="reset-btn">⏮ Alaphelyzet</button>
-            </div>
-        </div>
-    </div> -->
     <script src="../assets/js/footer.js"></script>
   </body>
 </html>

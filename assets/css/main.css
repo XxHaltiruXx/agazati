@@ -4,22 +4,6 @@
     box-shadow 0.3s ease;
 }
 
-:root {
-  --gradient-start: #3e4551;
-  --gradient-end: #000000;
-  --text-color: aliceblue;
-  --title-color: aliceblue;
-  --default-color: #4c0bce;
-}
-h1,
-h2,
-h3,
-h4,
-.cim,
-.subsite {
-  color: var(--title-color) !important;
-}
-
 body {
   background: rgb(62, 69, 81);
   background: linear-gradient(
@@ -137,7 +121,7 @@ div.kartya div.kartya-item:nth-child(even) button {
 main {
   min-height: calc(100vh - 70px);
   margin: 0 auto;
-  width: 100%;
+  /* width: 100%; */
 }
 
 hr {
