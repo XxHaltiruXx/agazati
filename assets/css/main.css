@@ -138,6 +138,7 @@ div.kartya div.kartya-item:nth-child(even) button {
 main {
   min-height: calc(100vh - 70px);
   margin: 0 auto;
+  width: 100%;
 }
 
 hr {
@@ -407,7 +408,11 @@ div.code-block {
   text-decoration: none;
 }
 
-.download {
+section.downloads {
+  width: 90%;
+}
+
+a.download {
   background-color: #4c0bce;
   border: #2f00ff 3px solid;
   border-radius: 10px;
