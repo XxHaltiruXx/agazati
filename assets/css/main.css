@@ -305,14 +305,11 @@ section {
   }
 }
 
-
-
-
 .tryitbtn-holder {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 20px auto;
+  margin: 20px 0 auto;
   width: 90%;
 }
 
@@ -324,10 +321,12 @@ section {
   font-size: 90%;
   color: white;
   padding: 12px;
-  margin: 15px auto;
+  margin: 15px 0 auto;
   text-decoration: none;
   display: block;
   white-space: nowrap;
+  width: max-content;
+
 }
 
 .tryitbtn:hover {
