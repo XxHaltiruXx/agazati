@@ -9,8 +9,18 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==== Konfig ====
+const repoOwner = "XxHaltiruXx";
 const repoName = "agazati"; // ha máshova költözteted, ezt változtasd
-const githubRawBase = `https://raw.githubusercontent.com/XxHaltiruXx/${repoName}/main/assets/images/`;
+const githubApiBase = "https://api.github.com";
+const githubRawBase = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/assets/images/`;
+
+// ==== Ellenőrzési időköz (4 óra) és localStorage kulcsok ====
+const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 óra
+const LS_PREFIX = "agazati_";
+const KEY_LAST_COMMIT_ISO = LS_PREFIX + "lastCommitISO";
+const KEY_LAST_COMMIT_FMT = LS_PREFIX + "lastCommitFormatted";
+const KEY_LAST_CHECK_TS = LS_PREFIX + "lastCheckTs";
+const KEY_SKIP_UNTIL_TS = LS_PREFIX + "skipUntilTs";
 
 // ==== Segédfüggvények ====
 function computeBasePath(repo) {
@@ -39,72 +49,160 @@ function applyImageFallbacks(container) {
   const imgs = container.querySelectorAll("img");
   imgs.forEach((img) => {
     const filename =
-      img.getAttribute("data-filename") || img.src.split("/").pop();
+      img.getAttribute("data-filename") || (img.src || "").split("/").pop();
+    if (!filename) return;
     const fallback = githubRawBase + filename;
-    img.onerror = function () {
+    img.addEventListener("error", function onErr() {
       if (this.src !== fallback) this.src = fallback;
-    };
+      this.removeEventListener("error", onErr);
+    });
   });
 }
 
-// ==== GitHub commit dátum lekérése (cache-elve 24h) ====
-async function updateLastPushDate() {
-  const timeEl = document.querySelector(".time");
-  if (!timeEl) return;
-
-  const cacheKey = "lastPushDate";
-  const cacheExpiryKey = "lastPushDateExpiry";
-  const now = Date.now();
-
-  const cached = localStorage.getItem(cacheKey);
-  const expiry = localStorage.getItem(cacheExpiryKey);
-
-  if (cached && expiry && now < parseInt(expiry)) {
-    timeEl.textContent = cached;
-    return;
-  }
-
+function formatDateHU(isoString) {
   try {
-    const res = await fetch(
-      `https://api.github.com/repos/XxHaltiruXx/${repoName}/commits?per_page=1`
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (
-      !Array.isArray(data) ||
-      !data[0] ||
-      !data[0].commit ||
-      !data[0].commit.committer
-    ) {
-      throw new Error("Nincs elérhető commit adat");
-    }
-
-    const date = new Date(data[0].commit.committer.date);
-    const formattedDate = date.toLocaleDateString("hu-HU", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-
-    timeEl.textContent = formattedDate;
-
-    localStorage.setItem(cacheKey, formattedDate);
-    localStorage.setItem(
-      cacheExpiryKey,
-      (now + 24 * 60 * 60 * 1000).toString()
-    );
-  } catch (err) {
-    console.error("Nem sikerült lekérni a dátumot:", err);
-    timeEl.textContent = "N/A";
+    const d = new Date(isoString);
+    if (isNaN(d)) return "N/A";
+    return d.toLocaleDateString("hu-HU", { year: "numeric", month: "2-digit", day: "2-digit" });
+  } catch {
+    return "N/A";
   }
 }
 
-// ==== Footer létrehozása és betöltése ====
-(function createFooter() {
-  const imagePath = getImagePath();
+function isoDatePartLocal(isoString) {
+  // visszaadja a helyi év-hónap-nap részt: YYYY-MM-DD
+  const d = new Date(isoString);
+  if (isNaN(d)) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-  const footer = document.createElement("footer");
-  footer.innerHTML = `
+function nowTs() {
+  return Date.now();
+}
+
+// ==== GitHub API lekérdezés: legutóbbi commit dátuma ====
+async function fetchLatestCommitISO(owner, repo) {
+  const url = `${githubApiBase}/repos/${owner}/${repo}/commits?per_page=1`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+  const data = await res.json();
+  if (!Array.isArray(data) || !data[0] || !data[0].commit || !data[0].commit.committer) {
+    throw new Error("No commit data");
+  }
+  return data[0].commit.committer.date; // ISO string
+}
+
+// ==== Footer update helper (csak a dátumot írja, semmi más) ====
+function setFooterDate(formatted) {
+  const timeEl = document.querySelector(".time");
+  if (timeEl) timeEl.textContent = formatted;
+}
+
+// ==== Core ellenőrzési logika ====
+async function performCommitCheck() {
+  const now = nowTs();
+  const skipUntil = parseInt(localStorage.getItem(KEY_SKIP_UNTIL_TS) || "0", 10);
+
+  // Ha skipUntil él és még nem értünk el hozzá -> csak töltse be a cache-t
+  if (skipUntil && now < skipUntil) {
+    const cachedFmt = localStorage.getItem(KEY_LAST_COMMIT_FMT);
+    if (cachedFmt) {
+      console.log(`[agazati] Skipping check until next day (${new Date(skipUntil).toISOString()}). Using cached date: ${cachedFmt}`);
+      setFooterDate(cachedFmt);
+      return;
+    }
+    // ha nincs cache, akkor folytatjuk az ellenőrzéssel
+  }
+
+  // Ha az utolsó ellenőrzés < 4 órája történt, használjuk a cache-t
+  const lastCheck = parseInt(localStorage.getItem(KEY_LAST_CHECK_TS) || "0", 10);
+  if (lastCheck && now - lastCheck < CHECK_INTERVAL_MS) {
+    const cachedFmt = localStorage.getItem(KEY_LAST_COMMIT_FMT);
+    if (cachedFmt) {
+      console.log(`[agazati] Last check <4h ago. Using cached date: ${cachedFmt}`);
+      setFooterDate(cachedFmt);
+      return;
+    }
+    // ha nincs cache, folytassuk
+  }
+
+  // Megpróbáljuk lekérni a legfrissebb commitot
+  try {
+    const latestIso = await fetchLatestCommitISO(repoOwner, repoName);
+    const latestDay = isoDatePartLocal(latestIso);
+
+    const storedIso = localStorage.getItem(KEY_LAST_COMMIT_ISO);
+    const storedDay = storedIso ? isoDatePartLocal(storedIso) : null;
+
+    // Ha nincs korábbi adat -> mentsük és mutassuk
+    if (!storedIso) {
+      const fmt = formatDateHU(latestIso);
+      localStorage.setItem(KEY_LAST_COMMIT_ISO, latestIso);
+      localStorage.setItem(KEY_LAST_COMMIT_FMT, fmt);
+      localStorage.setItem(KEY_LAST_CHECK_TS, now.toString());
+      console.log(`[agazati] First commit fetch. Date: ${latestIso}`);
+      setFooterDate(fmt);
+      return;
+    }
+
+    // Ha ugyanazon a napon vannak -> nincs új commit aznap
+    if (storedDay === latestDay) {
+      // Frissítjük a lastCheckTs, eltároljuk a meglévő formázott dátumot
+      localStorage.setItem(KEY_LAST_CHECK_TS, now.toString());
+      const fmt = formatDateHU(storedIso);
+      localStorage.setItem(KEY_LAST_COMMIT_FMT, fmt);
+      console.log(`[agazati] No new commit today. Stored date remains: ${storedIso}`);
+      setFooterDate(fmt);
+      return;
+    }
+
+    // Ha különböző a nap -> van új commit (vagy a tárolt régebbi napra mutat)
+    // Frissítünk a store-okat
+    const newFmt = formatDateHU(latestIso);
+    localStorage.setItem(KEY_LAST_COMMIT_ISO, latestIso);
+    localStorage.setItem(KEY_LAST_COMMIT_FMT, newFmt);
+    localStorage.setItem(KEY_LAST_CHECK_TS, now.toString());
+    setFooterDate(newFmt);
+    console.log(`[agazati] New commit detected: ${latestIso}`);
+
+    // Ha az új commit ma történt, állítsuk be skipUntil = következő nap 00:00:00 helyi idő szerint
+    const today = new Date();
+    const todayPart = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    if (latestDay === todayPart) {
+      const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 0, 0, 0, 0);
+      localStorage.setItem(KEY_SKIP_UNTIL_TS, tomorrow.getTime().toString());
+      console.log(`[agazati] New commit is today — skipping further checks until: ${tomorrow.toISOString()}`);
+    } else {
+      // ha az új commit nem ma volt (például repo-ban régebbi commit volt, de stored másnapra mutatott), töröljük a skipet
+      localStorage.removeItem(KEY_SKIP_UNTIL_TS);
+    }
+    return;
+  } catch (err) {
+    // fetch hiba: használjuk a cache-t, ha van; különben N/A
+    console.error("[agazati] Commit check failed:", err);
+    const cachedFmt = localStorage.getItem(KEY_LAST_COMMIT_FMT);
+    if (cachedFmt) {
+      console.log(`[agazati] Using cached date due to failure: ${cachedFmt}`);
+      setFooterDate(cachedFmt);
+    } else {
+      setFooterDate("N/A");
+    }
+    // naplózzuk az időpontot, hogy ne próbálkozzon végtelenül gyorsan
+    localStorage.setItem(KEY_LAST_CHECK_TS, now.toString());
+  }
+}
+
+// ==== Footer létrehozása és betöltése (megtartva a te HTML szerkezetedet és stílusodat) ====
+(function createFooterIfMissing() {
+  // ha van már footer, csak alkalmazzuk a képfallbackeket és hagyjuk a struktúrát érintetlenül
+  let footer = document.querySelector("footer");
+  if (!footer) {
+    const imagePath = getImagePath();
+    footer = document.createElement("footer");
+    footer.innerHTML = `
         <p>&copy; 2025 XxHaltiruXx. Minden jog fenntartva. Nem állunk kapcsolatban valós márkákkal.</p>
         <p>Verzió: <span class="version-number">1.0.0</span></p>
         <p>Utolsó frissítés: <span class="time">—</span></p>
@@ -112,29 +210,66 @@ async function updateLastPushDate() {
         <h3>Kapcsolat</h3>
         <div class="contacts">
             <div>
-                <a href="https://github.com/XxHaltiruXx/${repoName}" target="_blank" rel="noopener">
+                <a href="https://github.com/${repoOwner}/${repoName}" target="_blank" rel="noopener">
                     <img data-filename="github.svg" src="${imagePath}github.svg" alt="Github">
-                    <p>Github</p>
                 </a>
             </div>
             <div>
              <a href="https://trello.com/b/p69OnOBH/%C3%A1gazati" target="_blank" rel="noopener">
                     <img data-filename="trello.svg" src="${imagePath}trello.svg" alt="Trello">
-                    <p>Trello</p>
                 </a>
             </div>
             <div>
                 <a href="mailto:agazati.info@gmail.com" target="_blank" rel="noopener">
                     <img id="mail" data-filename="mail.png" src="${imagePath}mail.png" alt="Email">
-                    <p>Email</p>
                 </a>
             </div>
         </div>
     `;
-  document.body.appendChild(footer);
+    document.body.appendChild(footer);
+  } else {
+    // ha footer létezik, meggyőződünk róla, hogy van .time elem — ha nincs, létrehozzuk
+    if (!footer.querySelector(".time")) {
+      const p = document.createElement("p");
+      p.innerHTML = `Utolsó frissítés: <span class="time">—</span>`;
+      // beszúrjuk a footer tetejére a verzió elem után, hogy ne borítsuk a stílust
+      footer.appendChild(p);
+    }
+  }
 
+  // Alkalmazzuk a kép fallbackeket (nem változtatunk stíluson)
   applyImageFallbacks(footer);
 })();
 
-// ==== Indítjuk a commit dátum lekérést ====
-updateLastPushDate();
+// ==== Inicializálás: először használjuk a cache-t ha érvényes, különben lekérjük; majd interval ==== 
+(async function init() {
+  try {
+    const lastCheck = parseInt(localStorage.getItem(KEY_LAST_CHECK_TS) || "0", 10);
+    const now = nowTs();
+    const cachedFmt = localStorage.getItem(KEY_LAST_COMMIT_FMT);
+    const skipUntil = parseInt(localStorage.getItem(KEY_SKIP_UNTIL_TS) || "0", 10);
+
+    if (skipUntil && now < skipUntil) {
+      if (cachedFmt) {
+        console.log(`[agazati] init: skipUntil active until ${new Date(skipUntil).toISOString()}, using cached date.`);
+        setFooterDate(cachedFmt);
+      } else {
+        console.log("[agazati] init: skipUntil active but no cached date available.");
+        setFooterDate("N/A");
+      }
+    } else if (lastCheck && now - lastCheck < CHECK_INTERVAL_MS && cachedFmt) {
+      console.log("[agazati] init: last check within 4 hours, using cached date.");
+      setFooterDate(cachedFmt);
+      // mégis háttérben megpróbáljuk a performCommitCheck-et (nem blokkoljuk a megjelenítést)
+      performCommitCheck().catch((e) => console.debug("[agazati] background check error", e));
+    } else {
+      // nincs érvényes cache -> ellenőrizzük rögtön
+      await performCommitCheck();
+    }
+  } catch (e) {
+    console.error("[agazati] init error:", e);
+  } finally {
+    // indítjuk az interval-t: 4 óránként performCommitCheck
+    setInterval(performCommitCheck, CHECK_INTERVAL_MS);
+  }
+})();
