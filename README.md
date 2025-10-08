@@ -10,10 +10,8 @@ Egy oktatási segédanyagokat tartalmazó weboldal, amely különböző technol�
 
 - 📚 **Több témakör**: HTML/CSS, Python, Hálózatok, Matematika
 - 🎮 **Interaktív kérdőívek** HTML/CSS témában
-- 🎨 **Testreszabható kinézet** (háttérszínek, szövegszínek, presetek)
 - 🔍 **Keresés** a navigációs menüben
 - 📱 **Reszponzív dizájn**, minden eszközön jól működik
-- ⚙️ **Beállítások mentése** cookie-k segítségével
 - 📖 **Kódrészletek és példák** a könnyebb tanulás érdekében
 - 📞 **Kapcsolati információk** elérhetőek
 
@@ -53,23 +51,10 @@ A projekt az alábbi technológiákat használja:
 - Kódrészletek és példák
 - Leírások a **Box modellek**, **pozicionálás** és **animációk** témakörökben
 
-### 3️⃣ **Testreszabás**
-- Kattints a **fogaskerék ikonra** ⚙️
-- Válassz egyéni színeket vagy használj előre beállított témákat
-- A változtatások **automatikusan mentődnek**
 
 ---
 
-## 🖼 Képernyőképek
-
-| **Főoldal** | **Beállítások** |
-|------------|----------------|
-| ![Főoldal](assets/images/main.png) | ![Beállítások](assets/images/settings.png) |
-
-
----
-
-## 🤝 Kontribúció
+## 🤝 Együttműködés
 
 Ha van ötleted vagy javításod a projekthez, kövesd az alábbi lépéseket:
 
