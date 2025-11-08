@@ -1,0 +1,220 @@
+:root{
+  --accent:#7f5af0;
+  --accent-light:#a693ff;
+  --bg-dark:#0a0a14;
+  --bg-mid:#111122;
+  --text:#e4e4ff;
+  --muted:#888ab8;
+  --error:#ff4b5c;
+  --success:#45f0a0;
+}
+.meta{
+  margin:1rem auto;
+  max-width:900px;
+  text-align:center;
+  font-size:0.95rem;
+  color:var(--muted);
+}
+#shared{
+  display:block;
+  width:90%;
+  max-width:900px;
+  height:340px;
+  margin:1rem auto;
+  padding:1rem;
+  background:var(--bg-mid);
+  color:var(--text);
+  border:2px solid var(--accent);
+  border-radius:12px;
+  resize:vertical;
+  font-family:"Fira Code", monospace;
+  font-size:1rem;
+  transition:0.2s box-shadow,0.2s border-color;
+}
+#shared:focus{
+  border-color:var(--accent-light);
+  box-shadow:0 0 12px var(--accent-light);
+  outline:none;
+}
+.controls{
+  display:flex;
+  align-items:center;
+  gap:0.8rem;
+  justify-content:space-between;
+  margin:1.2rem auto;
+  max-width:900px;
+  padding:0 5%;
+  box-sizing:border-box;
+}
+.left{
+  display:flex;
+  align-items:center;
+  gap:0.6rem;
+  flex-shrink:1;
+}
+.authBtns{
+  display:flex;
+  gap:0.6rem;
+  align-items:center;
+  flex-shrink:0;
+}
+.right{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  min-width:140px;
+}
+button{
+  border:none;
+  padding:0.55rem 1.1rem;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:500;
+  transition:0.2s background,0.2s transform;
+  white-space:nowrap;
+}
+button#pwOk,button#saveBtn:not(:disabled){
+  background:var(--accent);
+  color:white;
+}
+button#pwOk:hover,button#saveBtn:hover{
+  background:var(--accent-light);
+  transform:translateY(-2px);
+}
+button.secondary{
+  background:transparent;
+  color:var(--accent-light);
+  border:1px solid var(--accent-light);
+}
+button.secondary:hover{
+  background:var(--accent-light);
+  color:var(--bg-dark);
+}
+button.ghost{
+  background:transparent;
+  color:var(--muted);
+  border:1px solid var(--muted);
+}
+button.ghost:hover{
+  color:white;
+  border-color:var(--accent);
+}
+#pwModal{
+  position:fixed;
+  inset:0;
+  background:rgba(8,8,20,0.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+#pwBox{
+  background:var(--bg-mid);
+  color:var(--text);
+  padding:1.2rem 1.4rem;
+  border-radius:12px;
+  max-width:340px;
+  box-shadow:0 0 20px rgba(127,90,240,0.3);
+}
+#pwInput{
+  width:100%;
+  padding:0.55rem;
+  background:#16162a;
+  color:var(--text);
+  border:1px solid var(--accent);
+  border-radius:6px;
+}
+#pwInput:focus{
+  outline:none;
+  border-color:var(--accent-light);
+  box-shadow:0 0 6px var(--accent-light);
+}
+.error{
+  color:var(--error);
+  display:none;
+  margin-top:6px;
+  font-size:0.9rem;
+}
+.info{
+  color:var(--success);
+  display:none;
+  margin-top:6px;
+  font-size:0.9rem;
+}
+.hint{
+  color:var(--muted);
+  display:block;
+  margin-top:6px;
+  font-size:0.8rem;
+}
+.status{
+  text-align:right;
+  font-size:0.95rem;
+  color:var(--muted);
+  padding:0.32rem 0.6rem;
+  border-radius:8px;
+  border:1px solid transparent;
+  white-space:nowrap;
+}
+button:disabled{
+  opacity:0.6;
+  cursor:not-allowed;
+}
+.status[data-state="élő"]{
+  color:var(--success);
+  border-color:rgba(69,240,160,0.08);
+}
+.status[data-state="megszakadt"]{
+  color:var(--error);
+  border-color:rgba(255,75,92,0.06);
+}
+.status[data-state="ismeretlen"]{
+  color:var(--muted);
+}
+@media (max-width:900px){
+  #shared{width:94%;}
+  .controls{padding:0 3%;}
+}
+@media (max-width:700px){
+  .controls{
+    flex-direction:column;
+    align-items:stretch;
+    gap:0.6rem;
+  }
+  .left{
+    width:100%;
+    display:flex;
+    gap:0.5rem;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .authBtns{
+    width:100%;
+    display:flex;
+    gap:0.5rem;
+    flex-wrap:wrap;
+    justify-content:space-between;
+  }
+  .authBtns button{
+    flex:1 1 48%;
+    width:auto;
+    white-space:normal;
+    padding:0.6rem;
+  }
+  .right{
+    order:2;
+    width:100%;
+    justify-content:center;
+  }
+  .status{
+    text-align:center;
+    width:100%;
+    padding:0.6rem;
+    margin-top:6px;
+  }
+}
+@media (max-width:420px){
+  .authBtns button{
+    flex:1 1 100%;
+  }
+}
