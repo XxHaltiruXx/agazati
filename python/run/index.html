@@ -38,7 +38,8 @@
         <span onclick="toggleNav()" class="sidebargomb">&#9776;</span>
         <div class="navbar-nav">
           <a class="nav-link" href="./">főoldal</a>
-          <a class="nav-link" href="html/">html&css</a>
+          <a class="nav-link" href="html/">html</a>
+          <a class="nav-link" href="css/">css</a>
           <a class="nav-link" aria-current="page" href="python/">python</a>
           <a class="nav-link" href="network/">hálózat</a>
           <a class="nav-link" href="math/">matek</a>
@@ -72,11 +73,11 @@
 
   <main>
     <div class="row">
-      <div class="col-lg-6 col-md-12 col-sm-12 m-x-auto" id="pyeditor">
-          <textarea id="code">print("Helló Agazati!")</textarea> <!-- ezt kell átírni-->
-          <button id="run">Futtatás</button>
+      <div class="col-lg-6 col-md-12 col-sm-12" id="pyeditor">
+          <textarea id="code" spellcheck="false" placeholder="Írd vagy másold ide a Python kódod...">print("Helló Agazati!")</textarea>
+          <button id="run">▶ Futtatás</button>
       </div>
-      <div class="col-lg-6 col-md-12 col-sm-12 m-x-auto" id="outputArea">
+      <div class="col-lg-6 col-md-12 col-sm-12" id="outputArea">
         <pre id="output"></pre>
       </div>
     </div>
@@ -98,24 +99,21 @@
 
     function runUserCode(code) {
       const wrapper = `
-                        import sys, io, traceback
-                        _out = io.StringIO()
-                        _old_stdout = sys.stdout
-                        _old_stderr = sys.stderr
-                        sys.stdout = _out
-                        sys.stderr = _out
-                        try:
-                        ${code
-          .split("\n")
-          .map((l) => "    " + l)
-          .join("\n")}
-                        except Exception:
-                            traceback.print_exc()
-                        finally:
-                            sys.stdout = _old_stdout
-                            sys.stderr = _old_stderr
-                        print(_out.getvalue(), end="")
-                        `;
+import sys, io, traceback
+_out = io.StringIO()
+_old_stdout = sys.stdout
+_old_stderr = sys.stderr
+sys.stdout = _out
+sys.stderr = _out
+try:
+${code.split('\n').map(line => '    ' + line).join('\n')}
+except Exception:
+    traceback.print_exc()
+finally:
+    sys.stdout = _old_stdout
+    sys.stderr = _old_stderr
+    print(_out.getvalue(), end='')
+`;
       return pyodide.runPythonAsync(wrapper);
     }
 

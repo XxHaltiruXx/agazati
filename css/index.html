@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Itt tanulhatsz CSS-t." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>(function(){var basePath="/";if(location.pathname.indexOf("/agazati/")===0){basePath="/agazati/";}var base=document.createElement("base");base.href=basePath;document.head.appendChild(base);})();</script><link  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"  rel="stylesheet"  integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"  crossorigin="anonymous"/>
+    <script  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"  crossorigin="anonymous"></script>
+    <link  rel="shortcut icon"  href="assets/images/css.ico"  type="image/x-icon"/>
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <title>Agazati - CSS</title>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand">
+        <div class="container-fluid align-items-center">
+          <span onclick="toggleNav()" class="sidebargomb">&#9776;</span>
+          <div class="navbar-nav">
+            <a class="nav-link" href="">főoldal</a>
+            <a class="nav-link" href="html">html</a>
+            <a class="nav-link" aria-current="page" href="css">css</a>
+            <a class="nav-link" href="python">python</a>
+            <a class="nav-link" href="network">hálózat</a>
+            <a class="nav-link" href="math">matek</a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <div id="mySidenav" class="sidenav">
+      <div>
+        <!-- A navigáció tartalma dinamikusan generálódik -->
+      </div>
+    </div>
+    <main>
+      <h1 class="cim text-center">CSS</h1>
+
+      <section id="css-alapok" class="kartya">
+        <div class="kartya-item">
+          <h3>CSS Alapok</h3>
+          <hr />
+          <p>
+            A CSS (Cascading Style Sheets) felelős a weboldalak megjelenéséért.
+            Itt megtanulhatod az alapvető stílusokat és formázási lehetőségeket.
+          </p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyText(this)">📋</button>
+            <pre><code>/* Alapvető CSS példák */
+body {
+  background-color: #f0f0f0;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="box-model" class="kartya">
+        <div class="kartya-item">
+          <h3>Box Modell</h3>
+          <hr />
+          <p>
+            A CSS box modell az elemek térbeli elrendezését határozza meg. 
+            Négy fő része van: tartalom (content), belső margó (padding), 
+            keret (border) és külső margó (margin).
+          </p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyText(this)">📋</button>
+            <pre><code>.box {
+  width: 200px;
+  height: 100px;
+  padding: 20px;
+  border: 2px solid #333;
+  margin: 10px;
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="flexbox" class="kartya">
+        <div class="kartya-item">
+          <h3>Flexbox</h3>
+          <hr />
+          <p>
+            A Flexbox egy modern CSS elrendezési módszer, amely megkönnyíti 
+            a responsív design kialakítását és az elemek rugalmas pozicionálását.
+          </p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyText(this)">📋</button>
+            <pre><code>.flex-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="grid" class="kartya">
+        <div class="kartya-item">
+          <h3>CSS Grid</h3>
+          <hr />
+          <p>
+            A CSS Grid egy kétdimenziós elrendezési rendszer, amely lehetővé 
+            teszi komplex layoutok egyszerű megvalósítását.
+          </p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyText(this)">📋</button>
+            <pre><code>.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 20px;
+  padding: 20px;
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="responsive" class="kartya">
+        <div class="kartya-item">
+          <h3>Reszponzív Design</h3>
+          <hr />
+          <p>
+            A reszponzív design lehetővé teszi, hogy weboldalunk minden 
+            képernyőméreten megfelelően jelenjen meg.
+          </p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyText(this)">📋</button>
+            <pre><code>/* Mobilnézet */
+@media screen and (max-width: 600px) {
+  .container {
+    width: 100%;
+    padding: 10px;
+  }
+}
+
+/* Tablet nézet */
+@media screen and (min-width: 601px) and (max-width: 1024px) {
+  .container {
+    width: 90%;
+    padding: 15px;
+  }
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="animations" class="kartya">
+        <div class="kartya-item">
+          <h3>CSS Animációk</h3>
+          <hr />
+          <p>
+            A CSS animációkkal életre kelthetjük weboldalunkat és interaktív 
+            felhasználói élményt teremthetünk.
+          </p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyText(this)">📋</button>
+            <pre><code>@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animated {
+  animation: slide-in 0.5s ease-out;
+}</code></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

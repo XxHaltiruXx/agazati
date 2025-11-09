@@ -1,29 +1,339 @@
-// nav.js - mobile-only, instant (no animation) align-on-target
-// Replace your existing file with this. Designed to run on small screens only.
-// v2.1 - instant restore, no smooth scroll, runs only when window.matchMedia("(max-width:768px)").matches
+// Azonnal definiáljuk a globális toggleNav függvényt
+window.toggleNav = function() {
+    if (!sidenav) {
+        sidenav = document.getElementById("mySidenav");
+    }
+    if (!sidenav) return;
+    
+    // Kapcsoljuk be az animációt
+    sidenav.style.transition = 'width 0.3s';
+    
+    if (isNavOpen) {
+        sidenav.style.width = "0";
+        isNavOpen = false;
+    } else {
+        sidenav.style.width = "250px";
+        isNavOpen = true;
+    }
+    saveNavState();
+};
 
-function toggleNav() {
-    const sidenav = document.getElementById("mySidenav");
-    sidenav.style.width = sidenav.style.width === "250px" ? "0" : "250px";
-}
+// Navigációs adatstruktúra
+const navStructure = {
+  "HTML": {
+    icon: "assets/images/sidehtml.webp",
+    items: [
+      { title: "HTML alapok", link: "html/alapok/" },
+      { title: "HTML struktúra", link: "html/structure/" },
+      { title: "HTML űrlapok", link: "html/forms/" },
+      { title: "HTML táblázatok", link: "html/tables/" },
+      { title: "HTML multimédia", link: "html/media/" },
+      { title: "HTML Futtató", link: "html/run/" }
+    ]
+  },
+  "CSS": {
+    icon: "assets/images/sidecss.webp",
+    items: [
+      { title: "CSS alapok", link: "css/alapok/" },
+      { title: "Box modell", link: "css/box/" },
+      { title: "Pozicionálás", link: "css/position/" },
+      { title: "Flexbox", link: "css/flex/" },
+      { title: "CSS Grid", link: "css/grid/" },
+      { title: "Reszponzív dizájn", link: "css/responsive/" },
+      { title: "CSS animációk", link: "css/animation/" }
+    ]
+  },
+  "Python": {
+    icon: "assets/images/sidepy.webp",
+    items: [
+      { title: "Python alapok", link: "python/alapok/" },
+      { title: "Változók és típusok", link: "python/types/" },
+      { title: "Vezérlési szerkezetek", link: "python/control/" },
+      { title: "Függvények", link: "python/functions/" },
+      { title: "Osztályok", link: "python/classes/" },
+      { title: "Fájlkezelés", link: "python/files/" },
+      { title: "Kivételkezelés", link: "python/exceptions/" },
+      { title: "Python Futtató", link: "python/run/" }
+      
+    ]
+  },
+  "Hálózat": {
+    icon: "assets/images/sidenetwork.webp",
+    items: [
+      { title: "Számrendszerek", link: "network/szamrendszer/" },
+      { title: "IP címzés", link: "network/ip/" },
+      { title: "Alhálózatok", link: "network/subnet/" },
+      { title: "Cisco parancsok", link: "network/cisco/" },
+      { title: "VLAN-ok", link: "network/vlan/" },
+      { title: "Routing", link: "network/routing/" }
+    ]
+  },
+  "Matematika": {
+    icon: "assets/images/sidemath.webp",
+    items: [
+      { title: "Algebra", link: "math/algebra/" },
+      { title: "Függvények", link: "math/functions/" },
+      { title: "Geometria", link: "math/geometry/" },
+      { title: "Valószínűségszámítás", link: "math/probability/" }
+    ]
+  }
+};
 
-document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("searchNav").addEventListener("input", function () {
-        let filter = this.value.toLowerCase().trim();
-        let links = document.querySelectorAll(".sidenav a");
+// Állapot kezelése sessionStorage-dzsal
+const NAV_STATE_KEY = '__agazati_nav_state';
+const SUBMENU_STATE_KEY = '__agazati_submenu_state';
 
-        if (filter === "") {
-            links.forEach(link => {
-                link.style.display = "";
-            });
-            return;
+// Globális változók inicializálása
+let isNavOpen = false;
+let sidenav;
+
+// Oldal betöltésekor inicializáljuk a változókat
+document.addEventListener('DOMContentLoaded', () => {
+    sidenav = document.getElementById('mySidenav');
+    if (sidenav) {
+        // Kikapcsoljuk az animációt
+        sidenav.style.transition = 'none';
+        
+        // Betöltjük a mentett állapotot
+        const savedState = sessionStorage.getItem(NAV_STATE_KEY);
+        if (savedState === 'true') {
+            isNavOpen = true;
+            sidenav.style.width = "250px";
         }
         
-        links.forEach(link => {
-            link.style.display = link.textContent.toLowerCase().includes(filter) ? "" : "none";
+        // Egy kis késleltetéssel visszakapcsoljuk az animációt
+        setTimeout(() => {
+            sidenav.style.transition = '';
+        }, 100);
+    }
+});
+
+// Állapot betöltése
+function loadNavState() {
+  try {
+    const savedSubmenuState = JSON.parse(sessionStorage.getItem(SUBMENU_STATE_KEY) || '{}');
+    
+    // NE animáljon betöltéskor
+    const noAnimation = true;
+
+    setTimeout(() => {
+      Object.entries(savedSubmenuState).forEach(([category, isOpen]) => {
+        const navGroup = document.querySelector(`.subnav[data-category="${category}"]`);
+        if (navGroup) {
+          const button = navGroup.querySelector('.nav-item');
+          const content = navGroup.querySelector('.subnav-content');
+          if (isOpen && button && content) {
+            button.classList.add('active');
+            content.style.display = 'block';
+
+            if (noAnimation) {
+              // Betöltéskor AZONNAL nyíljon ki animáció nélkül
+              content.style.transition = 'none';
+              content.style.maxHeight = 'none';
+            } else {
+              // (ez marad, ha mégis animálni akarod máskor)
+              content.style.overflow = 'hidden';
+              content.style.maxHeight = '0';
+              requestAnimationFrame(() => {
+                content.style.transition = 'max-height 0.3s ease-out';
+                content.style.maxHeight = content.scrollHeight + 'px';
+              });
+              setTimeout(() => {
+                content.style.maxHeight = 'none';
+              }, 350);
+            }
+
+            const arrow = button.querySelector('.arrow');
+            if (arrow) arrow.textContent = '▲';
+          }
+        }
+      });
+    }, 100);
+  } catch (e) {
+    console.error('Error loading nav state:', e);
+  }
+}
+
+// Állapot mentése
+function saveNavState() {
+    try {
+        sessionStorage.setItem(NAV_STATE_KEY, String(isNavOpen));
+        
+        // Almenük állapotának mentése
+        const submenuState = {};
+        document.querySelectorAll('.subnav').forEach(navGroup => {
+            const category = navGroup.getAttribute('data-category');
+            const button = navGroup.querySelector('.nav-item');
+            if (button) {
+                submenuState[category] = button.classList.contains('active');
+            }
+        });
+        sessionStorage.setItem(SUBMENU_STATE_KEY, JSON.stringify(submenuState));
+    } catch (e) {
+        console.error('Error saving nav state:', e);
+    }
+}
+
+
+
+ // Keresés funkcionalitás
+function filterNavItems(searchText) {
+    const allItems = document.querySelectorAll('#mySidenav .nav-item, #mySidenav .subnav-content a');
+    searchText = searchText.toLowerCase();
+    
+    allItems.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        const isVisible = text.includes(searchText);
+        
+        if (item.classList.contains('nav-item')) {
+            // Ha főmenü item
+            item.style.display = isVisible ? "flex" : "none";
+            const content = item.nextElementSibling;
+            if (content && content.classList.contains('subnav-content')) {
+                content.style.display = isVisible ? "block" : "none";
+            }
+        } else {
+            // Ha almenü item
+            item.style.display = isVisible ? "block" : "none";
+            // Ha van találat az almenüben, mutassuk a főmenüt is
+            const parentButton = item.closest('.subnav').querySelector('.nav-item');
+            if (isVisible && parentButton) {
+                parentButton.style.display = "flex";
+            }
+        }
+    });
+}
+
+// Navigáció létrehozása
+function createNavigation() {
+    const navContainer = document.querySelector('#mySidenav > div');
+    navContainer.innerHTML = ''; // Töröljük a meglévő tartalmat
+    
+    // Keresőmező létrehozása
+    const searchBox = document.createElement('div');
+    searchBox.className = 'search-container';
+    searchBox.innerHTML = `
+        <input type="text" id="searchNav" placeholder="🔍 Keresés..." />
+    `;
+    navContainer.appendChild(searchBox);
+    
+    // Menüpontok létrehozása
+    Object.entries(navStructure).forEach(([category, data]) => {
+        const navGroup = document.createElement('div');
+        navGroup.className = 'subnav';
+        navGroup.setAttribute('data-category', category);
+        
+        const button = document.createElement('button');
+        button.className = 'nav-item';
+        button.innerHTML = `
+            <img src="${data.icon}" alt="" class="nav-icon" />
+            ${category}
+            <span class="arrow">▼</span>
+        `;
+        
+        const content = document.createElement('div');
+        content.className = 'subnav-content';
+        content.style.display = 'none';
+        content.style.maxHeight = '0';
+        content.style.overflow = 'hidden';
+        content.style.transition = 'max-height 0.3s ease-out';
+        
+        data.items.forEach(item => {
+            const link = document.createElement('a');
+            link.href = item.link;
+            link.textContent = item.title;
+            
+            // Active link kezelése
+            if (window.location.pathname.includes(item.link)) {
+                link.classList.add('active');
+                button.classList.add('active');
+                // <<< MOD: ha az aktuális oldal miatt nyitott alapból, akkor is animálva nyissa meg (hogy később legyen záró animáció)
+                content.style.display = 'block';
+                content.style.overflow = 'hidden';
+                content.style.maxHeight = '0';
+                requestAnimationFrame(() => {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                });
+                // ha akarjuk, utána maxHeight: none-ra állítjuk
+                setTimeout(() => {
+                    if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+                        content.style.maxHeight = 'none';
+                    }
+                }, 350);
+                // >>> MOD end
+                button.querySelector('.arrow').textContent = '▲';
+            }
+            
+            content.appendChild(link);
+        });
+        
+        navGroup.appendChild(button);
+        navGroup.appendChild(content);
+        navContainer.appendChild(navGroup);
+        
+        // Lenyíló menü kezelése
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            button.classList.toggle('active');
+            // Use maxHeight to detect expanded state more reliably
+            const isExpanded = content.style.display !== 'none' && (content.style.maxHeight !== '0px' && content.style.maxHeight !== '' && content.style.maxHeight !== '0');
+            
+            if (!isExpanded) {
+                // open with animation
+                content.style.display = 'block';
+                // ensure we start from 0
+                content.style.overflow = 'hidden';
+                content.style.maxHeight = '0';
+                requestAnimationFrame(() => {
+                    content.style.transition = 'max-height 0.3s ease-out';
+                    content.style.maxHeight = content.scrollHeight + "px";
+                });
+                button.querySelector('.arrow').textContent = '▲';
+                // after expand, clear maxHeight to allow content growth
+                setTimeout(() => {
+                    if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+                        content.style.maxHeight = 'none';
+                    }
+                }, 350);
+            } else {
+                // close with animation
+                // to animate from auto/none, we must set to scrollHeight first, force reflow, then set to 0
+                const currentHeight = content.scrollHeight;
+                content.style.overflow = 'hidden';
+                content.style.maxHeight = currentHeight + 'px';
+                // force reflow
+                content.getBoundingClientRect();
+                requestAnimationFrame(() => {
+                    content.style.transition = 'max-height 0.3s ease-out';
+                    content.style.maxHeight = '0';
+                });
+                button.querySelector('.arrow').textContent = '▼';
+                setTimeout(() => {
+                    // only hide if truly closed
+                    if (content.style.maxHeight === '0px' || content.style.maxHeight === '0') {
+                        content.style.display = 'none';
+                    }
+                    // optional: clear inline maxHeight so next open will compute correctly
+                    // content.style.maxHeight = '';
+                }, 310);
+            }
+            saveNavState();
         });
     });
-});
+    
+    // Keresés eseménykezelő
+    const searchInput = document.getElementById('searchNav');
+    searchInput.addEventListener('input', (e) => {
+        filterNavItems(e.target.value);
+        saveNavState();
+    });
+    
+    // Állapot betöltése a létrehozás után
+    loadNavState();
+}
+
+// Oldal betöltésekor inicializáljuk a navigációt
+document.addEventListener('DOMContentLoaded', createNavigation);
 
 (function(){
   const CLICK_KEY = '__agazati_nav_target_v2';

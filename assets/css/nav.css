@@ -114,3 +114,113 @@ span {
   margin: 0 auto;
   display: block;
 }
+
+
+#searchNav {
+  width: 95%;
+  padding: 8px 12px;
+  border: 1px solid #818181;
+  background-color: black;
+  color: aliceblue;
+  font-size: 1rem;
+  margin: 0 auto;
+  display: block;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  background: none;
+  color: #818181;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: 0.3s;
+  text-align: left;
+}
+
+.nav-item:hover {
+  color: #f1f1f1;
+  background-color: #333;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+/* Matematika ikon fehérre színezése */
+.subnav[data-category="Matematika"] .nav-icon {
+  filter: brightness(0) invert(1); /* Fehérre színezi a képet */
+}
+
+.arrow {
+  margin-left: auto;
+  font-size: 0.8rem;
+  transition: transform 0.3s;
+  color: #818181;
+}
+
+.nav-item.active {
+  background-color: #333;
+  color: #f1f1f1;
+}
+
+.subnav-content {
+  background-color: #222;
+  transition: max-height 0.3s ease-out;
+}
+
+.subnav-content a {
+  padding: 10px 15px 10px 45px;
+  text-decoration: none;
+  font-size: 110%;
+  color: #818181;
+  display: block;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.subnav-content a:hover {
+  color: #f1f1f1;
+  background-color: #333;
+}
+
+.sidebargomb {
+  font-size: 30px;
+  color: aliceblue;
+  cursor: pointer;
+  background-color: #4c0bce;
+  padding: 0;
+  margin: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  height: 70px; /* Alapértelmezett magasság */
+  width: 70px; /* Négyzet forma */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebargomb:hover {
+  background-color: #470db9;
+}
+
+[aria-current="page"] {
+  background-color: #470db9;
+  font-weight: bold;
+  color: rgb(194, 188, 188) !important;
+}
+
+a.nav-link:hover {
+  background-color: #470db9;
+  color: aliceblue !important;
+}
+
+button {
+  margin: 0;
+}

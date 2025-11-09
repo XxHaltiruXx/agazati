@@ -14,16 +14,6 @@
     --default-color: #4c0bce;
 }
 
-h1,
-h2,
-h3,
-h4,
-.cim,
-.subsite {
-  color: var(--title-color) !important;
-}
-
-
 html {
     scroll-behavior: smooth;
 }
@@ -47,9 +37,8 @@ header {
   z-index: 2;
 }
 
-
 h1, h2, h3, h4, .cim, .subsite {
-    color: var(--title-color) ;
+    color: var(--title-color);
 }
 
 p {
