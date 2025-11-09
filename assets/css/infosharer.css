@@ -52,6 +52,15 @@
   gap:0.6rem;
   flex-shrink:1;
 }
+.mainBtns {
+  display:flex;
+  gap:0.6rem;
+  align-items:center;
+}
+.mainBtns button,
+.authBtns button {
+  min-width: 120px;
+}
 .authBtns{
   display:flex;
   gap:0.6rem;
