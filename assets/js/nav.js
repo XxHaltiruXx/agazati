@@ -28,7 +28,8 @@ const navStructure = {
       { title: "HTML űrlapok", link: "html/forms/" },
       { title: "HTML táblázatok", link: "html/tables/" },
       { title: "HTML multimédia", link: "html/media/" },
-      { title: "HTML Futtató", link: "html/run/" }
+      { title: "HTML Futtató", link: "html/run/" },
+      { title: "HTML Bővítmények", link: "html/extension/" }
     ]
   },
   "CSS": {
