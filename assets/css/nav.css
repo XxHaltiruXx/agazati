@@ -22,7 +22,7 @@ nav.navbar {
 }
 
 .container-fluid {
-    --bs-gutter-x: 0 !important;
+  --bs-gutter-x: 0 !important;
 }
 
 div.navbar-nav a.nav-link {
@@ -41,7 +41,6 @@ div.navbar-nav {
   padding: 0;
   min-width: calc(100vw - 60px);
 }
-
 
 .sidenav {
   height: calc(100% - 70px);
@@ -114,7 +113,6 @@ span {
   margin: 0 auto;
   display: block;
 }
-
 
 #searchNav {
   width: 95%;
@@ -193,19 +191,13 @@ span {
   color: aliceblue;
   cursor: pointer;
   background-color: #4c0bce;
-  padding: 0;
+  padding: 17.5px;
   margin: 0;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 3;
-  height: 70px; /* Alapértelmezett magasság */
-  width: 70px; /* Négyzet forma */
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-
 .sidebargomb:hover {
   background-color: #470db9;
 }
