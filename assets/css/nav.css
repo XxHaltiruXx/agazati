@@ -25,7 +25,6 @@ nav.navbar {
   scroll-snap-type: x proximity;
   text-align: center;
   height: var(--nav-height);
-  nav.navbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -45,7 +44,7 @@ div.navbar-nav a.nav-link {
   flex-grow: 1;
   display: block;
   height: 100%;
-  line-height: var(--nav-height);
+  line-height: var(--nav-pad);
 }
 
 div.navbar-nav {
