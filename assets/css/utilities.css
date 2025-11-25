@@ -47,21 +47,7 @@
 .hidden-input {
   display: none;
 }
-
-::-webkit-scrollbar {
-  width: 1px;
-  height: 3px;
-}
-
-::-webkit-scrollbar-track {
-  background: #4c0bce;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #0066ff;
-  border-radius: 10px;
-}
-
+ 
 @media (max-width: 768px) {
   .code-block {
     margin: 1rem -15px;
