@@ -340,7 +340,7 @@
           if (error) {
             alert('Hiba a bejelentkezésnél: ' + error.message);
           } else {
-            alert('Küldve lett a belépési link az emailedre!');
+            alert('Küldve lett a belépési link az emailedre! Ellenőrizd a postaládádat.');
           }
         }
       } catch (error) {
@@ -490,7 +490,7 @@
     // PROFIL HOZZÁADÁSA - KÉSLELTETVE
     setTimeout(() => {
       addUserProfileToSidebar();
-    }, 500); // Nagyobb késleltetés, hogy biztosan inicializálódjon a Supabase
+    }, 100);
 
     // Állapot betöltése
     loadNavState();
