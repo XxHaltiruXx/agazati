@@ -18,6 +18,152 @@
   <title>Python Kód Futtató</title>
 </head>
 <script src="assets/js/nav.js"></script>
+ <script>
+(function () {
+  'use strict';
+
+  const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js";
+  const PYODIDE_INDEX = "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/";
+  let pyodideReady = false;
+
+  // Kényelmi getterek
+  function $id(id){ return document.getElementById(id); }
+  const runBtn = () => $id('run');
+  const outputEl = () => $id('output');
+  const codeEl = () => $id('code');
+
+  // UI segédfüggvények
+  function setOutput(txt){ const o = outputEl(); if(o) o.textContent = txt; }
+  function setRunEnabled(enabled){
+    const btn = runBtn();
+    if(!btn) return;
+    btn.disabled = !enabled;
+    btn.setAttribute('aria-disabled', String(!enabled));
+  }
+
+  // Inicial állapot: letiltjuk a futtató gombot, jelezzük
+  setRunEnabled(false);
+  setOutput("Pyodide betöltése...");
+
+  // Dinamikus, nem-blockoló betöltés
+  (function loadPyodideAsync(){
+    // Ha már be van töltve valahogy, ne töltsük újra
+    if (window.loadPyodide && typeof window.loadPyodide === 'function') {
+      initPyodide();
+      return;
+    }
+
+    const existing = Array.from(document.getElementsByTagName('script')).find(s => s.src && s.src.indexOf('pyodide') !== -1);
+    if (existing) {
+      // ha létezik, kössünk onload/onerror-re (ha lehetséges)
+      existing.addEventListener && existing.addEventListener('load', () => initPyodide());
+      existing.addEventListener && existing.addEventListener('error', () => {
+        setOutput('Pyodide betöltése sikertelen (script hiba).');
+      });
+      return;
+    }
+
+    const s = document.createElement('script');
+    s.src = PYODIDE_URL;
+    s.type = 'text/javascript';
+    s.async = true; // letöltés párhuzamosan; futtatás onload után
+    s.onload = () => {
+      // loadPyodide definíció csak most lesz elérhető
+      initPyodide();
+    };
+    s.onerror = () => {
+      setOutput('Pyodide betöltése sikertelen (network error).');
+      setRunEnabled(false);
+    };
+    document.head.appendChild(s);
+  })();
+
+  // initPyodide meghívása csak akkor, ha a pyodide.js betöltődött
+  async function initPyodide(){
+    try {
+      setOutput('Pyodide inicializálása...');
+      // loadPyodide globális függvény a pyodide.js-ből
+      if (typeof loadPyodide !== 'function') {
+        setOutput('Pyodide betöltődött, de a loadPyodide hiányzik.');
+        return;
+      }
+
+      // Betöltés — indexURL beállítással (CDN path)
+      window.pyodide = await loadPyodide({ indexURL: PYODIDE_INDEX });
+      pyodideReady = true;
+      setOutput('Pyodide készen áll. Használhatsz standard könyvtárat.');
+      setRunEnabled(true);
+    } catch (err) {
+      console.error('initPyodide error', err);
+      setOutput('Pyodide inicializálása sikertelen: ' + (err && err.message ? err.message : String(err)));
+      setRunEnabled(false);
+    }
+  }
+
+  // Futtató wrapper — biztonságosan gyűjti az outputot
+  function makeWrapper(code) {
+    // a Python kódot be kell indentálni a try blokkban
+    const indented = code.split('\n').map(line => '    ' + line).join('\n');
+    return `
+import sys, io, traceback
+_out = io.StringIO()
+_old_stdout = sys.stdout
+_old_stderr = sys.stderr
+sys.stdout = _out
+sys.stderr = _out
+try:
+${indented}
+except Exception:
+    traceback.print_exc()
+finally:
+    sys.stdout = _old_stdout
+    sys.stderr = _old_stderr
+    print(_out.getvalue(), end='')
+`;
+  }
+
+  // Run gomb esemény kezelése — kötünk rögtön, de viselkedünk ha pyodide még nem ready
+  function attachRunHandler() {
+    const btn = runBtn();
+    if (!btn) return;
+
+    btn.addEventListener('click', async function onRunClick(e){
+      e.preventDefault();
+      const outEl = outputEl();
+      if (!pyodideReady) {
+        if (outEl) outEl.textContent = "A Pyodide még töltődik, kérlek várj...";
+        return;
+      }
+      setRunEnabled(false);
+      try {
+        if (outEl) outEl.textContent = "Futtatás...";
+        const code = (codeEl() && codeEl().value) || '';
+        const wrapper = makeWrapper(code);
+        await window.pyodide.runPythonAsync(wrapper);
+        // lekérjük a _out tartalmát
+        const result = window.pyodide.runPython("_out.getvalue()") || "";
+        if (outEl) outEl.textContent = result;
+      } catch (err) {
+        console.error('run error', err);
+        if (outEl) outEl.textContent = 'Hiba: ' + (err && err.message ? err.message : String(err));
+      } finally {
+        setRunEnabled(true);
+      }
+    });
+  }
+
+  // Biztosítsuk, hogy a run handler hozzá legyen kötve akkor is, ha a DOMContentLoaded már megtörtént
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachRunHandler, { once: true });
+  } else {
+    // DOM már kész
+    setTimeout(attachRunHandler, 0);
+  }
+
+  // Hasznos: ha valaki a konzolból szeretné látni az állapotot
+  try { window.__pyodide_loader = { pyodideReady: () => pyodideReady }; } catch(e){}
+})();
+</script>
 
 <body>
 
@@ -72,57 +218,9 @@
       </div>
     </div>
   </main>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-  <script>
-    let pyodide = null;
-    const outputEl = document.getElementById("output");
-    const codeEl = document.getElementById("code");
-
-    async function init() {
-      outputEl.textContent = "Pyodide betöltése... várj";
-      pyodide = await loadPyodide({
-        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/",
-      });
-      outputEl.textContent = "Készen áll. Használhatsz standard könyvtárat.";
-    }
-    init();
-
-    function runUserCode(code) {
-      const wrapper = `
-import sys, io, traceback
-_out = io.StringIO()
-_old_stdout = sys.stdout
-_old_stderr = sys.stderr
-sys.stdout = _out
-sys.stderr = _out
-try:
-${code.split('\n').map(line => '    ' + line).join('\n')}
-except Exception:
-    traceback.print_exc()
-finally:
-    sys.stdout = _old_stdout
-    sys.stderr = _old_stderr
-    print(_out.getvalue(), end='')
-`;
-      return pyodide.runPythonAsync(wrapper);
-    }
-
-    document.getElementById("run").addEventListener("click", async () => {
-      if (!pyodide)
-        return (outputEl.textContent = "A Pyodide még töltődik...");
-      outputEl.textContent = "Futtatás...";
-      try {
-        const code = codeEl.value;
-        await runUserCode(code);
-        const result = pyodide.runPython('""');
-        const out = pyodide.runPython("_out.getvalue()") || "";
-        outputEl.textContent = out;
-      } catch (err) {
-        outputEl.textContent = err.toString();
-      }
-    });
-  </script>
+  
   <script src="assets/js/footer.js"></script>
+
 </body>
 
 </html>

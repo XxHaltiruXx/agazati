@@ -204,3 +204,7 @@ span {
 button {
   margin: 0;
 }
+
+button.nav-item {
+  padding: 10px;
+}
