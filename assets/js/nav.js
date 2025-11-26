@@ -95,6 +95,36 @@
     catch (e) { return {}; }
   }
 
+  function loadNavState() {
+    try {
+      const savedState = sessionStorage.getItem(NAV_STATE_KEY);
+      if (savedState === 'true') {
+        isNavOpen = true;
+        if (sidenav) {
+          sidenav.style.width = '250px';
+        }
+      }
+      
+      // Almenük állapotának betöltése
+      const submenuState = loadSavedSubmenuState();
+      document.querySelectorAll('.subnav').forEach(navGroup => {
+        const category = navGroup.getAttribute('data-category');
+        const button = navGroup.querySelector('.nav-item');
+        const content = navGroup.querySelector('.subnav-content');
+        
+        if (button && content && submenuState[category]) {
+          button.classList.add('active');
+          content.style.display = 'block';
+          content.style.maxHeight = 'none';
+          const arrow = button.querySelector('.arrow');
+          if (arrow) arrow.textContent = '▲';
+        }
+      });
+    } catch (e) {
+      console.error('Error loading nav state:', e);
+    }
+  }
+
   /* ======= Globális toggleNav (azonnal definiálva) ======= */
   window.toggleNav = function () {
     if (!sidenav) sidenav = document.getElementById('mySidenav');
@@ -258,7 +288,110 @@
     });
   }
 
-  /* ======= Navigáció létrehozása ======= */
+  /* ======= Profil blokk hozzáadása a sidebar aljára ======= */
+  function addUserProfileToSidebar() {
+    if (!sidenav) return;
+    
+    // Supabase elérhetőség ellenőrzése - BIZTONSÁGI MÓD
+    if (typeof window.supabase === 'undefined' || !window.supabase) {
+      console.warn('Supabase nincs inicializálva, profil funkciók letiltva');
+      
+      // Hozz létre egy alap profilt Supabase nélkül
+      const profileWrapper = document.createElement('div');
+      profileWrapper.className = 'sidebar-profile';
+      profileWrapper.style.cursor = 'pointer';
+      profileWrapper.innerHTML = `
+        <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" class="sidebar-profile-img" alt="Profil" />
+        <div class="sidebar-profile-name">Bejelentkezés</div>
+      `;
+      
+      profileWrapper.addEventListener('click', () => {
+        alert('A bejelentkezési rendszer jelenleg nem elérhető. Supabase nincs konfigurálva.');
+      });
+      
+      sidenav.appendChild(profileWrapper);
+      return;
+    }
+
+    // Ellenőrizzük, hogy már létezik-e profil elem
+    const existingProfile = sidenav.querySelector('.sidebar-profile');
+    if (existingProfile) {
+      existingProfile.remove();
+    }
+
+    const profileWrapper = document.createElement('div');
+    profileWrapper.className = 'sidebar-profile';
+    profileWrapper.style.cursor = 'pointer';
+
+    const img = document.createElement('img');
+    // Teszteléshez használj egy garantáltan működő képet
+    img.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+    img.className = 'sidebar-profile-img';
+    img.alt = 'Profil';
+    img.onerror = function() {
+      // Ha a kép nem töltődik be, használj placeholder-t
+      this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
+    };
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'sidebar-profile-name';
+    nameDiv.textContent = 'Bejelentkezés';
+
+    profileWrapper.appendChild(img);
+    profileWrapper.appendChild(nameDiv);
+    sidenav.appendChild(profileWrapper);
+
+    // Supabase Auth interakció
+    profileWrapper.addEventListener('click', async () => {
+      try {
+        const { data: { user }, error } = await window.supabase.auth.getUser();
+        if (error) {
+          console.error('Error getting user:', error);
+          return;
+        }
+        
+        if (user) {
+          // Ha már be van jelentkezve, kijelentkezés
+          if (confirm('Kijelentkezés?')) {
+            await window.supabase.auth.signOut();
+            location.reload();
+          }
+        } else {
+          // Bejelentkezés / regisztráció
+          const email = prompt('Add meg az emailed a bejelentkezéshez / regisztrációhoz:');
+          if (!email) return;
+          
+          const { error } = await window.supabase.auth.signInWithOtp({ 
+            email: email,
+            options: {
+              emailRedirectTo: window.location.origin
+            }
+          });
+          
+          if (error) {
+            alert('Hiba a bejelentkezésnél: ' + error.message);
+          } else {
+            alert('Küldve lett a belépési link az emailedre!');
+          }
+        }
+      } catch (error) {
+        console.error('Profile click error:', error);
+        alert('Hiba történt: ' + error.message);
+      }
+    });
+
+    // Dinamikus frissítés, ha már bejelentkezett a felhasználó
+    window.supabase.auth.onAuthStateChange((event, session) => {
+      if (session && session.user) {
+        img.src = session.user.user_metadata?.avatar_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+        nameDiv.textContent = session.user.email || 'Felhasználó';
+      } else {
+        img.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+        nameDiv.textContent = 'Bejelentkezés';
+      }
+    });
+  }
+
   function createNavigation() {
     sidenav = document.getElementById('mySidenav');
     const navContainer = document.querySelector('#mySidenav > div') || (sidenav ? sidenav : null);
@@ -276,6 +409,7 @@
     searchBox.innerHTML = `<input type="text" id="searchNav" placeholder="🔍 Keresés..." />`;
     navContainer.appendChild(searchBox);
 
+    // Menük létrehozása
     Object.entries(navStructure).forEach(([category, data]) => {
       const navGroup = document.createElement('div');
       navGroup.className = 'subnav';
@@ -297,7 +431,7 @@
         link.href = item.link;
         link.textContent = item.title;
 
-        // ha az aktuális oldal ehhez tartozik -> jelöljük egyszer (permanens)
+        // Aktuális oldal jelölése
         try {
           if (location.pathname.replace(/\/+$/, '').includes(item.link.replace(/\/+$/, ''))) {
             link.classList.add('active');
@@ -311,12 +445,10 @@
           }
         } catch (e) {}
 
-        // Link kattintás: mentsük el a kategória nevét (ne az href-et). Ez lefut akkor is, ha a keresőben kattint.
         link.addEventListener('click', (ev) => {
           try {
             const cat = navGroup.getAttribute('data-category');
             if (cat) sessionStorage.setItem(CLICK_CATEGORY_KEY, String(cat));
-            // ne preventDefault: hagyjuk a navigációt
           } catch (e) {}
         });
 
@@ -330,17 +462,12 @@
       // Lenyíló menü kezelése
       button.addEventListener('click', (e) => {
         e.preventDefault();
-
-        // ha keresési snapshot van, a keresés szabályai kezelik a megjelenést — itt csak toggle-olunk vizuálisan
         if (__navSearchSnapshot) {
           const isTemp = button.classList.toggle('search-temp-open');
           const arrow = button.querySelector('.arrow'); if (arrow) arrow.textContent = isTemp ? '▲' : '▼';
-          // a content megjelenítését a filterNavItems (keresés) kezeli; itt csak vizuális toggle
           return;
         }
 
-        // normál toggle: több is lehet nyitva egyszerre, ezért NEM zárunk be minden mást
-        const isActiveNow = button.classList.contains('active');
         button.classList.toggle('active');
 
         const isExpanded = content.style.display !== 'none' && (content.style.maxHeight !== '0px' && content.style.maxHeight !== '' && content.style.maxHeight !== '0');
@@ -374,13 +501,18 @@
       });
     });
 
-    // Keresés input esemény (NEM mentjük a keresés alatti állapotot)
+    // Keresés input esemény
     const searchInput = document.getElementById('searchNav');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         filterNavItems(e.target.value);
       });
     }
+
+    // PROFIL HOZZÁADÁSA - ez legyen a createNavigation UTÁN
+    setTimeout(() => {
+      addUserProfileToSidebar();
+    }, 100);
 
     // Állapot betöltése a létrehozás után
     loadNavState();
@@ -553,4 +685,4 @@
       CLICK_CATEGORY_KEY
     };
   } catch (e) {}
-})();
+})(); 

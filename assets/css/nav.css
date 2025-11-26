@@ -7,6 +7,7 @@ nav.navbar {
   background-color: #4c0bce;
   padding: 0 12px !important;
   padding-left: var(--nav-pad) !important;
+  padding-right: var(--nav-pad) !important;
   text-shadow: 0 0 15px #000000;
   z-index: 2;
   position: fixed;
@@ -40,7 +41,7 @@ div.navbar-nav a.nav-link {
   color: rgb(255, 255, 255);
   font-size: 20px;
   text-transform: uppercase;
-  padding: 0 35px !important;
+  padding: 0 !important;
   flex-grow: 1;
   display: block;
   height: 100%;
