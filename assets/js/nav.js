@@ -5,12 +5,12 @@
   /* ======= Konstansok, állapot ======= */
   const NAV_STATE_KEY = '__agazati_nav_state';
   const SUBMENU_STATE_KEY = '__agazati_submenu_state';
-  const CLICK_CATEGORY_KEY = '__agazati_nav_category_v3'; // mentett kategória
+  const CLICK_CATEGORY_KEY = '__agazati_nav_category_v3';
   let isNavOpen = false;
   let sidenav = null;
   let __navSearchSnapshot = null;
 
-  /* ======= Nav struktúra (eredeti adataid) ======= */
+  /* ======= Nav struktúra ======= */
   const navStructure = {
     "HTML": {
       icon: "assets/images/sidehtml.webp",
@@ -105,7 +105,6 @@
         }
       }
       
-      // Almenük állapotának betöltése
       const submenuState = loadSavedSubmenuState();
       document.querySelectorAll('.subnav').forEach(navGroup => {
         const category = navGroup.getAttribute('data-category');
@@ -125,7 +124,7 @@
     }
   }
 
-  /* ======= Globális toggleNav (azonnal definiálva) ======= */
+  /* ======= Globális toggleNav ======= */
   window.toggleNav = function () {
     if (!sidenav) sidenav = document.getElementById('mySidenav');
     if (!sidenav) return;
@@ -140,12 +139,11 @@
     saveNavState();
   };
 
-  /* ======= Keresés (snapshot logika) ======= */
+  /* ======= Keresés ======= */
   function filterNavItems(searchText) {
     const subnavs = document.querySelectorAll('.subnav');
     searchText = (searchText || '').trim().toLowerCase();
 
-    // Ha a kereső MOST vált nem üresre és még nincs snapshot, készítünk egy pillanatképet
     if (searchText && !__navSearchSnapshot) {
       try {
         __navSearchSnapshot = {
@@ -162,20 +160,15 @@
       }
     }
 
-    // Üres keresés -> visszaállítjuk PONTOSAN a keresés előtti állapotot, ha van snapshot
     if (!searchText) {
       if (__navSearchSnapshot) {
-        // visszaállítjuk a nav open/close állapotot (vizuálisan, anélkül, hogy elmentenénk)
         isNavOpen = !!__navSearchSnapshot.isNavOpen;
         if (sidenav) {
-          // ha zárt, width=0; ha nyitott, 250px (illeszthető)
           sidenav.style.transition = 'none';
           sidenav.style.width = isNavOpen ? "250px" : "0";
-          // kis késleltetéssel visszaállítjuk az átmenetet (ahogy eredetileg csinálod)
           setTimeout(() => { sidenav.style.transition = ''; }, 100);
         }
 
-        // visszaállítjuk minden almenü aktív/inaktív állapotát és megmutatjuk az összes linket
         subnavs.forEach(navGroup => {
           const category = navGroup.getAttribute('data-category');
           const button = navGroup.querySelector('.nav-item');
@@ -189,11 +182,9 @@
             } else {
               button.classList.remove('active');
             }
-            // eltávolítjuk az ideiglenes keresési jelzést
             button.classList.remove('search-temp-open');
           }
           if (content) {
-            // mutatjuk az összes linket
             Array.from(content.querySelectorAll('a')).forEach(a => a.style.display = 'block');
 
             if (wasActive) {
@@ -212,12 +203,9 @@
           }
         });
 
-        // töröljük a snapshot-ot — innentől a normal működés folytatódik
         __navSearchSnapshot = null;
-
         return;
       } else {
-        // nincs snapshot (pl. nem volt előtte keresés) -> hagyjuk az alaplogikát: mutassuk a mentett állapotot
         subnavs.forEach(navGroup => {
           const button = navGroup.querySelector('.nav-item');
           const content = navGroup.querySelector('.subnav-content');
@@ -237,8 +225,6 @@
       }
     }
 
-    // Keresés nem üres: ne írjuk felül a mentett állapotot, csak szűrjünk (és nyissuk ki azokat a menüket,
-    // ahol találtunk, de csak a találó linkek látszódjanak)
     subnavs.forEach(navGroup => {
       const button = navGroup.querySelector('.nav-item');
       const content = navGroup.querySelector('.subnav-content');
@@ -248,16 +234,13 @@
       const matches = links.filter(a => (a.textContent || '').toLowerCase().includes(searchText));
 
       if (matches.length > 0) {
-        // mutassuk a főgombot és csak a találó linkeket; jelöljük TEMP-nyitott állapotnak (nem mentett)
         button.style.display = 'flex';
-        // ne állítsunk 'active'-t: használjunk egy ideiglenes osztályt
         button.classList.add('search-temp-open');
 
         links.forEach(a => {
           a.style.display = matches.includes(a) ? 'block' : 'none';
         });
 
-        // nyitás gyorsan (animáció nélkül), hogy ne legyen fura mozgás
         content.style.display = 'block';
         content.style.transition = 'none';
         content.style.maxHeight = 'none';
@@ -266,10 +249,8 @@
         const arrow = button.querySelector('.arrow');
         if (arrow) arrow.textContent = '▲';
       } else {
-        // semmi találat az almenüben
         const parentMatches = (button.textContent || '').toLowerCase().includes(searchText);
         if (parentMatches) {
-          // ha a főgomb egyezik, mutassuk csak a gombot (de tartsuk zárva az almenüt)
           button.style.display = 'flex';
           button.classList.remove('search-temp-open');
           links.forEach(a => a.style.display = 'none');
@@ -278,7 +259,6 @@
           const arrow = button.querySelector('.arrow');
           if (arrow) arrow.textContent = '▼';
         } else {
-          // nincs semmi közük -> rejtsük el az egész blokkot
           button.style.display = 'none';
           links.forEach(a => a.style.display = 'none');
           content.style.display = 'none';
@@ -288,30 +268,9 @@
     });
   }
 
-  /* ======= Profil blokk hozzáadása a sidebar aljára ======= */
+  /* ======= Profil blokk - BIZTONSÁGI MÓD ======= */
   function addUserProfileToSidebar() {
     if (!sidenav) return;
-    
-    // Supabase elérhetőség ellenőrzése - BIZTONSÁGI MÓD
-    if (typeof window.supabase === 'undefined' || !window.supabase) {
-      console.warn('Supabase nincs inicializálva, profil funkciók letiltva');
-      
-      // Hozz létre egy alap profilt Supabase nélkül
-      const profileWrapper = document.createElement('div');
-      profileWrapper.className = 'sidebar-profile';
-      profileWrapper.style.cursor = 'pointer';
-      profileWrapper.innerHTML = `
-        <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" class="sidebar-profile-img" alt="Profil" />
-        <div class="sidebar-profile-name">Bejelentkezés</div>
-      `;
-      
-      profileWrapper.addEventListener('click', () => {
-        alert('A bejelentkezési rendszer jelenleg nem elérhető. Supabase nincs konfigurálva.');
-      });
-      
-      sidenav.appendChild(profileWrapper);
-      return;
-    }
 
     // Ellenőrizzük, hogy már létezik-e profil elem
     const existingProfile = sidenav.querySelector('.sidebar-profile');
@@ -324,14 +283,9 @@
     profileWrapper.style.cursor = 'pointer';
 
     const img = document.createElement('img');
-    // Teszteléshez használj egy garantáltan működő képet
-    img.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
     img.className = 'sidebar-profile-img';
     img.alt = 'Profil';
-    img.onerror = function() {
-      // Ha a kép nem töltődik be, használj placeholder-t
-      this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
-    };
 
     const nameDiv = document.createElement('div');
     nameDiv.className = 'sidebar-profile-name';
@@ -341,23 +295,38 @@
     profileWrapper.appendChild(nameDiv);
     sidenav.appendChild(profileWrapper);
 
-    // Supabase Auth interakció
+    // Supabase elérhetőség ellenőrzése - BIZTONSÁGI MÓD
+    if (typeof window.supabase === 'undefined' || !window.supabase) {
+      console.warn('Supabase nincs inicializálva - alap profil használata');
+      
+      profileWrapper.addEventListener('click', () => {
+        alert('A bejelentkezési funkció jelenleg nem elérhető. Supabase nincs konfigurálva.');
+      });
+      return;
+    }
+
+    // SUPABASE AUTH INTERAKCIÓ - HIBAKEZELÉSSEL
     profileWrapper.addEventListener('click', async () => {
       try {
+        // További ellenőrzés
+        if (!window.supabase || !window.supabase.auth) {
+          throw new Error('Supabase auth nem elérhető');
+        }
+
         const { data: { user }, error } = await window.supabase.auth.getUser();
+        
         if (error) {
-          console.error('Error getting user:', error);
+          console.error('Hiba a felhasználó lekérésében:', error);
+          alert('Hiba a bejelentkezési állapot ellenőrzésében: ' + error.message);
           return;
         }
         
         if (user) {
-          // Ha már be van jelentkezve, kijelentkezés
           if (confirm('Kijelentkezés?')) {
             await window.supabase.auth.signOut();
             location.reload();
           }
         } else {
-          // Bejelentkezés / regisztráció
           const email = prompt('Add meg az emailed a bejelentkezéshez / regisztrációhoz:');
           if (!email) return;
           
@@ -375,21 +344,31 @@
           }
         }
       } catch (error) {
-        console.error('Profile click error:', error);
+        console.error('Profil kattintási hiba:', error);
         alert('Hiba történt: ' + error.message);
       }
     });
 
-    // Dinamikus frissítés, ha már bejelentkezett a felhasználó
-    window.supabase.auth.onAuthStateChange((event, session) => {
-      if (session && session.user) {
-        img.src = session.user.user_metadata?.avatar_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
-        nameDiv.textContent = session.user.email || 'Felhasználó';
-      } else {
-        img.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
-        nameDiv.textContent = 'Bejelentkezés';
+    // AUTH STATE CHANGE - HIBAKEZELÉSSEL
+    try {
+      if (window.supabase && window.supabase.auth && window.supabase.auth.onAuthStateChange) {
+        window.supabase.auth.onAuthStateChange((event, session) => {
+          try {
+            if (session && session.user) {
+              img.src = session.user.user_metadata?.avatar_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
+              nameDiv.textContent = session.user.email || 'Felhasználó';
+            } else {
+              img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
+              nameDiv.textContent = 'Bejelentkezés';
+            }
+          } catch (e) {
+            console.error('Hiba az auth state change-ben:', e);
+          }
+        });
       }
-    });
+    } catch (error) {
+      console.error('Auth state change regisztrálási hiba:', error);
+    }
   }
 
   function createNavigation() {
@@ -397,7 +376,6 @@
     const navContainer = document.querySelector('#mySidenav > div') || (sidenav ? sidenav : null);
     if (!navContainer) return;
 
-    // Ha már építettük a navot korábban (pl. kétszeri hívás miatt), ne építsük újra.
     if (navContainer.getAttribute('data-nav-built') === '1') return;
     navContainer.setAttribute('data-nav-built', '1');
 
@@ -509,16 +487,16 @@
       });
     }
 
-    // PROFIL HOZZÁADÁSA - ez legyen a createNavigation UTÁN
+    // PROFIL HOZZÁADÁSA - KÉSLELTETVE
     setTimeout(() => {
       addUserProfileToSidebar();
-    }, 100);
+    }, 500); // Nagyobb késleltetés, hogy biztosan inicializálódjon a Supabase
 
-    // Állapot betöltése a létrehozás után
+    // Állapot betöltése
     loadNavState();
   }
 
-  /* ======= Betöltéskor alkalmazzuk a mentett kategóriát (ha van) ======= */
+  /* ======= Betöltéskor alkalmazzuk a mentett kategóriát ======= */
   function applyClickedCategoryIfAnyOnce() {
     try {
       const searchInput = document.getElementById('searchNav');
@@ -565,14 +543,10 @@
     } catch (e) { console.error('applyClickedCategoryIfAnyOnce error:', e); }
   }
 
-  /* ======= Betöltési rutinok (AZONNALI INICIALIZÁCIÓ ha lehetséges) ======= */
-
-  // Az inicializációs függvény: ha a szükséges DOM elem már elérhető, építsük fel azonnal.
+  /* ======= Betöltési rutinok ======= */
   function initNavAsap() {
-    // ha a sidebar konténer már a DOM-ban van, építsük fel azonnal
     const immediateContainer = document.querySelector('#mySidenav > div');
     if (immediateContainer) {
-      // beállítások (sidenav referencia)
       sidenav = document.getElementById('mySidenav');
       if (sidenav) {
         sidenav.style.transition = 'none';
@@ -581,13 +555,11 @@
           isNavOpen = true;
           sidenav.style.width = '250px';
         }
-        // kis késleltetés után visszaállítjuk az átmenetet
         setTimeout(() => { if (sidenav) sidenav.style.transition = ''; }, 100);
       }
 
       createNavigation();
 
-      // Alkalmazzuk a mentett kattintást (ha van) — előbb töröljük a keresőt, hogy az ne nyisson meg többet
       setTimeout(() => {
         document.querySelectorAll('.nav-item.search-temp-open').forEach(b => b.classList.remove('search-temp-open'));
         applyClickedCategoryIfAnyOnce();
@@ -596,7 +568,6 @@
       return;
     }
 
-    // különben csatlakozó a DOMContentLoaded-re (várunk a parse végére)
     document.addEventListener('DOMContentLoaded', () => {
       sidenav = document.getElementById('mySidenav');
       if (sidenav) {
@@ -621,19 +592,17 @@
   // Indítás
   initNavAsap();
 
-  /* ======= Header/site-wide click handling - ha a header link megfelel a sidebarnak, mentsük a kategóriát ======= */
+  /* ======= Header/site-wide click handling ======= */
   function findMatchingSidebarAnchor(clickedHref) {
     try {
       const navAnchors = Array.from(document.querySelectorAll('#mySidenav a')).filter(a => a.getAttribute('href'));
       if (!navAnchors.length) return null;
       const normClicked = normalizeAbsHref(clickedHref);
 
-      // 1) pontos abszolút egyezés
       for (const a of navAnchors) {
         if (normalizeAbsHref(a.href) === normClicked) return a;
       }
 
-      // 2) pathname egyezés / részleges egyezés
       try {
         const clickedPath = new URL(normClicked).pathname.replace(/\/+$/, '');
         for (const a of navAnchors) {
@@ -645,7 +614,6 @@
         }
       } catch (e) {}
 
-      // 3) last segment vagy szöveg alapján
       const lastSeg = (normClicked.split('/').filter(Boolean).pop() || '').toLowerCase();
       if (lastSeg) {
         for (const a of navAnchors) {
@@ -677,12 +645,4 @@
       }
     } catch (e) { /* noop */ }
   }, true);
-
-  // debug helper
-  try {
-    window.__agazati_nav_helpers = {
-      normalizeAbsHref,
-      CLICK_CATEGORY_KEY
-    };
-  } catch (e) {}
-})(); 
+})();

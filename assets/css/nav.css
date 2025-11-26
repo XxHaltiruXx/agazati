@@ -41,7 +41,7 @@ div.navbar-nav a.nav-link {
   color: rgb(255, 255, 255);
   font-size: 20px;
   text-transform: uppercase;
-  padding: 0 !important;
+  padding: 0 25px !important;
   flex-grow: 1;
   display: block;
   height: 100%;
