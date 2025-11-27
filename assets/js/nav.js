@@ -6,6 +6,10 @@
   const NAV_STATE_KEY = '__agazati_nav_state';
   const SUBMENU_STATE_KEY = '__agazati_submenu_state';
   const CLICK_CATEGORY_KEY = '__agazati_nav_category_v3';
+  const LOGIN_STATE_KEY = '__agazati_login_state';
+  const LOGIN_EXPIRY_KEY = '__agazati_login_expiry';
+  const LOGIN_DURATION = 24 * 60 * 60 * 1000; // 24 óra
+  
   let isNavOpen = false;
   let sidenav = null;
   let __navSearchSnapshot = null;
@@ -123,6 +127,90 @@
       console.error('Error loading nav state:', e);
     }
   }
+
+  /* ======= Bejelentkezési állapot kezelése ======= */
+  function updateLoginStatus() {
+    const loginStatus = document.getElementById('navLoginStatus');
+    if (!loginStatus) return;
+
+    const isLoggedIn = checkLoginState();
+    
+    if (isLoggedIn) {
+      loginStatus.innerHTML = `
+        <div class="login-info">
+          <span class="login-icon">✓</span>
+          <span class="login-text">Bejelentkezve</span>
+          <button class="logout-btn" onclick="logoutFromNav()">Kijelentkezés</button>
+        </div>
+      `;
+    } else {
+      loginStatus.innerHTML = `
+        <div class="login-info">
+          <span class="login-icon">🔒</span>
+          <span class="login-text">Nem bejelentkezve</span>
+        </div>
+      `;
+    }
+  }
+
+  function checkLoginState() {
+    try {
+      const loginState = localStorage.getItem(LOGIN_STATE_KEY);
+      const loginExpiry = localStorage.getItem(LOGIN_EXPIRY_KEY);
+      
+      if (!loginState || !loginExpiry) return false;
+      
+      const now = Date.now();
+      if (now > parseInt(loginExpiry)) {
+        // Lejárt a bejelentkezés
+        localStorage.removeItem(LOGIN_STATE_KEY);
+        localStorage.removeItem(LOGIN_EXPIRY_KEY);
+        return false;
+      }
+      
+      return loginState === 'logged_in';
+    } catch (e) {
+      console.error('Bejelentkezési állapot ellenőrzése sikertelen:', e);
+      return false;
+    }
+  }
+
+  function setLoginState() {
+    try {
+      const expiry = Date.now() + LOGIN_DURATION;
+      localStorage.setItem(LOGIN_STATE_KEY, 'logged_in');
+      localStorage.setItem(LOGIN_EXPIRY_KEY, expiry.toString());
+      updateLoginStatus();
+      
+      // Értesítsd az oldalt a változásról
+      window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: true } }));
+    } catch (e) {
+      console.error('Bejelentkezési állapot mentése sikertelen:', e);
+    }
+  }
+
+  function logoutFromNav() {
+    try {
+      localStorage.removeItem(LOGIN_STATE_KEY);
+      localStorage.removeItem(LOGIN_EXPIRY_KEY);
+      updateLoginStatus();
+      
+      // Értesítsd az oldalt a változásról
+      window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: false } }));
+      
+      // Ha infosharer oldalon vagyunk, frissítsük azt is
+      if (window.location.pathname.includes('infosharer')) {
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error('Kijelentkezés sikertelen:', e);
+    }
+  }
+
+  // Globális függvények a HTML-ből való hozzáféréshez
+  window.setLoginState = setLoginState;
+  window.logoutFromNav = logoutFromNav;
+  window.checkLoginState = checkLoginState;
 
   /* ======= Globális toggleNav ======= */
   window.toggleNav = function () {
@@ -268,175 +356,6 @@
     });
   }
 
-  /* ======= Profil blokk - TELJESEN ÁTÍRT ======= */
-  function addUserProfileToSidebar() {
-    if (!sidenav) return;
-
-    // Ellenőrizzük, hogy már létezik-e profil elem
-    const existingProfile = sidenav.querySelector('.sidebar-profile');
-    if (existingProfile) {
-      existingProfile.remove();
-    }
-
-    const profileWrapper = document.createElement('div');
-    profileWrapper.className = 'sidebar-profile';
-    profileWrapper.style.cursor = 'pointer';
-
-    const img = document.createElement('img');
-    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
-    img.className = 'sidebar-profile-img';
-    img.alt = 'Profil';
-
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'sidebar-profile-name';
-    nameDiv.textContent = 'Bejelentkezés';
-
-    profileWrapper.appendChild(img);
-    profileWrapper.appendChild(nameDiv);
-    sidenav.appendChild(profileWrapper);
-
-    // Supabase elérhetőség ellenőrzése
-    // Supabase elérhetőség ellenőrzése
-    if (typeof window.supabase === 'undefined' || !window.supabase) {
-      console.warn('Supabase nincs inicializálva - alap profil használata');
-
-      // Ha nincs supabase, a profil kattintás mindig megnyitja az auth modal-t (ha elérhető)
-      profileWrapper.addEventListener('click', () => {
-        if (typeof window.openAuthModal === 'function') {
-          window.openAuthModal();
-        } else {
-          alert('A bejelentkezési funkció jelenleg nem elérhető.');
-        }
-      });
-      return;
-    }
-
-    // Session ellenőrzése és felhasználói adatok frissítése
-    const updateUserProfile = async () => {
-      try {
-        const { data: { user }, error } = await window.supabase.auth.getUser();
-        
-        if (error) {
-          console.error('Hiba a felhasználó lekérésében:', error);
-          return;
-        }
-        
-        if (user) {
-          img.src = user.user_metadata?.avatar_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
-          nameDiv.textContent = user.email || 'Felhasználó';
-        } else {
-          img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
-          nameDiv.textContent = 'Bejelentkezés';
-        }
-      } catch (error) {
-       // a nav.js-ben, updateUserProfile függvény catch részében / vagy közvetlenül az error-ágban:
-try {
-  const { data: { user }, error } = await window.supabase.auth.getUser();
-  if (error) {
-    if (error.message && error.message.toLowerCase().includes('auth session missing')) {
-      // nincs session -> egyszerűen visszatérünk, nem dobunk hibát
-      return;
-    }
-    console.error('getUser hiba:', error);
-    return;
-  }
-  if (user) {
-    img.src = user.user_metadata?.avatar_url || img.src;
-    nameDiv.textContent = user.email || 'Felhasználó';
-  } else {
-    // nincs user -> hagyjuk az alap "Bejelentkezés" feliratot
-  }
-} catch (error) {
-  const msg = (error && error.message) ? error.message.toLowerCase() : '';
-  if (msg.includes('auth session missing')) return;
-  console.error('Profil frissítési hiba:', error);
-}
-  
-      }
-    };
-      window.addUserProfileToSidebar = addUserProfileToSidebar;
-
-    // Profil kattintás esemény
-    profileWrapper.addEventListener('click', async () => {
-      try {
-        const { data: { user }, error } = await window.supabase.auth.getUser();
-        
-        if (error) {
-          console.error('Hiba a felhasználó lekérésében:', error);
-          alert('Hiba a bejelentkezési állapot ellenőrzésében: ' + error.message);
-          return;
-        }
-        
-        if (user) {
-          // Ha már be van jelentkezve, kijelentkezés
-          if (confirm('Kijelentkezés?')) {
-            const { error } = await window.supabase.auth.signOut();
-            if (error) {
-              alert('Hiba a kijelentkezésnél: ' + error.message);
-            } else {
-              location.reload();
-            }
-          }
-        } else {
-          // REGISZTRÁCIÓ és BEJELENTKEZÉS - JAVÍTOTT VERZIÓ
-          const email = prompt('Add meg az emailed a regisztrációhoz / bejelentkezéshez:');
-          if (!email) return;
-          
-          // Email validáció
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(email)) {
-            alert('Kérjük, érvényes email címet adj meg!');
-            return;
-          }
-          
-          const { error } = await window.supabase.auth.signInWithOtp({
-            email: email,
-            options: {
-              // MÓDOSÍTOTT: Pontos redirect URL a GitHub Pages-hez
-              emailRedirectTo: 'https://xxhaltiruxx.github.io/agazati/'
-            }
-          });
-          
-          if (error) {
-            alert('Hiba történt: ' + error.message);
-          } else {
-            alert('Elküldtünk egy bejelentkezési linket a megadott email címre! Kérjük, ellenőrizd a postaládádat és kattints a linkre a bejelentkezéshez.');
-          }
-        }
-      } catch (error) {
-        console.error('Profil kattintási hiba:', error);
-        alert('Váratlan hiba történt: ' + error.message);
-      }
-    });
-
-    // Auth state change listener - JAVÍTOTT
-    try {
-      if (window.supabase && window.supabase.auth) {
-        const { data: { subscription } } = window.supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            console.log('Auth state changed:', event, session);
-            
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-              await updateUserProfile();
-            } else if (event === 'SIGNED_OUT') {
-              img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbnU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
-              nameDiv.textContent = 'Bejelentkezés';
-            }
-          }
-        );
-
-        // Kezdeti felhasználói adatok betöltése
-        updateUserProfile();
-      }
-    } catch (error) {
-      console.error('Auth state change regisztrálási hiba:', error);
-      
-      
-    }
-  }
-
-  
-
   function createNavigation() {
     sidenav = document.getElementById('mySidenav');
     const navContainer = document.querySelector('#mySidenav > div') || (sidenav ? sidenav : null);
@@ -452,6 +371,15 @@ try {
     searchBox.className = 'search-container';
     searchBox.innerHTML = `<input type="text" id="searchNav" placeholder="🔍 Keresés..." />`;
     navContainer.appendChild(searchBox);
+
+    // Bejelentkezési állapot megjelenítése
+    const loginStatus = document.createElement('div');
+    loginStatus.className = 'login-status';
+    loginStatus.id = 'navLoginStatus';
+    navContainer.appendChild(loginStatus);
+
+    // Frissítsd a bejelentkezési állapotot
+    updateLoginStatus();
 
     // Menük létrehozása
     Object.entries(navStructure).forEach(([category, data]) => {
@@ -552,22 +480,6 @@ try {
         filterNavItems(e.target.value);
       });
     }
-
-
-        // PROFIL HOZZÁADÁSA — hívjuk, ha van implementáció (most az auth.js kezeli)
-    setTimeout(() => {
-      if (typeof window.addUserProfileToSidebar === 'function') {
-        try {
-          window.addUserProfileToSidebar();
-        } catch (e) {
-          console.error('addUserProfileToSidebar hívási hiba:', e);
-        }
-      } else {
-        // fallback: ne csináljunk semmit — ez megelőzi a hibát, ha supabase nincs
-        console.warn('addUserProfileToSidebar nincs betöltve, kihagyva.');
-      }
-    }, 100);
-
 
     // Állapot betöltése
     loadNavState();
@@ -722,147 +634,4 @@ try {
       }
     } catch (e) { /* noop */ }
   }, true);
-})();
-
-(function() {
-  try {
-    function createSidebarProfile() {
-      const sidenav = document.getElementById('mySidenav');
-      if (!sidenav) return null;
-
-      // ha már van profil, adjuk vissza
-      if (sidenav.querySelector('.sidebar-profile')) return sidenav.querySelector('.sidebar-profile');
-
-      const profileWrapper = document.createElement('div');
-      profileWrapper.className = 'sidebar-profile';
-      profileWrapper.style.cursor = 'pointer';
-      profileWrapper.style.display = 'flex';
-      profileWrapper.style.gap = '10px';
-      profileWrapper.style.alignItems = 'center';
-      profileWrapper.style.padding = '10px';
-      profileWrapper.style.borderBottom = '1px solid #eee';
-
-      const img = document.createElement('img');
-      img.className = 'sidebar-profile-img';
-      img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+PHRleHQgeD0iMjAiIHk9IjIwIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+VXNlcjwvdGV4dD48L3N2Zz4=';
-      img.alt = 'Profil';
-      img.style.width = '38px';
-      img.style.height = '38px';
-      img.style.borderRadius = '50%';
-      img.style.flexShrink = '0';
-
-      const nameDiv = document.createElement('div');
-      nameDiv.className = 'sidebar-profile-name';
-      nameDiv.textContent = 'Bejelentkezés';
-
-      profileWrapper.appendChild(img);
-      profileWrapper.appendChild(nameDiv);
-
-      // kattintás: ha van supabase, lekérjük a felhasználót és aszerint cselekszünk; különben megnyitjuk a modal-t
-      profileWrapper.addEventListener('click', async (ev) => {
-        try {
-          if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
-            // lekérjük a usert
-            try {
-              const { data: { user }, error } = await window.supabase.auth.getUser();
-              if (error) {
-                console.error('getUser hiba:', error);
-                if (typeof window.openAuthModal === 'function') return window.openAuthModal();
-                return alert('Bejelentkezés nem elérhető (hiba).');
-              }
-
-              if (user) {
-                // ha be van jelentkezve: felajánljuk a kijelentkezést
-                if (confirm('Kijelentkezel?')) {
-                  const { error: signOutError } = await window.supabase.auth.signOut();
-                  if (signOutError) {
-                    alert('Kijelentkezés hiba: ' + signOutError.message);
-                  } else {
-                    location.reload();
-                  }
-                }
-              } else {
-                // nincs bejelentkezve -> nyissuk meg a modal-t
-                if (typeof window.openAuthModal === 'function') return window.openAuthModal();
-                alert('Bejelentkezés (modal) nem elérhető.');
-              }
-            } catch (e) {
-              console.error('Profil katt hiba (supabase):', e);
-              if (typeof window.openAuthModal === 'function') return window.openAuthModal();
-              alert('Bejelentkezés nem elérhető.');
-            }
-          } else {
-            // nincs supabase -> egyszerűen nyissuk meg az auth modal-t (ha van)
-            if (typeof window.openAuthModal === 'function') return window.openAuthModal();
-            alert('Bejelentkezés nem érhető el.');
-          }
-        } catch (e) {
-          console.error('Profil katt hiba (általános):', e);
-        }
-      });
-
-      // betesszük a sidebar elejére (vagy végére — igény szerint módosítható)
-      sidenav.appendChild(profileWrapper);
-
-      // ha Supabase van, frissítjük a név/avatar display-t (nem blokkolunk)
-      if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
-        (async function updateProfileView() {
-          try {
-            const { data: { user }, error } = await window.supabase.auth.getUser();
-            if (!error && user) {
-              nameDiv.textContent = user.email || 'Felhasználó';
-              // ha van avatar a metadata-ban, használjuk
-              const avatar = user.user_metadata && user.user_metadata.avatar_url;
-              if (avatar) img.src = avatar;
-            }
-          } catch (e) { /* no-op */ }
-        })();
-      }
-
-      return profileWrapper;
-    }
-
-    // Exponáljuk a függvényt globalisan ha még nincs
-    try {
-      if (typeof addUserProfileToSidebar === 'function' && typeof window.addUserProfileToSidebar !== 'function') {
-        window.addUserProfileToSidebar = addUserProfileToSidebar;
-      }
-    } catch (e) {}
-
-    // Várunk egy rövidet, majd ha nem jött létre a profil a nav által, létrehozzuk mi
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        try {
-          const existing = document.querySelector('#mySidenav .sidebar-profile');
-          if (!existing) {
-            createSidebarProfile();
-            console.log('Fallback: sidebar profil létrehozva.');
-          } else {
-            // ha már létezik, akkor esetleg frissítjük (pl. supabase user)
-            if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
-              // frissítés az iménti createSidebarProfile logika alapján
-              (async function refresh() {
-                try {
-                  const { data: { user }, error } = await window.supabase.auth.getUser();
-                  if (!error && user) {
-                    const p = document.querySelector('#mySidenav .sidebar-profile');
-                    if (p) {
-                      const nameDiv = p.querySelector('.sidebar-profile-name');
-                      const img = p.querySelector('img.sidebar-profile-img');
-                      if (nameDiv) nameDiv.textContent = user.email || 'Felhasználó';
-                      if (img && user.user_metadata && user.user_metadata.avatar_url) img.src = user.user_metadata.avatar_url;
-                    }
-                  }
-                } catch (e) {}
-              })();
-            }
-          }
-        } catch (e) {
-          console.error('Sidebar profil fallback error:', e);
-        }
-      }, 120);
-    }, { once: true });
-  } catch (e) {
-    console.error('Sidebar profil fallback init hiba:', e);
-  }
 })();
