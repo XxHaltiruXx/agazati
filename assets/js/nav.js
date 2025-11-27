@@ -329,7 +329,29 @@
           nameDiv.textContent = 'Bejelentkezés';
         }
       } catch (error) {
-        console.error('Hiba a profil frissítésében:', error);
+       // a nav.js-ben, updateUserProfile függvény catch részében / vagy közvetlenül az error-ágban:
+try {
+  const { data: { user }, error } = await window.supabase.auth.getUser();
+  if (error) {
+    if (error.message && error.message.toLowerCase().includes('auth session missing')) {
+      // nincs session -> egyszerűen visszatérünk, nem dobunk hibát
+      return;
+    }
+    console.error('getUser hiba:', error);
+    return;
+  }
+  if (user) {
+    img.src = user.user_metadata?.avatar_url || img.src;
+    nameDiv.textContent = user.email || 'Felhasználó';
+  } else {
+    // nincs user -> hagyjuk az alap "Bejelentkezés" feliratot
+  }
+} catch (error) {
+  const msg = (error && error.message) ? error.message.toLowerCase() : '';
+  if (msg.includes('auth session missing')) return;
+  console.error('Profil frissítési hiba:', error);
+}
+  
       }
     };
       window.addUserProfileToSidebar = addUserProfileToSidebar;
@@ -408,8 +430,12 @@
       }
     } catch (error) {
       console.error('Auth state change regisztrálási hiba:', error);
+      
+      
     }
   }
+
+  
 
   function createNavigation() {
     sidenav = document.getElementById('mySidenav');
@@ -696,4 +722,147 @@
       }
     } catch (e) { /* noop */ }
   }, true);
+})();
+
+(function() {
+  try {
+    function createSidebarProfile() {
+      const sidenav = document.getElementById('mySidenav');
+      if (!sidenav) return null;
+
+      // ha már van profil, adjuk vissza
+      if (sidenav.querySelector('.sidebar-profile')) return sidenav.querySelector('.sidebar-profile');
+
+      const profileWrapper = document.createElement('div');
+      profileWrapper.className = 'sidebar-profile';
+      profileWrapper.style.cursor = 'pointer';
+      profileWrapper.style.display = 'flex';
+      profileWrapper.style.gap = '10px';
+      profileWrapper.style.alignItems = 'center';
+      profileWrapper.style.padding = '10px';
+      profileWrapper.style.borderBottom = '1px solid #eee';
+
+      const img = document.createElement('img');
+      img.className = 'sidebar-profile-img';
+      img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+PHRleHQgeD0iMjAiIHk9IjIwIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+VXNlcjwvdGV4dD48L3N2Zz4=';
+      img.alt = 'Profil';
+      img.style.width = '38px';
+      img.style.height = '38px';
+      img.style.borderRadius = '50%';
+      img.style.flexShrink = '0';
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'sidebar-profile-name';
+      nameDiv.textContent = 'Bejelentkezés';
+
+      profileWrapper.appendChild(img);
+      profileWrapper.appendChild(nameDiv);
+
+      // kattintás: ha van supabase, lekérjük a felhasználót és aszerint cselekszünk; különben megnyitjuk a modal-t
+      profileWrapper.addEventListener('click', async (ev) => {
+        try {
+          if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
+            // lekérjük a usert
+            try {
+              const { data: { user }, error } = await window.supabase.auth.getUser();
+              if (error) {
+                console.error('getUser hiba:', error);
+                if (typeof window.openAuthModal === 'function') return window.openAuthModal();
+                return alert('Bejelentkezés nem elérhető (hiba).');
+              }
+
+              if (user) {
+                // ha be van jelentkezve: felajánljuk a kijelentkezést
+                if (confirm('Kijelentkezel?')) {
+                  const { error: signOutError } = await window.supabase.auth.signOut();
+                  if (signOutError) {
+                    alert('Kijelentkezés hiba: ' + signOutError.message);
+                  } else {
+                    location.reload();
+                  }
+                }
+              } else {
+                // nincs bejelentkezve -> nyissuk meg a modal-t
+                if (typeof window.openAuthModal === 'function') return window.openAuthModal();
+                alert('Bejelentkezés (modal) nem elérhető.');
+              }
+            } catch (e) {
+              console.error('Profil katt hiba (supabase):', e);
+              if (typeof window.openAuthModal === 'function') return window.openAuthModal();
+              alert('Bejelentkezés nem elérhető.');
+            }
+          } else {
+            // nincs supabase -> egyszerűen nyissuk meg az auth modal-t (ha van)
+            if (typeof window.openAuthModal === 'function') return window.openAuthModal();
+            alert('Bejelentkezés nem érhető el.');
+          }
+        } catch (e) {
+          console.error('Profil katt hiba (általános):', e);
+        }
+      });
+
+      // betesszük a sidebar elejére (vagy végére — igény szerint módosítható)
+      sidenav.appendChild(profileWrapper);
+
+      // ha Supabase van, frissítjük a név/avatar display-t (nem blokkolunk)
+      if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
+        (async function updateProfileView() {
+          try {
+            const { data: { user }, error } = await window.supabase.auth.getUser();
+            if (!error && user) {
+              nameDiv.textContent = user.email || 'Felhasználó';
+              // ha van avatar a metadata-ban, használjuk
+              const avatar = user.user_metadata && user.user_metadata.avatar_url;
+              if (avatar) img.src = avatar;
+            }
+          } catch (e) { /* no-op */ }
+        })();
+      }
+
+      return profileWrapper;
+    }
+
+    // Exponáljuk a függvényt globalisan ha még nincs
+    try {
+      if (typeof addUserProfileToSidebar === 'function' && typeof window.addUserProfileToSidebar !== 'function') {
+        window.addUserProfileToSidebar = addUserProfileToSidebar;
+      }
+    } catch (e) {}
+
+    // Várunk egy rövidet, majd ha nem jött létre a profil a nav által, létrehozzuk mi
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        try {
+          const existing = document.querySelector('#mySidenav .sidebar-profile');
+          if (!existing) {
+            createSidebarProfile();
+            console.log('Fallback: sidebar profil létrehozva.');
+          } else {
+            // ha már létezik, akkor esetleg frissítjük (pl. supabase user)
+            if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
+              // frissítés az iménti createSidebarProfile logika alapján
+              (async function refresh() {
+                try {
+                  const { data: { user }, error } = await window.supabase.auth.getUser();
+                  if (!error && user) {
+                    const p = document.querySelector('#mySidenav .sidebar-profile');
+                    if (p) {
+                      const nameDiv = p.querySelector('.sidebar-profile-name');
+                      const img = p.querySelector('img.sidebar-profile-img');
+                      if (nameDiv) nameDiv.textContent = user.email || 'Felhasználó';
+                      if (img && user.user_metadata && user.user_metadata.avatar_url) img.src = user.user_metadata.avatar_url;
+                    }
+                  }
+                } catch (e) {}
+              })();
+            }
+          }
+        } catch (e) {
+          console.error('Sidebar profil fallback error:', e);
+        }
+      }, 120);
+    }, { once: true });
+  } catch (e) {
+    console.error('Sidebar profil fallback init hiba:', e);
+  }
 })();
