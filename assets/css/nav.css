@@ -209,3 +209,26 @@ button {
 button.nav-item {
   padding: 10px;
 }
+
+/* Sidebar profile styles */
+.sidenav .sidebar-profile {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.sidebar-profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.sidebar-profile-name {
+  font-weight: 600;
+  font-size: 1rem;
+}

@@ -47,13 +47,14 @@
             <a class="nav-link" href="python/">python</a>
             <a class="nav-link" href="network/">hálózat</a>
             <a class="nav-link" href="math/">matek</a>
+            <a class="nav-link" href="#" id="navProfileBtn" onclick="openAuthModal(); return false;">Profil</a>
           </div>
         </div>
       </div>
     </nav>
   </header>
   <main>
-  <div id="mySidenav" class="sidenav"></div>
+    <div id="mySidenav" class="sidenav"></div>
     <h1 class="cim">Főoldal</h1>
     <div class="kartya" id="index">
       <div class="kartya-item">
@@ -121,6 +122,43 @@
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/nav.js"></script>
     <script src="assets/js/footer.js"></script>
+    <!-- Auth modal - másold be a body végére -->
+<div id="authModal" class="auth-modal" role="dialog" aria-hidden="true" aria-labelledby="authTitle" style="display:none;">
+  <div class="auth-modal-box" role="document">
+    <button id="authCloseBtn" class="auth-close" aria-label="Bezár">✕</button>
+    <h2 id="authTitle">Fiók</h2>
+
+    <div class="auth-tabs">
+      <button id="tab-login" class="auth-tab active" type="button">Bejelentkezés</button>
+      <button id="tab-signup" class="auth-tab" type="button">Regisztráció</button>
+    </div>
+
+    <form id="authForm" class="auth-form">
+      <div id="field-fullname" style="display:none;">
+        <label for="fullname">Teljes név (opcionális)</label>
+        <input id="fullname" name="fullname" type="text" placeholder="Teljes név" />
+      </div>
+
+      <div>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required placeholder="neved@pelda.hu" />
+      </div>
+
+      <div>
+        <label for="password">Jelszó</label>
+        <input id="password" name="password" type="password" required placeholder="Legalább 8 karakter" />
+      </div>
+
+      <div class="auth-actions">
+        <button id="authSubmit" class="btn" type="submit">Bejelentkezés</button>
+        <button id="magicLinkBtn" class="btn-secondary" type="button">Magic link küldése</button>
+      </div>
+
+      <div id="authError" class="auth-error" style="display:none;"></div>
+      <div id="authInfo" class="auth-info" style="display:none;"></div>
+    </form>
+  </div>
+</div>
 </body>
 
 </html>

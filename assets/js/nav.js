@@ -269,6 +269,7 @@
   }
 
   /* ======= Profil blokk - TELJESEN ÁTÍRT ======= */
+  window.addUserProfileToSidebar = addUserProfileToSidebar;
   function addUserProfileToSidebar() {
     if (!sidenav) return;
 
