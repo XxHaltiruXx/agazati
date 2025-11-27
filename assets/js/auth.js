@@ -2,132 +2,124 @@
 (function () {
   'use strict';
 
-  /**
-   * Robust profil kezelő - nem dob hibát session hiányában.
-   * Ezt a függvényt a nav.js fogja meghívni (ha elérhető).
-   */
-  window.addUserProfileToSidebar = function addUserProfileToSidebar() {
-    const sidenav = document.getElementById('mySidenav');
-    if (!sidenav) return;
+  // ------- modal helper -------
+  window.openAuthModal = function () {
+    document.getElementById('authModal').style.display = 'flex';
+    document.getElementById('authModal').setAttribute('aria-hidden', 'false');
+  };
+  window.closeAuthModal = function () {
+    document.getElementById('authModal').style.display = 'none';
+    document.getElementById('authModal').setAttribute('aria-hidden', 'true');
+    clearAuthMessages();
+  };
 
-    // Töröljük ha már van
-    const existing = sidenav.querySelector('.sidebar-profile');
-    if (existing) existing.remove();
+  window.switchAuthTab = function (tab) {
+    const isSignup = tab === 'signup';
+    document.getElementById('tab-login').classList.toggle('active', !isSignup);
+    document.getElementById('tab-signup').classList.toggle('active', isSignup);
+    document.getElementById('field-fullname').style.display = isSignup ? 'block' : 'none';
+    document.getElementById('authSubmit').textContent = isSignup ? 'Regisztráció' : 'Bejelentkezés';
+    clearAuthMessages();
+  };
 
-    const profileWrapper = document.createElement('div');
-    profileWrapper.className = 'sidebar-profile';
-    profileWrapper.style.cursor = 'pointer';
+  function clearAuthMessages() {
+    const err = document.getElementById('authError');
+    const info = document.getElementById('authInfo');
+    err.style.display = 'none'; err.textContent = '';
+    info.style.display = 'none'; info.textContent = '';
+  }
 
-    const img = document.createElement('img');
-    img.className = 'sidebar-profile-img';
-    img.alt = 'Profil';
-    // alap svg
-    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
+  window.switchToMagicLink = function () {
+    const emailEl = document.getElementById('email');
+    const email = emailEl.value?.trim();
+    if (!email) { showError('Adj meg egy emailt a magic linkhez.'); return; }
 
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'sidebar-profile-name';
-    nameDiv.textContent = 'Bejelentkezés';
+    if (!window.supabase) { showError('Supabase nincs inicializálva.'); return; }
+    clearAuthMessages();
+    document.getElementById('authInfo').style.display = 'block';
+    document.getElementById('authInfo').textContent = 'Magic link küldése...';
 
-    profileWrapper.appendChild(img);
-    profileWrapper.appendChild(nameDiv);
-    sidenav.appendChild(profileWrapper);
-
-    // Ha nincs supabase kliens, fallback viselkedés
-    if (typeof window.supabase === 'undefined' || !window.supabase) {
-      profileWrapper.addEventListener('click', () => {
-        alert('A bejelentkezési funkció jelenleg nem elérhető. Supabase nincs konfigurálva.');
-      });
-      return;
-    }
-
-    // Frissíti a profil UI-t — biztonságosan, előbb lekéri a session-t
-    async function updateUserProfile() {
-      try {
-        const { data: sessionData, error: sessionError } = await window.supabase.auth.getSession();
-        if (sessionError) {
-          console.warn('getSession hiba:', sessionError);
-        }
-        const session = sessionData && sessionData.session ? sessionData.session : null;
-        const user = session ? session.user : null;
-
-        if (user) {
-          img.src = user.user_metadata?.avatar_url || img.src;
-          nameDiv.textContent = user.email || user.user_metadata?.full_name || 'Felhasználó';
-        } else {
-          img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
-          nameDiv.textContent = 'Bejelentkezés';
-        }
-      } catch (err) {
-        console.error('Hiba a profil frissítésében:', err);
+    (async () => {
+      const { data, error } = await window.supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+      if (error) {
+        showError(error.message || 'Hiba történt a magic link küldése közben.');
+      } else {
+        document.getElementById('authInfo').textContent = 'Megkaptad a magic linket — ellenőrizd az emailt.';
       }
-    }
+    })();
+  };
 
-    // Kattintás: ha van session -> kijelentkezés, különben email bejelentkezés/regisztráció
-    profileWrapper.addEventListener('click', async () => {
-      try {
-        const { data: sessionData } = await window.supabase.auth.getSession();
-        const session = sessionData && sessionData.session ? sessionData.session : null;
-        const user = session ? session.user : null;
+  function showError(msg) {
+    const err = document.getElementById('authError');
+    err.style.display = 'block';
+    err.textContent = msg;
+  }
+  function showInfo(msg) {
+    const info = document.getElementById('authInfo');
+    info.style.display = 'block';
+    info.textContent = msg;
+  }
 
-        if (user) {
-          if (confirm('Kijelentkezés?')) {
-            const { error } = await window.supabase.auth.signOut();
-            if (error) {
-              alert('Hiba a kijelentkezésnél: ' + (error.message || error));
-            } else {
-              location.reload();
-            }
-          }
-          return;
-        }
+  // ------- core auth -------
+  window.handleAuthAction = async function () {
+    const isSignup = document.getElementById('tab-signup').classList.contains('active');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const fullname = document.getElementById('fullname').value.trim();
 
-        // nincs user -> regisztráció / bejelentkezés email OTP-vel
-        const email = prompt('Add meg az emailed a regisztrációhoz / bejelentkezéshez:');
-        if (!email) return;
+    clearAuthMessages();
+    if (!email || !password) { showError('Email és jelszó szükséges.'); return; }
+    if (password.length < 8) { showError('A jelszónak legalább 8 karakter hosszúnak kell lennie.'); return; }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          alert('Kérjük, érvényes email címet adj meg!');
-          return;
-        }
+    if (!window.supabase) { showError('Supabase nincs inicializálva.'); return; }
 
-        const { data, error } = await window.supabase.auth.signInWithOtp({
+    document.getElementById('authSubmit').disabled = true;
+    try {
+      if (isSignup) {
+        // REGISZTRÁCIÓ jelszóval
+        const { data, error } = await window.supabase.auth.signUp({
           email,
-          options: {
-            // redirect a GitHub Pages oldalra — ha kell, cseréld
-            emailRedirectTo: 'https://xxhaltiruxx.github.io/agazati/'
-          }
+          password,
+          options: { data: { full_name: fullname || null } }
         });
 
         if (error) {
-          alert('Hiba történt: ' + (error.message || error));
+          // Tipikus hibaüzenetek: már létezik, vagy szerver oldali trigger dobott 500-at
+          showError(error.message || 'Hiba történt a regisztráció során.');
+          console.error('signup error raw:', error);
         } else {
-          alert('Elküldtünk egy bejelentkezési linket a megadott email címre! Kérjük, ellenőrizd a postaládádat.');
+          showInfo('Sikeres regisztráció! Ellenőrizd az emailed (ha email-verifikációt használsz).');
+          // opcionálisan: closeAuthModal();
         }
-      } catch (err) {
-        console.error('Profil kattintási hiba:', err);
-        alert('Váratlan hiba történt: ' + (err.message || err));
+      } else {
+        // BEJELENTKEZÉS
+        const { data, error } = await window.supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) {
+          showError(error.message || 'Bejelentkezési hiba.');
+          console.error('signin error raw:', error);
+        } else {
+          showInfo('Sikeres bejelentkezés!');
+          // pl. location.reload(); vagy redirect
+          setTimeout(() => { window.location.reload(); }, 600);
+        }
       }
-    });
-
-    // Auth state change listener — ne dobjon ha nincs session
-    try {
-      const { data } = window.supabase.auth.onAuthStateChange((event, session) => {
-        console.log('Auth state changed:', event, session);
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-          updateUserProfile();
-        } else if (event === 'SIGNED_OUT') {
-          img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
-          nameDiv.textContent = 'Bejelentkezés';
-        }
-      });
-      // opcionális: tárolhatjuk a subscription-t későbbi leiratkozáshoz
-      window._supabaseAuthSubscription = data?.subscription ?? null;
     } catch (err) {
-      console.error('Auth state change regisztrálási hiba:', err);
+      showError('Ismeretlen hiba történt. Ellenőrizd a konzolt.');
+      console.error('auth exception:', err);
+    } finally {
+      document.getElementById('authSubmit').disabled = false;
     }
-
-    // Kezdeti feltöltés
-    updateUserProfile();
   };
+
+  // Inicializáló — alapértelmezett tab
+  document.addEventListener('DOMContentLoaded', () => {
+    window.switchAuthTab('login');
+    // opcionálisan: global gomb a navhoz
+    // const profileBtn = document.querySelector('.sidebar-profile');
+    // if (profileBtn) profileBtn.addEventListener('click', openAuthModal);
+  });
 })();

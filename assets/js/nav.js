@@ -1,4 +1,4 @@
-/* assets/js/nav.js - csak navigáció, profil logika külön fájlban kezelendő */
+/* nav.js - azonnali inicializáció, hogy ne várjon a pyodide.js-re */
 (function () {
   'use strict';
 
@@ -104,13 +104,13 @@
           sidenav.style.width = '250px';
         }
       }
-
+      
       const submenuState = loadSavedSubmenuState();
       document.querySelectorAll('.subnav').forEach(navGroup => {
         const category = navGroup.getAttribute('data-category');
         const button = navGroup.querySelector('.nav-item');
         const content = navGroup.querySelector('.subnav-content');
-
+        
         if (button && content && submenuState[category]) {
           button.classList.add('active');
           content.style.display = 'block';
@@ -268,7 +268,142 @@
     });
   }
 
-  /* ======= Navigáció létrehozása ======= */
+  /* ======= Profil blokk - TELJESEN ÁTÍRT ======= */
+  function addUserProfileToSidebar() {
+    if (!sidenav) return;
+
+    // Ellenőrizzük, hogy már létezik-e profil elem
+    const existingProfile = sidenav.querySelector('.sidebar-profile');
+    if (existingProfile) {
+      existingProfile.remove();
+    }
+
+    const profileWrapper = document.createElement('div');
+    profileWrapper.className = 'sidebar-profile';
+    profileWrapper.style.cursor = 'pointer';
+
+    const img = document.createElement('img');
+    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
+    img.className = 'sidebar-profile-img';
+    img.alt = 'Profil';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'sidebar-profile-name';
+    nameDiv.textContent = 'Bejelentkezés';
+
+    profileWrapper.appendChild(img);
+    profileWrapper.appendChild(nameDiv);
+    sidenav.appendChild(profileWrapper);
+
+    // Supabase elérhetőség ellenőrzése
+    if (typeof window.supabase === 'undefined' || !window.supabase) {
+      console.warn('Supabase nincs inicializálva - alap profil használata');
+      
+      profileWrapper.addEventListener('click', () => {
+        alert('A bejelentkezési funkció jelenleg nem elérhető. Supabase nincs konfigurálva.');
+      });
+      return;
+    }
+
+    // Session ellenőrzése és felhasználói adatok frissítése
+    const updateUserProfile = async () => {
+      try {
+        const { data: { user }, error } = await window.supabase.auth.getUser();
+        
+        if (error) {
+          console.error('Hiba a felhasználó lekérésében:', error);
+          return;
+        }
+        
+        if (user) {
+          img.src = user.user_metadata?.avatar_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
+          nameDiv.textContent = user.email || 'Felhasználó';
+        } else {
+          img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
+          nameDiv.textContent = 'Bejelentkezés';
+        }
+      } catch (error) {
+        console.error('Hiba a profil frissítésében:', error);
+      }
+    };
+
+    // Profil kattintás esemény
+    profileWrapper.addEventListener('click', async () => {
+      try {
+        const { data: { user }, error } = await window.supabase.auth.getUser();
+        
+        if (error) {
+          console.error('Hiba a felhasználó lekérésében:', error);
+          alert('Hiba a bejelentkezési állapot ellenőrzésében: ' + error.message);
+          return;
+        }
+        
+        if (user) {
+          // Ha már be van jelentkezve, kijelentkezés
+          if (confirm('Kijelentkezés?')) {
+            const { error } = await window.supabase.auth.signOut();
+            if (error) {
+              alert('Hiba a kijelentkezésnél: ' + error.message);
+            } else {
+              location.reload();
+            }
+          }
+        } else {
+          // REGISZTRÁCIÓ és BEJELENTKEZÉS - JAVÍTOTT VERZIÓ
+          const email = prompt('Add meg az emailed a regisztrációhoz / bejelentkezéshez:');
+          if (!email) return;
+          
+          // Email validáció
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            alert('Kérjük, érvényes email címet adj meg!');
+            return;
+          }
+          
+          const { error } = await window.supabase.auth.signInWithOtp({
+            email: email,
+            options: {
+              // MÓDOSÍTOTT: Pontos redirect URL a GitHub Pages-hez
+              emailRedirectTo: 'https://xxhaltiruxx.github.io/agazati/'
+            }
+          });
+          
+          if (error) {
+            alert('Hiba történt: ' + error.message);
+          } else {
+            alert('Elküldtünk egy bejelentkezési linket a megadott email címre! Kérjük, ellenőrizd a postaládádat és kattints a linkre a bejelentkezéshez.');
+          }
+        }
+      } catch (error) {
+        console.error('Profil kattintási hiba:', error);
+        alert('Váratlan hiba történt: ' + error.message);
+      }
+    });
+
+    // Auth state change listener - JAVÍTOTT
+    try {
+      if (window.supabase && window.supabase.auth) {
+        const { data: { subscription } } = window.supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('Auth state changed:', event, session);
+            
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+              await updateUserProfile();
+            } else if (event === 'SIGNED_OUT') {
+              img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNEMwQkNFIi8+Cjx0ZXh0IHg9IjIwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbnU9Im1pZGRsZSI+VXNlcjwvdGV4dD4KPC9zdmc+';
+              nameDiv.textContent = 'Bejelentkezés';
+            }
+          }
+        );
+
+        // Kezdeti felhasználói adatok betöltése
+        updateUserProfile();
+      }
+    } catch (error) {
+      console.error('Auth state change regisztrálási hiba:', error);
+    }
+  }
+
   function createNavigation() {
     sidenav = document.getElementById('mySidenav');
     const navContainer = document.querySelector('#mySidenav > div') || (sidenav ? sidenav : null);
@@ -385,7 +520,8 @@
       });
     }
 
-    // PROFIL HOZZÁADÁSA — csak ha külön definiálva van (auth.js)
+
+        // PROFIL HOZZÁADÁSA — hívjuk, ha van implementáció (most az auth.js kezeli)
     setTimeout(() => {
       if (typeof window.addUserProfileToSidebar === 'function') {
         try {
@@ -394,9 +530,11 @@
           console.error('addUserProfileToSidebar hívási hiba:', e);
         }
       } else {
-        // nincs profil script betöltve -> csendben kihagyjuk
+        // fallback: ne csináljunk semmit — ez megelőzi a hibát, ha supabase nincs
+        console.warn('addUserProfileToSidebar nincs betöltve, kihagyva.');
       }
     }, 100);
+
 
     // Állapot betöltése
     loadNavState();
