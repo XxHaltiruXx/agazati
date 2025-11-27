@@ -2,74 +2,44 @@
 (function () {
   'use strict';
 
-  // ========= segédfüggvények =========
-  function $id(id) {
-    return document.getElementById(id) || null;
-  }
+  function $id(id) { return document.getElementById(id) || null; }
 
-  function safeText(el, txt) {
-    if (!el) return;
-    el.textContent = txt;
-  }
-
-  // ========= üzenetek kezelése =========
   function clearAuthMessages() {
-    const err = $id('authError');
-    const info = $id('authInfo');
+    const err = $id('authError'); const info = $id('authInfo');
     if (err) { err.style.display = 'none'; err.textContent = ''; }
     if (info) { info.style.display = 'none'; info.textContent = ''; }
   }
 
   function showError(msg) {
     const err = $id('authError');
-    if (err) {
-      err.style.display = 'block';
-      err.textContent = msg;
-    } else {
-      console.warn('authError elem hiányzik, üzenet:', msg);
-    }
+    if (err) { err.style.display = 'block'; err.textContent = msg; }
+    else console.warn('authError elem hiányzik, üzenet:', msg);
   }
-
   function showInfo(msg) {
     const info = $id('authInfo');
-    if (info) {
-      info.style.display = 'block';
-      info.textContent = msg;
-    } else {
-      console.info('authInfo elem hiányzik, üzenet:', msg);
-    }
+    if (info) { info.style.display = 'block'; info.textContent = msg; }
+    else console.info('authInfo elem hiányzik, üzenet:', msg);
   }
 
-  // ========= modal helper =========
   function openAuthModal() {
     const modal = $id('authModal');
-    if (!modal) {
-      console.warn('openAuthModal: authModal nincs a DOM-ban.');
-      return;
-    }
+    if (!modal) { console.warn('openAuthModal: authModal nincs a DOM-ban.'); return; }
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden', 'false');
-    // lehet akadályozni a háttér görgetést
     try { document.documentElement.style.overflow = 'hidden'; } catch (e) {}
   }
-
   function closeAuthModal() {
     const modal = $id('authModal');
-    if (!modal) {
-      console.warn('closeAuthModal: authModal nincs a DOM-ban.');
-      return;
-    }
+    if (!modal) { console.warn('closeAuthModal: authModal nincs a DOM-ban.'); return; }
     modal.style.display = 'none';
     modal.setAttribute('aria-hidden', 'true');
     clearAuthMessages();
     try { document.documentElement.style.overflow = ''; } catch (e) {}
   }
-
-  // exportáljuk, hogy más scriptek (pl. nav.js) hívhassák
   window.openAuthModal = openAuthModal;
   window.closeAuthModal = closeAuthModal;
 
-  // ========= tab váltás (login / signup) =========
+  // Tab váltás
   function switchAuthTab(tab) {
     const isSignup = tab === 'signup';
     const tabLogin = $id('tab-login');
@@ -81,31 +51,25 @@
     if (tabSignup) tabSignup.classList.toggle('active', isSignup);
     if (fieldFullname) fieldFullname.style.display = isSignup ? 'block' : 'none';
     if (authSubmit) authSubmit.textContent = isSignup ? 'Regisztráció' : 'Bejelentkezés';
-
     clearAuthMessages();
   }
   window.switchAuthTab = switchAuthTab;
 
-  // ========= magic link (email) =========
+  // Magic link (OTP/email)
   async function switchToMagicLink() {
     const emailEl = $id('email');
     const email = emailEl ? emailEl.value?.trim() : '';
     if (!email) { showError('Adj meg egy emailt a magic linkhez.'); return; }
-
     if (!window.supabase) { showError('Supabase nincs inicializálva.'); return; }
-    clearAuthMessages();
-    showInfo('Magic link küldése...');
+    clearAuthMessages(); showInfo('Magic link küldése...');
 
     try {
       const { data, error } = await window.supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.href }
+        options: { emailRedirectTo: window.location.href } // vagy a GitHub Pages URL-ed
       });
-      if (error) {
-        showError(error.message || 'Hiba történt a magic link küldése közben.');
-      } else {
-        showInfo('Megkaptad a magic linket — ellenőrizd az emailt.');
-      }
+      if (error) showError(error.message || 'Hiba történt a magic link küldése közben.');
+      else showInfo('Megkaptad a magic linket — ellenőrizd az emailt.');
     } catch (err) {
       showError('Hálózati / belső hiba a magic link küldésekor.');
       console.error('switchToMagicLink exception:', err);
@@ -113,55 +77,43 @@
   }
   window.switchToMagicLink = switchToMagicLink;
 
-  // ========= core auth (signup / signin) =========
+  // Core: regisztráció / bejelentkezés jelszóval
   async function handleAuthAction() {
     const isSignup = $id('tab-signup') && $id('tab-signup').classList.contains('active');
-    const emailEl = $id('email');
-    const passwordEl = $id('password');
-    const fullnameEl = $id('fullname');
-
+    const emailEl = $id('email'); const passwordEl = $id('password'); const fullnameEl = $id('fullname');
     const email = emailEl ? emailEl.value.trim() : '';
     const password = passwordEl ? passwordEl.value : '';
     const fullname = fullnameEl ? fullnameEl.value.trim() : '';
 
     clearAuthMessages();
-    if (!email || !password) { showError('Email és jelszó szükséges.'); return; }
-    if (password.length < 8) { showError('A jelszónak legalább 8 karakter hosszúnak kell lennie.'); return; }
-
+    if (!email || (!password && !isSignup)) { showError('Email és jelszó szükséges.'); return; }
+    if (password && password.length < 8) { showError('A jelszónak legalább 8 karakter hosszúnak kell lennie.'); return; }
     if (!window.supabase) { showError('Supabase nincs inicializálva.'); return; }
 
-    const authSubmit = $id('authSubmit');
-    if (authSubmit) authSubmit.disabled = true;
+    const authSubmit = $id('authSubmit'); if (authSubmit) authSubmit.disabled = true;
 
     try {
       if (isSignup) {
-        // REGISZTRÁCIÓ jelszóval
+        // Regisztráció
         const { data, error } = await window.supabase.auth.signUp({
           email,
           password,
           options: { data: { full_name: fullname || null } }
         });
-
         if (error) {
           showError(error.message || 'Hiba történt a regisztráció során.');
           console.error('signup error raw:', error);
         } else {
-          showInfo('Sikeres regisztráció! Ellenőrizd az emailed (ha email-verifikációt használsz).');
-          // opcionálisan: bezárhatjuk a modalt, ha akarjuk
+          showInfo('Sikeres regisztráció! Ellenőrizd az emailed (ha van verifikáció).');
         }
       } else {
-        // BEJELENTKEZÉS
-        const { data, error } = await window.supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
+        // Bejelentkezés jelszóval
+        const { data, error } = await window.supabase.auth.signInWithPassword({ email, password });
         if (error) {
           showError(error.message || 'Bejelentkezési hiba.');
           console.error('signin error raw:', error);
         } else {
           showInfo('Sikeres bejelentkezés!');
-          // pl. frissítsük az oldalt, hogy a felhasználói státusz látszódjon
           setTimeout(() => { window.location.reload(); }, 600);
         }
       }
@@ -174,83 +126,77 @@
   }
   window.handleAuthAction = handleAuthAction;
 
-  // ========= inicializálás / eseményregisztrációk =========
+  // Inicializálás és események
   function initAuthUI() {
-    // Form submit
     const authForm = $id('authForm');
-    if (authForm) {
-      authForm.addEventListener('submit', (ev) => {
-        ev.preventDefault();
-        handleAuthAction();
-      });
-    }
+    if (authForm) authForm.addEventListener('submit', (ev) => { ev.preventDefault(); handleAuthAction(); });
 
-    // Tab gombok
-    const tabLoginBtn = $id('tab-login');
-    const tabSignupBtn = $id('tab-signup');
+    const tabLoginBtn = $id('tab-login'); const tabSignupBtn = $id('tab-signup');
     if (tabLoginBtn) tabLoginBtn.addEventListener('click', () => switchAuthTab('login'));
     if (tabSignupBtn) tabSignupBtn.addEventListener('click', () => switchAuthTab('signup'));
 
-    // magic link gomb
     const magicBtn = $id('magicLinkBtn');
-    if (magicBtn) magicBtn.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      switchToMagicLink();
-    });
+    if (magicBtn) magicBtn.addEventListener('click', (ev) => { ev.preventDefault(); switchToMagicLink(); });
 
-    // modal close gomb
     const closeBtn = $id('authCloseBtn');
-    if (closeBtn) closeBtn.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      closeAuthModal();
-    });
+    if (closeBtn) closeBtn.addEventListener('click', (ev) => { ev.preventDefault(); closeAuthModal(); });
 
-    // escape lekapcsolás
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape') {
-        const modal = $id('authModal');
-        if (modal && modal.style.display !== 'none') closeAuthModal();
+        const modal = $id('authModal'); if (modal && modal.style.display !== 'none') closeAuthModal();
       }
     });
 
-    // kattintás kívülre bezárás
     const modal = $id('authModal');
     if (modal) {
-      modal.addEventListener('click', (ev) => {
-        if (ev.target === modal) closeAuthModal();
-      });
+      modal.addEventListener('click', (ev) => { if (ev.target === modal) closeAuthModal(); });
     }
   }
 
-  // Ha van supabase, figyeljük az állapotváltozásokat (pl. magic-link után)
+  // Ha van supabase, figyeljük az állapotváltozásokat
   async function registerAuthStateListener() {
     if (!window.supabase || !window.supabase.auth || !window.supabase.auth.onAuthStateChange) return;
     try {
-      // onAuthStateChange visszaad egy subscription objektum; itt csak az eseményeket használjuk
-      const { data: sub } = window.supabase.auth.onAuthStateChange((event, session) => {
+      window.supabase.auth.onAuthStateChange((event, session) => {
         console.log('Auth state changed:', event);
-        if (event === 'SIGNED_IN') {
-          // Bejelentkezésnél zárjuk a modalt (ha nyitva van)
-          try { closeAuthModal(); } catch (e) {}
-        }
+        if (event === 'SIGNED_IN') { try { closeAuthModal(); } catch (e) {} }
+        if (event === 'SIGNED_OUT') { /* opcionális UI update */ }
       });
-      // nem szükséges unsub eseménykezelés itt (page lifecycle kezelheti)
+    } catch (e) { console.error('Auth state listener error:', e); }
+  }
+
+  // Megnézzük a jelenlegi felhasználót; ha nincs bejelentkezve, megnyitjuk a modal-t automatikusan
+  async function openModalIfNotAuthenticatedOnLoad() {
+    if (!window.supabase || !window.supabase.auth || !window.supabase.auth.getUser) {
+      // nincs supabase -> nyissuk meg a modal (ha szeretnéd)
+      openAuthModal();
+      return;
+    }
+    try {
+      const { data: { user }, error } = await window.supabase.auth.getUser();
+      if (error) {
+        console.error('getUser error:', error);
+        openAuthModal();
+        return;
+      }
+      if (!user) {
+        // nincs bejelentkezve -> nyiss modal-t
+        openAuthModal();
+      } else {
+        // bejelentkezett: opcionálisan frissíthetsz UI-t (pl. sidebar profil)
+        console.log('Bejelentkezett:', user.email);
+      }
     } catch (e) {
-      console.error('Auth state listener error:', e);
+      console.error('openModalIfNotAuthenticatedOnLoad error:', e);
+      openAuthModal();
     }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Csak akkor indítjuk a tab-váltást, ha van az auth UI
-    if ($id('tab-login') || $id('tab-signup') || $id('authForm')) {
-      // alap tab: login
-      switchAuthTab('login');
-    } else {
-      console.info('Auth UI nincs jelen a DOM-ban; alap beállítás kihagyva.');
-    }
-
     initAuthUI();
     registerAuthStateListener();
+    // ALAP: ha nincs bejelentkezve a user, nyissuk meg a modal-t
+    openModalIfNotAuthenticatedOnLoad();
   });
 
 })();

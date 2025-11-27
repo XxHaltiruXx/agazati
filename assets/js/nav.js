@@ -269,7 +269,6 @@
   }
 
   /* ======= Profil blokk - TELJESEN ÁTÍRT ======= */
-  window.addUserProfileToSidebar = addUserProfileToSidebar;
   function addUserProfileToSidebar() {
     if (!sidenav) return;
 
@@ -297,11 +296,17 @@
     sidenav.appendChild(profileWrapper);
 
     // Supabase elérhetőség ellenőrzése
+    // Supabase elérhetőség ellenőrzése
     if (typeof window.supabase === 'undefined' || !window.supabase) {
       console.warn('Supabase nincs inicializálva - alap profil használata');
-      
+
+      // Ha nincs supabase, a profil kattintás mindig megnyitja az auth modal-t (ha elérhető)
       profileWrapper.addEventListener('click', () => {
-        alert('A bejelentkezési funkció jelenleg nem elérhető. Supabase nincs konfigurálva.');
+        if (typeof window.openAuthModal === 'function') {
+          window.openAuthModal();
+        } else {
+          alert('A bejelentkezési funkció jelenleg nem elérhető.');
+        }
       });
       return;
     }
@@ -327,6 +332,7 @@
         console.error('Hiba a profil frissítésében:', error);
       }
     };
+      window.addUserProfileToSidebar = addUserProfileToSidebar;
 
     // Profil kattintás esemény
     profileWrapper.addEventListener('click', async () => {
