@@ -2,6 +2,213 @@
 (function () {
   'use strict';
 
+(function injectNavCss() {
+  if (document.getElementById('agazati-nav-injected-css')) return;
+  const css = `
+:root{
+  --accent:#7f5af0;
+  --accent-light:#a693ff;
+  --bg-dark:#0a0a14;
+  --bg-mid:#111122;
+  --text:#e4e4ff;
+  --muted:#888ab8;
+  --error:#ff4b5c;
+  --success:#45f0a0;
+}
+
+/* Strukturális: a footer lefelé ragad, a menük teljes szélességben jelennek meg */
+#mySidenav > div.nav-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  gap: 6px;
+}
+#mySidenav .nav-scrollable {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding-right: 6px;
+}
+#mySidenav .nav-footer {
+  flex: 0 0 auto;
+  border-top: 1px solid rgba(255,255,255,0.03);
+  padding: 10px 8px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Nav item teljes szélességű gombként */
+#mySidenav .nav-item {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  box-sizing:border-box;
+  padding: 0.6rem 0.6rem;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--text);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+#mySidenav .nav-item .nav-icon { width:20px; height:20px; margin-right:8px; object-fit:contain; }
+#mySidenav .nav-item:hover { background: rgba(127,90,240,0.04); }
+
+/* Subnav links: blokk és teljes szélesség */
+#mySidenav .subnav-content a {
+  display:block;
+  padding: 0.45rem 0.6rem;
+  width:100%;
+  box-sizing:border-box;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius:6px;
+}
+#mySidenav .subnav-content a:hover { color: var(--text); background: rgba(127,90,240,0.03); }
+
+/* auth gomb (lila, nem szélesíti a konténert) */
+#navAuthBtn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.56rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+  max-width: none;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+  box-shadow: 0 6px 18px rgba(127,90,240,0.12);
+}
+#navAuthBtn:hover { transform: translateY(-2px); background: var(--accent-light); }
+
+/* Modal overlay + box + animáció (összhangban a küldött CSS-sel) */
+#pwModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(8,8,20,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#pwModal[aria-hidden="false"] { display:flex; }
+#pwBox {
+  background: var(--bg-mid);
+  color: var(--text);
+  padding: 1.2rem 1.4rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 10px 30px rgba(11,9,26,0.6), 0 0 20px rgba(127,90,240,0.18);
+  transform: scale(.98);
+  opacity: 0;
+  transition: transform 180ms cubic-bezier(.2,.9,.3,1), opacity 180ms ease;
+}
+#pwModal[aria-hidden="false"] #pwBox { transform: scale(1); opacity: 1; }
+
+/* input */
+#pwInput {
+  width: 100%;
+  padding: 0.55rem 40px 0.55rem 0.55rem;
+  background: #16162a;
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-sizing: border-box;
+  height: 40px;
+  font-size: 1rem;
+}
+#pwInput:focus { outline:none; border-color:var(--accent-light); box-shadow:0 0 6px var(--accent-light); }
+
+/* modal gombok: pwOk (accent) és pwCancel (ghost) */
+#pwOk, #pwCancel { min-width: 110px; padding:0.5rem 0.9rem; border-radius:8px; cursor:pointer; font-weight:600; }
+#pwOk { background: var(--accent); color:#fff; border:none; }
+#pwOk:hover { background: var(--accent-light); transform: translateY(-2px); }
+#pwCancel { background: transparent; color:var(--muted); border:1px solid rgba(136,138,184,0.12); }
+#pwCancel:hover { background: rgba(127,90,240,0.04); color:var(--text); border-color: rgba(127,90,240,0.14); }
+
+/* error/info */
+.error{ color:var(--error); display:none; margin-top:8px; font-size:0.95rem; }
+.info { color:var(--success); display:none; margin-top:8px; font-size:0.95rem; }
+.hint { color:var(--muted); display:block; margin-top:8px; font-size:0.83rem; }
+
+/* remember-container: balra igazítás */
+.remember-container { display:flex; align-items:center; gap:8px; margin:12px 0 8px; justify-content:flex-start; }
+
+/* toggle-password icon — SVG data-URI eye / eye-off (class .show váltja) */
+.toggle-password, #togglePwBtn {
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  width:28px;height:28px;border:none;background:transparent;cursor:pointer;opacity:0.85;
+  background-repeat:no-repeat;background-position:center;background-size:18px;
+  filter:brightness(1.1) invert(1);
+}
+.toggle-password { color: var(--muted); }
+.toggle-password.show {
+  /* eye-off icon */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ffffff' d='M12 6a9.77 9.77 0 0 1 8.48 5A9.77 9.77 0 0 1 12 16a9.77 9.77 0 0 1-8.48-5A9.77 9.77 0 0 1 12 6m0-2C7.03 4 2.73 7.11 1 12c1.73 4.89 6.03 8 11 8s9.27-3.11 11-8c-1.73-4.89-6.03-8-11-8z'/></svg>");
+}
+.toggle-password:not(.show) {
+  /* eye icon */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ffffff' d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zM12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/></svg>");
+}
+
+/* mobil finomítás */
+@media (max-width:700px) {
+  #pwBox { width:92%; max-width:420px; }
+  #mySidenav .nav-item { padding: 0.6rem; }
+}
+`;
+  const style = document.createElement('style');
+  style.id = 'agazati-nav-injected-css';
+  style.appendChild(document.createTextNode(css));
+  document.head.appendChild(style);
+})();
+
+
+  /* ======= Korai stub / queue mechanizmus a ReferenceError elkerülésére ======= */
+  window._agazati_nav_call_queue = window._agazati_nav_call_queue || [];
+
+  function _agazati_flush_queue(name, fn) {
+    if (!window._agazati_nav_call_queue || !window._agazati_nav_call_queue.length) return;
+    const remaining = [];
+    window._agazati_nav_call_queue.forEach(item => {
+      if (item && item.name === name) {
+        try {
+          fn.apply(window, item.args || []);
+        } catch (e) {
+          console.error('[agazati] queued call failed for', name, e);
+        }
+      } else {
+        remaining.push(item);
+      }
+    });
+    window._agazati_nav_call_queue = remaining;
+  }
+
+  // Korai stub: ha a HTML inline meghívja, ne dobjon ReferenceError-t — csak sorba állítjuk a hívást.
+  if (typeof window.toggleNav !== 'function') {
+    window.toggleNav = function () {
+      const args = Array.prototype.slice.call(arguments);
+      window._agazati_nav_call_queue.push({ name: 'toggleNav', args });
+      console.warn('[agazati] toggleNav called early; queued until initialization completes.');
+    };
+  }
+
+  if (typeof window.openLoginModal !== 'function') {
+    window.openLoginModal = function () {
+      const args = Array.prototype.slice.call(arguments);
+      window._agazati_nav_call_queue.push({ name: 'openLoginModal', args });
+      console.warn('[agazati] openLoginModal called early; queued until login modal is ready.');
+    };
+  }
+
   /* ======= Konstansok, állapot ======= */
   const NAV_STATE_KEY = '__agazati_nav_state';
   const SUBMENU_STATE_KEY = '__agazati_submenu_state';
@@ -146,27 +353,17 @@
 
   /* ======= Bejelentkezési állapot kezelése ======= */
   function updateLoginStatus() {
-    const loginStatus = document.getElementById('navLoginStatus');
-    if (!loginStatus) return;
-
+    const btn = document.getElementById('navAuthBtn');
+    if (!btn) return;
     const isLoggedIn = checkLoginState();
-    
     if (isLoggedIn) {
-      loginStatus.innerHTML = `
-        <div class="login-info">
-          <span class="login-icon">✓</span>
-          <span class="login-text">Bejelentkezve</span>
-          <button class="logout-btn-nav" onclick="logoutFromNav()">Kijelentkezés</button>
-        </div>
-      `;
+      btn.textContent = 'Kijelentkezés';
+      btn.setAttribute('aria-pressed', 'true');
+      btn.onclick = function () { logoutFromNav(); };
     } else {
-      loginStatus.innerHTML = `
-        <div class="login-info">
-          <span class="login-icon">🔒</span>
-          <span class="login-text">Bejelentkezés</span>
-          <button class="login-btn-nav" onclick="openLoginModal()">Bejelentkezés</button>
-        </div>
-      `;
+      btn.textContent = 'Bejelentkezés';
+      btn.setAttribute('aria-pressed', 'false');
+      btn.onclick = function () { openLoginModal(); };
     }
   }
 
@@ -224,7 +421,7 @@
     }
   }
 
-  /* ======= Modal kezelés ======= */
+  /* ======= Modal kezelés (most a CSS-ed ID-jeivel) ======= */
   async function sha256hex(str){
     const enc = new TextEncoder().encode(str);
     const digest = await crypto.subtle.digest('SHA-256', enc);
@@ -233,29 +430,29 @@
 
   function createLoginModal() {
     // Ellenőrizzük, hogy már létezik-e a modal
-    if (document.getElementById('globalLoginModal')) return;
+    if (document.getElementById('pwModal')) return;
 
     const modalHTML = `
-      <div id="globalLoginModal" style="display:none" aria-hidden="true" role="dialog" tabindex="-1">
-        <div id="globalPwBox" role="document" tabindex="0">
+      <div id="pwModal" style="display:none" aria-hidden="true" role="dialog" tabindex="-1">
+        <div id="pwBox" role="document" tabindex="0">
           <h2 style="margin:0 0 8px">Bejelentkezés</h2>
           <div style="font-size:0.95rem;color:var(--muted);margin-bottom:10px">Írd be a jelszót a bejelentkezéshez.</div>
           <div class="password-container">
             <div class="password-inner">
-              <input id="globalPwInput" type="password" autocomplete="off" placeholder="Jelszó" />
-              <span class="toggle-password" id="globalTogglePassword" role="button" tabindex="0"></span>
+              <input id="pwInput" type="password" autocomplete="off" placeholder="Jelszó" />
+              <button type="button" id="togglePwBtn" class="toggle-password" aria-label="Jelszó mutatása/elrejtése"></button>
             </div>
           </div>
           <div class="remember-container">
-            <input type="checkbox" id="globalRememberMe">
-            <label for="globalRememberMe">Emlékezz rám</label>
+            <input type="checkbox" id="pwRemember">
+            <label for="pwRemember">Emlékezz rám</label>
           </div>
           <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-            <button id="globalPwCancel" class="ghost">Mégse</button>
-            <button id="globalPwOk">Bejelentkezés</button>
+            <button id="pwCancel" class="ghost">Mégse</button>
+            <button id="pwOk">Bejelentkezés</button>
           </div>
-          <div class="error" id="globalPwNote">Helytelen jelszó</div>
-          <div class="info" id="globalPwInfo">Sikeres bejelentkezés</div>
+          <div class="error" id="pwNote">Helytelen jelszó</div>
+          <div class="info" id="pwInfo">Sikeres bejelentkezés</div>
           <small class="hint">Szóköz a bevitelnél: a jelszó trim-elve lesz (véletlen szóközök eltávolítása).</small>
         </div>
       </div>
@@ -266,24 +463,22 @@
   }
 
   function setupModalEvents() {
-    const modal = document.getElementById('globalLoginModal');
-    const pwInput = document.getElementById('globalPwInput');
-    const pwOk = document.getElementById('globalPwOk');
-    const pwCancel = document.getElementById('globalPwCancel');
-    const pwNote = document.getElementById('globalPwNote');
-    const pwInfo = document.getElementById('globalPwInfo');
-    const togglePassword = document.getElementById('globalTogglePassword');
-    const rememberMe = document.getElementById('globalRememberMe');
+    const modal = document.getElementById('pwModal');
+    const pwInput = document.getElementById('pwInput');
+    const pwOk = document.getElementById('pwOk');
+    const pwCancel = document.getElementById('pwCancel');
+    const pwNote = document.getElementById('pwNote');
+    const pwInfo = document.getElementById('pwInfo');
+    const togglePwBtn = document.getElementById('togglePwBtn');
+    const rememberMe = document.getElementById('pwRemember');
 
     if (!modal) return;
 
     // Jelszó láthatóság váltása
-    if (togglePassword) {
-      togglePassword.style.backgroundImage = 'url("assets/images/view.png")';
-      togglePassword.addEventListener('click', function() {
+    if (togglePwBtn) {
+      togglePwBtn.addEventListener('click', function() {
         const isPassword = pwInput.type === 'password';
         pwInput.type = isPassword ? 'text' : 'password';
-        this.style.backgroundImage = isPassword ? 'url("assets/images/hide.png")' : 'url("assets/images/view.png")';
       });
     }
 
@@ -298,10 +493,10 @@
         pwInput.type = 'password';
         setTimeout(() => pwInput.focus(), 50);
       }
-      if (togglePassword) {
-        togglePassword.style.backgroundImage = 'url("assets/images/view.png")';
-      }
     };
+
+    // Ha korábban sorba álltak openLoginModal hívások, futtassuk őket
+    try { _agazati_flush_queue('openLoginModal', window.openLoginModal); } catch(e){}
 
     // Modal bezárása
     const closeModal = () => {
@@ -309,11 +504,8 @@
       modal.setAttribute('aria-hidden', 'true');
       if (pwInput) {
         pwInput.value = '';
-        pwNote.style.display = 'none';
+        if (pwNote) pwNote.style.display = 'none';
         pwInput.type = 'password';
-      }
-      if (togglePassword) {
-        togglePassword.style.backgroundImage = 'url("assets/images/view.png")';
       }
       if (rememberMe) rememberMe.checked = false;
     };
@@ -371,7 +563,7 @@
               pwInfo.style.display = 'block';
               setTimeout(() => {
                 closeModal();
-                setTimeout(() => pwInfo.style.display = 'none', 1200);
+                setTimeout(() => { if (pwInfo) pwInfo.style.display = 'none'; }, 1200);
               }, 500);
             } else {
               closeModal();
@@ -396,14 +588,11 @@
   window.setLoginState = setLoginState;
   window.logoutFromNav = logoutFromNav;
   window.checkLoginState = checkLoginState;
-  window.openLoginModal = openLoginModal;
 
  /* ======= Globális toggleNav ======= */
 window.toggleNav = function () {
-  console.log('toggleNav called'); // Debug
   if (!sidenav) {
     sidenav = document.getElementById('mySidenav');
-    console.log('sidenav element:', sidenav); // Debug
     if (!sidenav) {
       console.error('Sidenav element not found!');
       return;
@@ -414,13 +603,13 @@ window.toggleNav = function () {
   if (isNavOpen) {
     sidenav.style.width = '0';
     isNavOpen = false;
-    console.log('Closing sidebar'); // Debug
   } else {
     sidenav.style.width = '250px';
     isNavOpen = true;
-    console.log('Opening sidebar'); // Debug
   }
   saveNavState();
+
+  try { _agazati_flush_queue('toggleNav', window.toggleNav); } catch(e){}
 };
 
   /* ======= Navigáció újraépítése ======= */
@@ -432,7 +621,7 @@ window.toggleNav = function () {
     }
   }
 
-  /* ======= Keresés ======= */
+  /* ======= Keresés ======= (nincs változás) ======= */
   function filterNavItems(searchText) {
     const subnavs = document.querySelectorAll('.subnav');
     searchText = (searchText || '').trim().toLowerCase();
@@ -568,6 +757,7 @@ window.toggleNav = function () {
       return;
     }
 
+    // navContainer: ha nincs, hozzuk létre; adjunk neki nav-container osztályt
     let navContainer = sidenav.querySelector('div');
     if (!navContainer) {
       navContainer = document.createElement('div');
@@ -577,13 +767,24 @@ window.toggleNav = function () {
     if (navContainer.getAttribute('data-nav-built') === '1') return;
     navContainer.setAttribute('data-nav-built', '1');
 
+    // Üresítsük, majd építsünk fel két részt: scrollable + footer
     navContainer.innerHTML = '';
+    navContainer.classList.add('nav-container');
 
-    // kereső
+    const scrollable = document.createElement('div');
+    scrollable.className = 'nav-scrollable';
+
+    const footer = document.createElement('div');
+    footer.className = 'nav-footer';
+
+    navContainer.appendChild(scrollable);
+    navContainer.appendChild(footer);
+
+    // kereső (a scrollable részbe)
     const searchBox = document.createElement('div');
     searchBox.className = 'search-container';
     searchBox.innerHTML = `<input type="text" id="searchNav" placeholder="🔍 Keresés..." />`;
-    navContainer.appendChild(searchBox);
+    scrollable.appendChild(searchBox);
 
     // Menük létrehozása
     const isLoggedIn = checkLoginState();
@@ -637,7 +838,7 @@ window.toggleNav = function () {
 
       navGroup.appendChild(button);
       navGroup.appendChild(content);
-      navContainer.appendChild(navGroup);
+      scrollable.appendChild(navGroup);
 
       // Lenyíló menü kezelése
       button.addEventListener('click', (e) => {
@@ -695,11 +896,22 @@ window.toggleNav = function () {
       });
     });
 
-    // Bejelentkezési állapot megjelenítése (alul)
-    const loginStatus = document.createElement('div');
-    loginStatus.className = 'login-status';
-    loginStatus.id = 'navLoginStatus';
-    navContainer.appendChild(loginStatus);
+    // Bejelentkezési gomb megjelenítése a footer-ben — CSS kezeli a megjelenést
+    const authWrap = document.createElement('div');
+    authWrap.style.width = '100%';
+    authWrap.style.display = 'flex';
+    authWrap.style.justifyContent = 'center';
+    authWrap.style.alignItems = 'center';
+
+    const authBtn = document.createElement('button');
+    authBtn.id = 'navAuthBtn';
+    authBtn.className = 'nav-auth-btn';
+    // NE állítsunk inline width-et itt — a CSS fent garantálja, hogy teljes szélességet kapjon
+    authBtn.textContent = 'Bejelentkezés';
+
+    authWrap.appendChild(authBtn);
+    footer.appendChild(authWrap);
+
 
     // Frissítsd a bejelentkezési állapotot
     updateLoginStatus();
@@ -793,6 +1005,10 @@ window.toggleNav = function () {
       document.querySelectorAll('.nav-item.search-temp-open').forEach(b => b.classList.remove('search-temp-open'));
       applyClickedCategoryIfAnyOnce();
     }, 100);
+
+    // flush queued early calls (ha voltak)
+    try { _agazati_flush_queue('toggleNav', window.toggleNav); } catch(e){}
+    try { _agazati_flush_queue('openLoginModal', window.openLoginModal); } catch(e){}
   }
 
   // Várakozás a DOM betöltődésére
