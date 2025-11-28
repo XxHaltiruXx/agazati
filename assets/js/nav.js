@@ -9,70 +9,86 @@
   const LOGIN_STATE_KEY = '__agazati_login_state';
   const LOGIN_EXPIRY_KEY = '__agazati_login_expiry';
   const LOGIN_DURATION = 24 * 60 * 60 * 1000; // 24 óra
+  const PASSWORD_HASH = '248e464b6e49676c615430dbfb831787d3d7c78e52bd2cb2461608991f7204f6';
   
   let isNavOpen = false;
   let sidenav = null;
   let __navSearchSnapshot = null;
 
   /* ======= Nav struktúra ======= */
-  const navStructure = {
-    "HTML": {
-      icon: "assets/images/sidehtml.webp",
-      items: [
-        { title: "HTML alapok", link: "html/alapok/" },
-        { title: "HTML struktúra", link: "html/structure/" },
-        { title: "HTML űrlapok", link: "html/forms/" },
-        { title: "HTML táblázatok", link: "html/tables/" },
-        { title: "HTML multimédia", link: "html/media/" },
-        { title: "HTML Futtató", link: "html/run/" },
-        { title: "HTML Bővítmények", link: "html/extension/" }
-      ]
-    },
-    "CSS": {
-      icon: "assets/images/sidecss.webp",
-      items: [
-        { title: "CSS alapok", link: "css/alapok/" },
-        { title: "Box modell", link: "css/box/" },
-        { title: "Pozicionálás", link: "css/position/" },
-        { title: "Flexbox", link: "css/flex/" },
-        { title: "CSS Grid", link: "css/grid/" },
-        { title: "Reszponzív dizájn", link: "css/responsive/" },
-        { title: "CSS animációk", link: "css/animation/" }
-      ]
-    },
-    "Python": {
-      icon: "assets/images/sidepy.webp",
-      items: [
-        { title: "Python alapok", link: "python/alapok/" },
-        { title: "Változók és típusok", link: "python/types/" },
-        { title: "Vezérlési szerkezetek", link: "python/control/" },
-        { title: "Függvények", link: "python/functions/" },
-        { title: "Osztályok", link: "python/classes/" },
-        { title: "Fájlkezelés", link: "python/files/" },
-        { title: "Kivételkezelés", link: "python/exceptions/" },
-        { title: "Python Futtató", link: "python/run/" }
-      ]
-    },
-    "Hálózat": {
-      icon: "assets/images/sidenetwork.webp",
-      items: [
-        { title: "Számrendszerek", link: "network/szamrendszer/" },
-        { title: "IP címzés", link: "network/ip/" },
-        { title: "Alhálózatok", link: "network/subnet/" },
-        { title: "Cisco parancsok", link: "network/cisco/" },
-        { title: "VLAN-ok", link: "network/vlan/" },
-        { title: "Routing", link: "network/routing/" }
-      ]
-    },
-    "Matematika": {
-      icon: "assets/images/sidemath.webp",
-      items: [
-        { title: "Algebra", link: "math/algebra/" },
-        { title: "Függvények", link: "math/functions/" },
-        { title: "Geometria", link: "math/geometry/" },
-        { title: "Valószínűségszámítás", link: "math/probability/" }
-      ]
+  const getNavStructure = (isLoggedIn = false) => {
+    const baseStructure = {
+      "HTML": {
+        icon: "assets/images/sidehtml.webp",
+        items: [
+          { title: "HTML alapok", link: "html/alapok/" },
+          { title: "HTML struktúra", link: "html/structure/" },
+          { title: "HTML űrlapok", link: "html/forms/" },
+          { title: "HTML táblázatok", link: "html/tables/" },
+          { title: "HTML multimédia", link: "html/media/" },
+          { title: "HTML Futtató", link: "html/run/" },
+          { title: "HTML Bővítmények", link: "html/extension/" }
+        ]
+      },
+      "CSS": {
+        icon: "assets/images/sidecss.webp",
+        items: [
+          { title: "CSS alapok", link: "css/alapok/" },
+          { title: "Box modell", link: "css/box/" },
+          { title: "Pozicionálás", link: "css/position/" },
+          { title: "Flexbox", link: "css/flex/" },
+          { title: "CSS Grid", link: "css/grid/" },
+          { title: "Reszponzív dizájn", link: "css/responsive/" },
+          { title: "CSS animációk", link: "css/animation/" }
+        ]
+      },
+      "Python": {
+        icon: "assets/images/sidepy.webp",
+        items: [
+          { title: "Python alapok", link: "python/alapok/" },
+          { title: "Változók és típusok", link: "python/types/" },
+          { title: "Vezérlési szerkezetek", link: "python/control/" },
+          { title: "Függvények", link: "python/functions/" },
+          { title: "Osztályok", link: "python/classes/" },
+          { title: "Fájlkezelés", link: "python/files/" },
+          { title: "Kivételkezelés", link: "python/exceptions/" },
+          { title: "Python Futtató", link: "python/run/" }
+        ]
+      },
+      "Hálózat": {
+        icon: "assets/images/sidenetwork.webp",
+        items: [
+          { title: "Számrendszerek", link: "network/szamrendszer/" },
+          { title: "IP címzés", link: "network/ip/" },
+          { title: "Alhálózatok", link: "network/subnet/" },
+          { title: "Cisco parancsok", link: "network/cisco/" },
+          { title: "VLAN-ok", link: "network/vlan/" },
+          { title: "Routing", link: "network/routing/" }
+        ]
+      },
+      "Matematika": {
+        icon: "assets/images/sidemath.webp",
+        items: [
+          { title: "Algebra", link: "math/algebra/" },
+          { title: "Függvények", link: "math/functions/" },
+          { title: "Geometria", link: "math/geometry/" },
+          { title: "Valószínűségszámítás", link: "math/probability/" }
+        ]
+      }
+    };
+
+    // Ha be van jelentkezve, adjuk hozzá a titkos menüt
+    if (isLoggedIn) {
+      baseStructure["Titkos"] = {
+        icon: "assets/images/sidesecret.webp",
+        items: [
+          { title: "Szózat", link: "secret/szozat/" },
+          { title: "Infosharer", link: "secret/infosharer/" }
+        ]
+      };
     }
+
+    return baseStructure;
   };
 
   /* ======= Segédfüggvények ======= */
@@ -140,14 +156,15 @@
         <div class="login-info">
           <span class="login-icon">✓</span>
           <span class="login-text">Bejelentkezve</span>
-          <button class="logout-btn" onclick="logoutFromNav()">Kijelentkezés</button>
+          <button class="logout-btn-nav" onclick="logoutFromNav()">Kijelentkezés</button>
         </div>
       `;
     } else {
       loginStatus.innerHTML = `
         <div class="login-info">
           <span class="login-icon">🔒</span>
-          <span class="login-text">Nem bejelentkezve</span>
+          <span class="login-text">Bejelentkezés</span>
+          <button class="login-btn-nav" onclick="openLoginModal()">Bejelentkezés</button>
         </div>
       `;
     }
@@ -180,7 +197,7 @@
       const expiry = Date.now() + LOGIN_DURATION;
       localStorage.setItem(LOGIN_STATE_KEY, 'logged_in');
       localStorage.setItem(LOGIN_EXPIRY_KEY, expiry.toString());
-      updateLoginStatus();
+      rebuildNavigation();
       
       // Értesítsd az oldalt a változásról
       window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: true } }));
@@ -193,7 +210,7 @@
     try {
       localStorage.removeItem(LOGIN_STATE_KEY);
       localStorage.removeItem(LOGIN_EXPIRY_KEY);
-      updateLoginStatus();
+      rebuildNavigation();
       
       // Értesítsd az oldalt a változásról
       window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: false } }));
@@ -207,25 +224,213 @@
     }
   }
 
+  /* ======= Modal kezelés ======= */
+  async function sha256hex(str){
+    const enc = new TextEncoder().encode(str);
+    const digest = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function createLoginModal() {
+    // Ellenőrizzük, hogy már létezik-e a modal
+    if (document.getElementById('globalLoginModal')) return;
+
+    const modalHTML = `
+      <div id="globalLoginModal" style="display:none" aria-hidden="true" role="dialog" tabindex="-1">
+        <div id="globalPwBox" role="document" tabindex="0">
+          <h2 style="margin:0 0 8px">Bejelentkezés</h2>
+          <div style="font-size:0.95rem;color:var(--muted);margin-bottom:10px">Írd be a jelszót a bejelentkezéshez.</div>
+          <div class="password-container">
+            <div class="password-inner">
+              <input id="globalPwInput" type="password" autocomplete="off" placeholder="Jelszó" />
+              <span class="toggle-password" id="globalTogglePassword" role="button" tabindex="0"></span>
+            </div>
+          </div>
+          <div class="remember-container">
+            <input type="checkbox" id="globalRememberMe">
+            <label for="globalRememberMe">Emlékezz rám</label>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+            <button id="globalPwCancel" class="ghost">Mégse</button>
+            <button id="globalPwOk">Bejelentkezés</button>
+          </div>
+          <div class="error" id="globalPwNote">Helytelen jelszó</div>
+          <div class="info" id="globalPwInfo">Sikeres bejelentkezés</div>
+          <small class="hint">Szóköz a bevitelnél: a jelszó trim-elve lesz (véletlen szóközök eltávolítása).</small>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    setupModalEvents();
+  }
+
+  function setupModalEvents() {
+    const modal = document.getElementById('globalLoginModal');
+    const pwInput = document.getElementById('globalPwInput');
+    const pwOk = document.getElementById('globalPwOk');
+    const pwCancel = document.getElementById('globalPwCancel');
+    const pwNote = document.getElementById('globalPwNote');
+    const pwInfo = document.getElementById('globalPwInfo');
+    const togglePassword = document.getElementById('globalTogglePassword');
+    const rememberMe = document.getElementById('globalRememberMe');
+
+    if (!modal) return;
+
+    // Jelszó láthatóság váltása
+    if (togglePassword) {
+      togglePassword.style.backgroundImage = 'url("assets/images/view.png")';
+      togglePassword.addEventListener('click', function() {
+        const isPassword = pwInput.type === 'password';
+        pwInput.type = isPassword ? 'text' : 'password';
+        this.style.backgroundImage = isPassword ? 'url("assets/images/hide.png")' : 'url("assets/images/view.png")';
+      });
+    }
+
+    // Modal megnyitása
+    window.openLoginModal = function() {
+      if (pwNote) pwNote.style.display = 'none';
+      if (pwInfo) pwInfo.style.display = 'none';
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
+      if (pwInput) {
+        pwInput.value = '';
+        pwInput.type = 'password';
+        setTimeout(() => pwInput.focus(), 50);
+      }
+      if (togglePassword) {
+        togglePassword.style.backgroundImage = 'url("assets/images/view.png")';
+      }
+    };
+
+    // Modal bezárása
+    const closeModal = () => {
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+      if (pwInput) {
+        pwInput.value = '';
+        pwNote.style.display = 'none';
+        pwInput.type = 'password';
+      }
+      if (togglePassword) {
+        togglePassword.style.backgroundImage = 'url("assets/images/view.png")';
+      }
+      if (rememberMe) rememberMe.checked = false;
+    };
+
+    if (pwCancel) {
+      pwCancel.addEventListener('click', closeModal);
+    }
+
+    // ESC billentyű
+    modal.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+      }
+    });
+
+    // Kattintás a háttérre
+    modal.addEventListener('mousedown', (e) => {
+      if (e.target === modal && e.button === 0) {
+        e.preventDefault();
+        closeModal();
+      }
+    });
+
+    // Enter a jelszó mezőben
+    if (pwInput) {
+      pwInput.addEventListener('keydown', (e) => { 
+        if (e.key === 'Enter') { 
+          e.preventDefault(); 
+          if (pwOk) pwOk.click(); 
+        } 
+      });
+    }
+
+    // Bejelentkezés gomb
+    if (pwOk) {
+      pwOk.addEventListener('click', async () => {
+        const raw = pwInput.value || '';
+        const attempt = raw.trim();
+        if (pwNote) pwNote.style.display = 'none';
+        
+        try {
+          const h = await sha256hex(attempt);
+          if (h === PASSWORD_HASH.toLowerCase()) {
+            // Sikeres bejelentkezés
+            setLoginState();
+            if (rememberMe && rememberMe.checked) {
+              const token = {
+                value: PASSWORD_HASH,
+                expires: Date.now() + (365 * 24 * 60 * 60 * 1000)
+              };
+              localStorage.setItem('infosharer_remember_token', JSON.stringify(token));
+            }
+            if (pwInfo) {
+              pwInfo.style.display = 'block';
+              setTimeout(() => {
+                closeModal();
+                setTimeout(() => pwInfo.style.display = 'none', 1200);
+              }, 500);
+            } else {
+              closeModal();
+            }
+          } else {
+            if (pwNote) {
+              pwNote.textContent = 'Helytelen jelszó';
+              pwNote.style.display = 'block';
+            }
+          }
+        } catch(err) {
+          if (pwNote) {
+            pwNote.textContent = 'Hiba a jelszóellenőrzésnél';
+            pwNote.style.display = 'block';
+          }
+        }
+      });
+    }
+  }
+
   // Globális függvények a HTML-ből való hozzáféréshez
   window.setLoginState = setLoginState;
   window.logoutFromNav = logoutFromNav;
   window.checkLoginState = checkLoginState;
+  window.openLoginModal = openLoginModal;
 
-  /* ======= Globális toggleNav ======= */
-  window.toggleNav = function () {
-    if (!sidenav) sidenav = document.getElementById('mySidenav');
-    if (!sidenav) return;
-    sidenav.style.transition = 'width 0.3s';
-    if (isNavOpen) {
-      sidenav.style.width = '0';
-      isNavOpen = false;
-    } else {
-      sidenav.style.width = '250px';
-      isNavOpen = true;
+ /* ======= Globális toggleNav ======= */
+window.toggleNav = function () {
+  console.log('toggleNav called'); // Debug
+  if (!sidenav) {
+    sidenav = document.getElementById('mySidenav');
+    console.log('sidenav element:', sidenav); // Debug
+    if (!sidenav) {
+      console.error('Sidenav element not found!');
+      return;
     }
-    saveNavState();
-  };
+  }
+  
+  sidenav.style.transition = 'width 0.3s';
+  if (isNavOpen) {
+    sidenav.style.width = '0';
+    isNavOpen = false;
+    console.log('Closing sidebar'); // Debug
+  } else {
+    sidenav.style.width = '250px';
+    isNavOpen = true;
+    console.log('Opening sidebar'); // Debug
+  }
+  saveNavState();
+};
+
+  /* ======= Navigáció újraépítése ======= */
+  function rebuildNavigation() {
+    const navContainer = document.querySelector('#mySidenav > div');
+    if (navContainer) {
+      navContainer.removeAttribute('data-nav-built');
+      createNavigation();
+    }
+  }
 
   /* ======= Keresés ======= */
   function filterNavItems(searchText) {
@@ -254,7 +459,7 @@
         if (sidenav) {
           sidenav.style.transition = 'none';
           sidenav.style.width = isNavOpen ? "250px" : "0";
-          setTimeout(() => { sidenav.style.transition = ''; }, 100);
+          setTimeout(() => { if (sidenav) sidenav.style.transition = ''; }, 100);
         }
 
         subnavs.forEach(navGroup => {
@@ -358,8 +563,16 @@
 
   function createNavigation() {
     sidenav = document.getElementById('mySidenav');
-    const navContainer = document.querySelector('#mySidenav > div') || (sidenav ? sidenav : null);
-    if (!navContainer) return;
+    if (!sidenav) {
+      console.error('Sidenav element not found');
+      return;
+    }
+
+    let navContainer = sidenav.querySelector('div');
+    if (!navContainer) {
+      navContainer = document.createElement('div');
+      sidenav.appendChild(navContainer);
+    }
 
     if (navContainer.getAttribute('data-nav-built') === '1') return;
     navContainer.setAttribute('data-nav-built', '1');
@@ -372,16 +585,10 @@
     searchBox.innerHTML = `<input type="text" id="searchNav" placeholder="🔍 Keresés..." />`;
     navContainer.appendChild(searchBox);
 
-    // Bejelentkezési állapot megjelenítése
-    const loginStatus = document.createElement('div');
-    loginStatus.className = 'login-status';
-    loginStatus.id = 'navLoginStatus';
-    navContainer.appendChild(loginStatus);
-
-    // Frissítsd a bejelentkezési állapotot
-    updateLoginStatus();
-
     // Menük létrehozása
+    const isLoggedIn = checkLoginState();
+    const navStructure = getNavStructure(isLoggedIn);
+    
     Object.entries(navStructure).forEach(([category, data]) => {
       const navGroup = document.createElement('div');
       navGroup.className = 'subnav';
@@ -413,7 +620,8 @@
             content.style.maxHeight = '0';
             requestAnimationFrame(() => { content.style.maxHeight = content.scrollHeight + 'px'; });
             setTimeout(() => { if (content.style.maxHeight && content.style.maxHeight !== '0px') content.style.maxHeight = 'none'; }, 350);
-            const arrow = button.querySelector('.arrow'); if (arrow) arrow.textContent = '▲';
+            const arrow = button.querySelector('.arrow'); 
+            if (arrow) arrow.textContent = '▲';
           }
         } catch (e) {}
 
@@ -434,15 +642,21 @@
       // Lenyíló menü kezelése
       button.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        
         if (__navSearchSnapshot) {
           const isTemp = button.classList.toggle('search-temp-open');
-          const arrow = button.querySelector('.arrow'); if (arrow) arrow.textContent = isTemp ? '▲' : '▼';
+          const arrow = button.querySelector('.arrow'); 
+          if (arrow) arrow.textContent = isTemp ? '▲' : '▼';
           return;
         }
 
         button.classList.toggle('active');
 
-        const isExpanded = content.style.display !== 'none' && (content.style.maxHeight !== '0px' && content.style.maxHeight !== '' && content.style.maxHeight !== '0');
+        const isExpanded = content.style.display !== 'none' && 
+                          (content.style.maxHeight !== '0px' && 
+                           content.style.maxHeight !== '' && 
+                           content.style.maxHeight !== '0');
 
         if (!isExpanded) {
           content.style.display = 'block';
@@ -452,8 +666,13 @@
             content.style.transition = 'max-height 0.3s ease-out';
             content.style.maxHeight = content.scrollHeight + 'px';
           });
-          const arrow = button.querySelector('.arrow'); if (arrow) arrow.textContent = '▲';
-          setTimeout(() => { if (content.style.maxHeight && content.style.maxHeight !== '0px') content.style.maxHeight = 'none'; }, 350);
+          const arrow = button.querySelector('.arrow'); 
+          if (arrow) arrow.textContent = '▲';
+          setTimeout(() => { 
+            if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+              content.style.maxHeight = 'none'; 
+            }
+          }, 350);
         } else {
           const currentHeight = content.scrollHeight;
           content.style.overflow = 'hidden';
@@ -463,15 +682,27 @@
             content.style.transition = 'max-height 0.3s ease-out';
             content.style.maxHeight = '0';
           });
-          const arrow = button.querySelector('.arrow'); if (arrow) arrow.textContent = '▼';
+          const arrow = button.querySelector('.arrow'); 
+          if (arrow) arrow.textContent = '▼';
           setTimeout(() => {
-            if (content.style.maxHeight === '0px' || content.style.maxHeight === '0') content.style.display = 'none';
+            if (content.style.maxHeight === '0px' || content.style.maxHeight === '0') {
+              content.style.display = 'none';
+            }
           }, 320);
         }
 
         saveNavState();
       });
     });
+
+    // Bejelentkezési állapot megjelenítése (alul)
+    const loginStatus = document.createElement('div');
+    loginStatus.className = 'login-status';
+    loginStatus.id = 'navLoginStatus';
+    navContainer.appendChild(loginStatus);
+
+    // Frissítsd a bejelentkezési állapotot
+    updateLoginStatus();
 
     // Keresés input esemény
     const searchInput = document.getElementById('searchNav');
@@ -513,7 +744,8 @@
           content.style.display = 'block';
           content.style.maxHeight = 'none';
           content.style.overflow = '';
-          const arrow = btn.querySelector('.arrow'); if (arrow) arrow.textContent = '▲';
+          const arrow = btn.querySelector('.arrow'); 
+          if (arrow) arrow.textContent = '▲';
           matched = true;
         } else {
           btn.classList.remove('active');
@@ -521,7 +753,8 @@
           content.style.maxHeight = '0';
           content.style.overflow = 'hidden';
           setTimeout(() => { content.style.display = 'none'; }, 320);
-          const arrow = btn.querySelector('.arrow'); if (arrow) arrow.textContent = '▼';
+          const arrow = btn.querySelector('.arrow'); 
+          if (arrow) arrow.textContent = '▼';
         }
       });
 
@@ -533,53 +766,41 @@
   }
 
   /* ======= Betöltési rutinok ======= */
-  function initNavAsap() {
-    const immediateContainer = document.querySelector('#mySidenav > div');
-    if (immediateContainer) {
-      sidenav = document.getElementById('mySidenav');
-      if (sidenav) {
-        sidenav.style.transition = 'none';
-        const savedState = sessionStorage.getItem(NAV_STATE_KEY);
-        if (savedState === 'true') {
-          isNavOpen = true;
-          sidenav.style.width = '250px';
-        }
-        setTimeout(() => { if (sidenav) sidenav.style.transition = ''; }, 100);
+  function initNav() {
+    // Először hozzuk létre a modalt
+    createLoginModal();
+
+    // Inicializáljuk a sidenav-et
+    sidenav = document.getElementById('mySidenav');
+    if (sidenav) {
+      // Állítsuk be az alapértelmezett stílust
+      sidenav.style.width = '0';
+      sidenav.style.transition = 'width 0.3s';
+      
+      // Betöltjük a mentett állapotot
+      const savedState = sessionStorage.getItem(NAV_STATE_KEY);
+      if (savedState === 'true') {
+        isNavOpen = true;
+        sidenav.style.width = '250px';
       }
-
-      createNavigation();
-
-      setTimeout(() => {
-        document.querySelectorAll('.nav-item.search-temp-open').forEach(b => b.classList.remove('search-temp-open'));
-        applyClickedCategoryIfAnyOnce();
-      }, 120);
-
-      return;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      sidenav = document.getElementById('mySidenav');
-      if (sidenav) {
-        sidenav.style.transition = 'none';
-        const savedState = sessionStorage.getItem(NAV_STATE_KEY);
-        if (savedState === 'true') {
-          isNavOpen = true;
-          sidenav.style.width = '250px';
-        }
-        setTimeout(() => { if (sidenav) sidenav.style.transition = ''; }, 100);
-      }
+    // Létrehozzuk a navigációt
+    createNavigation();
 
-      createNavigation();
-
-      setTimeout(() => {
-        document.querySelectorAll('.nav-item.search-temp-open').forEach(b => b.classList.remove('search-temp-open'));
-        applyClickedCategoryIfAnyOnce();
-      }, 120);
-    }, { once: true });
+    // Alkalmazzuk a mentett kategóriákat
+    setTimeout(() => {
+      document.querySelectorAll('.nav-item.search-temp-open').forEach(b => b.classList.remove('search-temp-open'));
+      applyClickedCategoryIfAnyOnce();
+    }, 100);
   }
 
-  // Indítás
-  initNavAsap();
+  // Várakozás a DOM betöltődésére
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNav);
+  } else {
+    initNav();
+  }
 
   /* ======= Header/site-wide click handling ======= */
   function findMatchingSidebarAnchor(clickedHref) {
