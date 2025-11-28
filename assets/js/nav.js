@@ -22,13 +22,13 @@
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
-  padding: 8px;
   gap: 6px;
 }
 #mySidenav .nav-scrollable {
   flex: 1 1 auto;
-  overflow: auto;
-  padding-right: 6px;
+  overflow-x: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 #mySidenav .nav-footer {
   flex: 0 0 auto;
@@ -39,13 +39,13 @@
   align-items: center;
 }
 
-/* Nav item teljes szélességű gombként */
+/* === NAV ITEM (megtartva a "jó" gomb kinézetet) === */
 #mySidenav .nav-item {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  width:100%;
-  box-sizing:border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.6rem 0.6rem;
   background: transparent;
   border-radius: 8px;
@@ -54,22 +54,32 @@
   cursor: pointer;
   text-align: left;
 }
-#mySidenav .nav-item .nav-icon { width:20px; height:20px; margin-right:8px; object-fit:contain; }
-#mySidenav .nav-item:hover { background: rgba(127,90,240,0.04); }
+#mySidenav .nav-item .nav-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  object-fit: contain;
+}
+#mySidenav .nav-item:hover {
+  background: rgba(127,90,240,0.04);
+}
 
-/* Subnav links: blokk és teljes szélesség */
+/* Subnav links: blokk és teljes szélesség, visszaállítva padding / színek */
 #mySidenav .subnav-content a {
-  display:block;
+  display: block;
   padding: 0.45rem 0.6rem;
-  width:100%;
-  box-sizing:border-box;
+  width: 100%;
+  box-sizing: border-box;
   color: var(--muted);
   text-decoration: none;
-  border-radius:6px;
+  border-radius: 6px;
 }
-#mySidenav .subnav-content a:hover { color: var(--text); background: rgba(127,90,240,0.03); }
+#mySidenav .subnav-content a:hover {
+  color: var(--text);
+  background: rgba(127,90,240,0.03);
+}
 
-/* auth gomb (lila, nem szélesíti a konténert) */
+/* auth gomb (lila) */
 #navAuthBtn {
   background: var(--accent);
   color: #fff;
@@ -85,7 +95,7 @@
 }
 #navAuthBtn:hover { transform: translateY(-2px); background: var(--accent-light); }
 
-/* Modal overlay + box + animáció (összhangban a küldött CSS-sel) */
+/* Modal overlay + box + animáció */
 #pwModal {
   position: fixed;
   inset: 0;
@@ -110,10 +120,10 @@
 }
 #pwModal[aria-hidden="false"] #pwBox { transform: scale(1); opacity: 1; }
 
-/* input */
+/* INPUT: elég jobb padding, hogy az ikon soha ne takarja a szöveget */
 #pwInput {
   width: 100%;
-  padding: 0.55rem 40px 0.55rem 0.55rem;
+  padding: 0.55rem 52px 0.55rem 0.55rem;
   background: #16162a;
   color: var(--text);
   border: 1px solid var(--accent);
@@ -123,6 +133,14 @@
   font-size: 1rem;
 }
 #pwInput:focus { outline:none; border-color:var(--accent-light); box-shadow:0 0 6px var(--accent-light); }
+
+/* wrapper az abszolút ikonhoz (relatív pozíció garantálva) */
+.password-container { width: 100%; }
+.password-inner {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
 
 /* modal gombok: pwOk (accent) és pwCancel (ghost) */
 #pwOk, #pwCancel { min-width: 110px; padding:0.5rem 0.9rem; border-radius:8px; cursor:pointer; font-weight:600; }
@@ -139,24 +157,39 @@
 /* remember-container: balra igazítás */
 .remember-container { display:flex; align-items:center; gap:8px; margin:12px 0 8px; justify-content:flex-start; }
 
-/* toggle-password icon — SVG data-URI eye / eye-off (class .show váltja) */
+/* TOGGLE-PASSWORD: mindig látható, pontosan a mező jobb szélén */
+/* kombináljuk a "soft" megjelenést a biztos pozícionálással */
 .toggle-password, #togglePwBtn {
-  position:absolute;
-  right:8px;
-  top:50%;
-  transform:translateY(-50%);
-  width:28px;height:28px;border:none;background:transparent;cursor:pointer;opacity:0.85;
-  background-repeat:no-repeat;background-position:center;background-size:18px;
-  filter:brightness(1.1) invert(1);
+  display: block;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.85;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 20px;
+  filter: brightness(0) invert(1);
+  z-index: 3;
+  padding: 4px;
+  box-sizing: border-box;
+  border-radius: 6px;
 }
-.toggle-password { color: var(--muted); }
+.toggle-password:hover {
+  opacity: 1;
+  background-color: rgba(127,90,240,0.06);
+}
+/* képek a megadott asset útvonalról (user kérésére) */
 .toggle-password.show {
-  /* eye-off icon */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ffffff' d='M12 6a9.77 9.77 0 0 1 8.48 5A9.77 9.77 0 0 1 12 16a9.77 9.77 0 0 1-8.48-5A9.77 9.77 0 0 1 12 6m0-2C7.03 4 2.73 7.11 1 12c1.73 4.89 6.03 8 11 8s9.27-3.11 11-8c-1.73-4.89-6.03-8-11-8z'/></svg>");
+  background-image: url("assets/images/hide.png") !important;
 }
 .toggle-password:not(.show) {
-  /* eye icon */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ffffff' d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zM12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/></svg>");
+  background-image: url("assets/images/view.png") !important;
 }
 
 /* mobil finomítás */
@@ -170,6 +203,9 @@
   style.appendChild(document.createTextNode(css));
   document.head.appendChild(style);
 })();
+
+
+
 
 
   /* ======= Korai stub / queue mechanizmus a ReferenceError elkerülésére ======= */
@@ -474,13 +510,65 @@
 
     if (!modal) return;
 
-    // Jelszó láthatóság váltása
+    // Jelszó láthatóság váltása — kezeljük a .show class-t is, mindig láthatóvá tesszük az ikont
     if (togglePwBtn) {
+      // biztosítsuk, hogy a wrapper pozícionálva legyen
+      const parent = togglePwBtn.closest('.password-inner');
+      if (parent) parent.style.position = parent.style.position || 'relative';
+
+      // override input padding (biztosítjuk, hogy az ikon ne takarja a szöveget)
+      if (pwInput) {
+        try { pwInput.style.paddingRight = '52px'; } catch (e) {}
+      }
+
+      // mindig jelenjen meg az ikon
+      try {
+        togglePwBtn.style.display = 'block';
+        togglePwBtn.style.opacity = '1';
+        togglePwBtn.style.right = '8px';
+      } catch(e){}
+
+      // inicializáljuk a class-t az alapértelmezett input típus alapján (password => not .show)
+      if (pwInput && pwInput.type === 'password') {
+        togglePwBtn.classList.remove('show');
+        togglePwBtn.setAttribute('aria-pressed', 'false');
+      } else {
+        togglePwBtn.classList.add('show');
+        togglePwBtn.setAttribute('aria-pressed', 'true');
+      }
+
+      // kattintás váltás
       togglePwBtn.addEventListener('click', function() {
+        if (!pwInput) return;
         const isPassword = pwInput.type === 'password';
-        pwInput.type = isPassword ? 'text' : 'password';
+        try { pwInput.type = isPassword ? 'text' : 'password'; } catch(e){}
+
+        if (isPassword) {
+          togglePwBtn.classList.add('show');
+          togglePwBtn.setAttribute('aria-pressed', 'true');
+        } else {
+          togglePwBtn.classList.remove('show');
+          togglePwBtn.setAttribute('aria-pressed', 'false');
+        }
+
+        // fókusz vissza az inputra
+        try { pwInput.focus(); } catch(e){}
       });
+
+      // biztosítjuk, hogy input esemény esetén se tűnjön el (ha valami külső kód elrejtené)
+      if (pwInput) {
+        pwInput.addEventListener('input', () => {
+          try {
+            togglePwBtn.style.display = 'block';
+            togglePwBtn.style.opacity = '1';
+          } catch(e){}
+        });
+      }
+
+      // amikor a modal megnyílik, erőltetjük az ikon megjelenését is — ha openLoginModal belül van, az meghívja ezt
     }
+
+
 
     // Modal megnyitása
     window.openLoginModal = function() {
