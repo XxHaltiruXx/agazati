@@ -985,21 +985,36 @@ window.toggleNav = function () {
     });
 
     // Bejelentkezési gomb megjelenítése a footer-ben — CSS kezeli a megjelenést
-    const authWrap = document.createElement('div');
-    authWrap.style.width = '100%';
-    authWrap.style.display = 'flex';
-    authWrap.style.justifyContent = 'center';
-    authWrap.style.alignItems = 'center';
+    // --- SKIP SIDEBAR AUTH ON INFOSHARER PAGES ---
+    // Ha az oldal maga tartalmaz már auth gombot (pl. infosharer), akkor ne jelenjen meg a sidebar-ban.
+    const hasPageAuth = (function() {
+      try {
+        if (window.location && typeof window.location.pathname === 'string' && window.location.pathname.includes('infosharer')) return true;
+        // alternatív: az oldal jelölheti, hogy saját auth buttonja van, pl. <button id="infosharer-auth"> vagy data attribútum
+        if (document.getElementById('infosharer-auth')) return true;
+        if (document.querySelector('[data-infosharer-auth]')) return true;
+      } catch (e) {}
+      return false;
+    })();
 
-    const authBtn = document.createElement('button');
-    authBtn.id = 'navAuthBtn';
-    authBtn.className = 'nav-auth-btn';
-    // NE állítsunk inline width-et itt — a CSS fent garantálja, hogy teljes szélességet kapjon
-    authBtn.textContent = 'Bejelentkezés';
+    if (!hasPageAuth) {
+      const authWrap = document.createElement('div');
+      authWrap.style.width = '100%';
+      authWrap.style.display = 'flex';
+      authWrap.style.justifyContent = 'center';
+      authWrap.style.alignItems = 'center';
 
-    authWrap.appendChild(authBtn);
-    footer.appendChild(authWrap);
+      const authBtn = document.createElement('button');
+      authBtn.id = 'navAuthBtn';
+      authBtn.className = 'nav-auth-btn';
+      // NE állítsunk inline width-et itt — a CSS fent garantálja, hogy teljes szélességet kapjon
+      authBtn.textContent = 'Bejelentkezés';
 
+      authWrap.appendChild(authBtn);
+      footer.appendChild(authWrap);
+    } else {
+      // Ha kihagytuk az auth gombot, hagyjuk üresen a footert (vagy oda tehetünk más elemeket később)
+    }
 
     // Frissítsd a bejelentkezési állapotot
     updateLoginStatus();
