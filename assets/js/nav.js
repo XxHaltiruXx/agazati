@@ -323,7 +323,7 @@
     // Ha be van jelentkezve, adjuk hozzá a titkos menüt
     if (isLoggedIn) {
       baseStructure["Titkos"] = {
-        icon: "assets/images/sidesecret.webp",
+        icon: "assets/images/sidesecret.svg",
         items: [
           { title: "Szózat", link: "secret/szozat/" },
           { title: "Infosharer", link: "secret/infosharer/" }
