@@ -5,12 +5,7 @@
 }
 
 body {
-  background: rgb(62, 69, 81);
-  background: linear-gradient(
-    -60deg,
-    var(--gradient-start) 24%,
-    var(--gradient-end) 100%
-  );
+  background: rgb(45, 50, 59);
   color: var(--text-color);
   text-align: center;
   font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
@@ -18,6 +13,10 @@ body {
   font-size: 90%;
   padding: 0;
   transition: opacity 0.3s ease;
+}
+
+section.main {
+    background: rgb(45, 50, 59);
 }
 
 html {
