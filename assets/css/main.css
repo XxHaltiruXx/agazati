@@ -1,11 +1,19 @@
+:root {
+  --bgc: #20242b;
+  --default-color: #4c0bce;
+  --search-width: 320px;
+  --search-button-width: 60px;
+}
+
 * {
   font-family: SpaceGrotesk;
   transition: transform 0.3s ease-in-out, background-color 0.3s ease,
     box-shadow 0.3s ease;
 }
 
+
 body {
-  background: rgb(45, 50, 59);
+  background-color: var(--bgc);
   color: var(--text-color);
   text-align: center;
   font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
@@ -16,8 +24,42 @@ body {
 }
 
 section.main {
-    background: rgb(45, 50, 59);
+    background-color: var(--bgc);
 }
+
+
+/* wrapper tartja a relatív koordinátákat */
+.search-wrapper{
+  position: relative;
+  width: var(--search-width, 320px);
+  display: inline-block; /* vagy block, ha full-width kell */
+}
+
+/* az input szélessége a wrapperé */
+.main-search{
+  box-sizing: border-box; /* fontos hogy a padding is beleszámítson */
+  width: 100%;
+  height: 50px;
+  border-radius: 18px;
+  padding: 0 16px;
+  /* ügyelj rá, hogy a jobb oldali padding elég nagy legyen, hogy a gomb ne takarja a szöveget */
+  padding-right: calc(var(--search-button-width, 60px) + 12px);
+}
+
+/* gomb a wrapper jobb szélén, vertikálisan középre igazítva */
+.search-btn{
+  position: absolute;
+  top: 50%;
+  right: 6px;                 /* kis távolság a széltől */
+  transform: translateY(-50%);
+  width: var(--search-button-width, 60px);
+  height: 44px;               /* az input magasságához igazíthatod */
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  /* háttér/szín tetszés szerint */
+}
+
 
 html {
   scroll-behavior: smooth;
