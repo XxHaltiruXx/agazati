@@ -112,6 +112,7 @@ section.web .col-md-4 {
 
 section.web .col-md-4:hover {
   box-shadow: 0 0 24px var(--default-color);
+  transform: translateY(-6px);
 
 }
 
