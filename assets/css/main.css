@@ -25,47 +25,111 @@ body {
   transition: opacity 0.3s ease;
 }
 
+section.web div.row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 section.main {
     background-color: var(--bgc);
 }
 
 
-/* wrapper tartja a relatív koordinátákat */
+/* wrapper */
 .search-wrapper{
   position: relative;
   width: 100%;
   max-width: var(--search-max-width);
   margin: 18px auto;
+  padding: 0 12px;
   box-sizing: border-box;
-  padding: 0 12px; /* belső oldaltér a wrapperen, hogy ne érjen a szélekhez kis képernyőn */
 }
 
-
-/* az input szélessége a wrapperé */
+/* input */
 .main-search{
-  box-sizing: border-box; /* fontos hogy a padding is beleszámítson */
-  width: 90%;
-  height: 50px;
-  border-radius: 18px;
+  width: 100%;
+  height: var(--search-height);
+  box-sizing: border-box;
   padding: 0 16px;
-  /* ügyelj rá, hogy a jobb oldali padding elég nagy legyen, hogy a gomb ne takarja a szöveget */
-  padding-right: calc(var(--search-button-width, 60px) + 12px);
+  padding-right: calc(var(--search-button-width) + 14px);
+
+  border-radius: var(--search-radius);
   border: none;
+  background: #fff;
+  outline: none; /* FONTOS: eltünteti az ugráló keretet */
+
+  /* saját fókusz effekt */
+  transition: box-shadow .2s ease;
 }
 
-/* gomb a wrapper jobb szélén, vertikálisan középre igazítva */
+.main-search:focus{
+  box-shadow: 0 0 0 2px var(--default-color) inset; /* nem növeli a méretet */
+}
+
+/* gomb */
 .search-btn{
   position: absolute;
   top: 50%;
-  right: 0px;
+  right: 12px; /* wrapper padding miatt */
   transform: translateY(-50%);
-  width: var(--search-button-width, 60px);
-  height: 50px;               /* az input magasságához igazíthatod */
-  border-radius: 0px 12px 12px 0px;
+
+  width: var(--search-button-width);
+  height: var(--search-height);
+
   border: none;
+  border-radius: 0 var(--search-radius) var(--search-radius) 0;
+  background: var(--default-color);
   cursor: pointer;
-  background-color: var(--default-color);
-  /* háttér/szín tetszés szerint */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+section.web {
+  margin: 50px 0px;
+  color: var(--text-color);
+
+}
+
+/* Webfejlesztés cím */
+section.web .subsite {
+  color: var(--title-color);
+  font-size: 2rem;
+  margin-bottom: 30px;
+}
+
+/* Oszlopok */
+section.web .col-md-4 {
+  width: 500px;
+  background: #252930; 
+  padding: 22px;
+  margin: 12px;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.25);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+section.web .col-md-4:hover {
+  box-shadow: 0 0 24px var(--default-color);
+
+}
+
+/* Gombok */
+section.web button {
+  background: var(--default-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background .2s ease, transform .2s ease;
+}
+
+section.web button:hover {
+  background: #5a1af5;
+  transform: scale(1.06);
 }
 
 
