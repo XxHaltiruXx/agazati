@@ -1,6 +1,6 @@
 :root {
-  --nav-height:90px;
-  --nav-pad:90px;
+  --nav-height: 90px;
+  --nav-pad: 90px;
 }
 
 nav.navbar {
@@ -29,6 +29,7 @@ nav.navbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 nav.navbar::-webkit-scrollbar {
   display: none;
 }
@@ -57,11 +58,11 @@ div.navbar-nav {
 }
 
 .sidenav {
-  height: calc(100% - 70px);
+  height: calc(100% - var(--nav-height));
   width: 0;
   position: fixed;
   z-index: 1;
-  top: 70px;
+  top: var(--nav-height);
   left: 0;
   background-color: #111;
   overflow-x: hidden;
@@ -69,6 +70,12 @@ div.navbar-nav {
   padding-top: 20px;
   text-align: left;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidenav::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebargomb {
@@ -84,6 +91,9 @@ div.navbar-nav {
   z-index: 3;
   height: var(--nav-height);
   width: var(--nav-pad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebargomb:hover {
@@ -105,14 +115,16 @@ a.nav-link:hover {
   padding: 8px 8px 8px 16px;
   text-decoration: none;
   font-size: 110%;
-  color: #818181;
+  color: #b8a8d4;
   display: block;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 3px solid transparent;
 }
 
 .sidenav a:hover {
-  color: #f1f1f1;
-  background-color: #333;
+  color: #e8dcff;
+  background-color: rgba(76, 11, 206, 0.2);
+  border-left-color: #8a2be2;
 }
 
 span {
@@ -122,23 +134,26 @@ span {
 }
 
 #searchNav {
-  background-color: black;
-  color: aliceblue;
-  width: 95%;
-  padding: 0;
-  margin: 0 auto;
-  display: block;
-}
-
-#searchNav {
   width: 95%;
   padding: 8px 12px;
-  border: 1px solid #818181;
-  background-color: black;
-  color: aliceblue;
+  border: 1px solid rgba(138, 43, 226, 0.4);
+  background-color: rgba(30, 16, 51, 0.8);
+  color: #e8dcff;
   font-size: 1rem;
   margin: 0 auto;
   display: block;
+  border-radius: 6px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#searchNav:focus {
+  outline: none;
+  border-color: #8a2be2;
+  box-shadow: 0 0 8px rgba(138, 43, 226, 0.4);
+}
+
+#searchNav::placeholder {
+  color: #8a7aa8;
 }
 
 .nav-item {
@@ -148,16 +163,18 @@ span {
   padding: 0 15px;
   border: none;
   background: none;
-  color: #818181;
+  color: #b8a8d4;
   font-size: 1.1rem;
   cursor: pointer;
   transition: 0.3s;
   text-align: left;
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
-  color: #f1f1f1;
-  background-color: #333;
+  color: #e8dcff;
+  background-color: rgba(76, 11, 206, 0.2);
+  border-left-color: #8a2be2;
 }
 
 .nav-icon {
@@ -168,7 +185,7 @@ span {
 
 /* Matematika ikon fehérre színezése */
 .subnav[data-category="Matematika"] .nav-icon {
-  filter: brightness(0) invert(1); /* Fehérre színezi a képet */
+  filter: brightness(0) invert(1);
 }
 
 .arrow {
@@ -209,5 +226,3 @@ button {
 button.nav-item {
   padding: 10px;
 }
-
-

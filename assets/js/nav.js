@@ -301,6 +301,7 @@
       "Hálózat": {
         icon: "assets/images/sidenetwork.webp",
         items: [
+          { title: "Hálózat alapok", link: "network/alapok/" },
           { title: "Számrendszerek", link: "network/szamrendszer/" },
           { title: "IP címzés", link: "network/ip/" },
           { title: "Alhálózatok", link: "network/subnet/" },
@@ -312,6 +313,7 @@
       "Matematika": {
         icon: "assets/images/sidemath.webp",
         items: [
+          { title: "Matematika alapok", link: "math/" },
           { title: "Algebra", link: "math/algebra/" },
           { title: "Függvények", link: "math/functions/" },
           { title: "Geometria", link: "math/geometry/" },
@@ -901,7 +903,17 @@ window.toggleNav = function () {
 
         // Aktuális oldal jelölése
         try {
-          if (location.pathname.replace(/\/+$/, '').includes(item.link.replace(/\/+$/, ''))) {
+          const currentPath = location.pathname.replace(/\/+$/, '').toLowerCase();
+          const itemLink = item.link.replace(/\/+$/, '').toLowerCase();
+          
+          // Ellenőrizzük, hogy az aktuális útvonal tartalmazza-e a link útvonalát
+          // vagy pontosan egyezik-e (a főoldalaknál, pl. math/)
+          const isMatch = currentPath.includes(itemLink) || 
+                          currentPath.endsWith('/' + itemLink) ||
+                          currentPath === '/' + itemLink ||
+                          (itemLink && currentPath.endsWith(itemLink));
+          
+          if (isMatch && itemLink) {
             link.classList.add('active');
             button.classList.add('active');
             content.style.display = 'block';
