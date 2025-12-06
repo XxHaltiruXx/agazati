@@ -99,12 +99,11 @@ section.main {
 /* gomb */
 .search-btn{
   position: absolute;
-  top: 50%;
-  right: 12px; /* wrapper padding miatt */
-  transform: translateY(-50%);
+  top: 0;
+  right: 11px; /* wrapper padding miatt */
 
   width: var(--search-button-width);
-  height: var(--search-height);
+  height: 100%;
 
   border: none;
   border-radius: 0 var(--search-radius) var(--search-radius) 0;
