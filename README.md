@@ -203,7 +203,7 @@ Ez a projekt az **MIT licenc** alatt érhető el. Részletekért lásd a [LICENS
 
 **⭐ Ha tetszett a projekt, adj egy csillagot! ⭐**
 
-Made with ❤️ by [XxHaltiruXx](https://github.com/XxHaltiruXx)
+Made with ❤️ by [XxHaltiruXx](https://github.com/XxHaltiruXx) and [Twenji](https://github.com/TweNJ1)
 
 </div>
 

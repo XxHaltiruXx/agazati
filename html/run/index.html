@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="assets/css/runner.css" />
     <title>HTML&CSS Kód Futtató</title>
 </head>
-<script src="assets/js/nav.js"></script>
 
 <body>
     <header>
@@ -54,30 +53,118 @@
         </div>
     </div>
     <div>
-        <h2 class="cim subsite">HTML futtató</h2>
+        <h2 class="cim subsite">HTML & CSS Futtató</h2>
     </div>
     <main>
-        <div class="row ">
+        <!-- Toolbar -->
+        <div class="runner-toolbar">
+            <!-- Mobil dropdown -->
+            <div class="snippet-dropdown">
+                <button class="snippet-dropdown-btn" id="snippetDropdownBtn">
+                    <span class="icon">📄</span>
+                    <span>Sablonok</span>
+                </button>
+                <div class="snippet-dropdown-content" id="snippetDropdownContent">
+                    <button data-snippet="boilerplate"><span class="icon">📄</span> HTML5 Sablon</button>
+                    <button data-snippet="div"><span class="icon">📦</span> Div</button>
+                    <button data-snippet="form"><span class="icon">📝</span> Form</button>
+                    <button data-snippet="table"><span class="icon">📊</span> Táblázat</button>
+                    <button data-snippet="list"><span class="icon">📋</span> Lista</button>
+                    <hr>
+                    <button data-snippet="css"><span class="icon">🎨</span> CSS</button>
+                    <button data-snippet="flex"><span class="icon">⬛</span> Flexbox</button>
+                    <button data-snippet="grid"><span class="icon">▦</span> Grid</button>
+                </div>
+            </div>
+            
+            <!-- Asztali gombok -->
+            <div class="toolbar-section snippets">
+                <button class="runner-btn primary" id="insertBoilerplate" title="HTML5 alap struktúra">
+                    <span class="icon">📄</span>
+                    <span class="btn-text">HTML5 Sablon</span>
+                </button>
+                <button class="runner-btn" id="insertDiv" title="Div elem beszúrása">
+                    <span class="icon">📦</span>
+                    <span class="btn-text">Div</span>
+                </button>
+                <button class="runner-btn" id="insertForm" title="Form elem beszúrása">
+                    <span class="icon">📝</span>
+                    <span class="btn-text">Form</span>
+                </button>
+                <button class="runner-btn" id="insertTable" title="Táblázat beszúrása">
+                    <span class="icon">📊</span>
+                    <span class="btn-text">Táblázat</span>
+                </button>
+                <button class="runner-btn" id="insertList" title="Lista beszúrása">
+                    <span class="icon">📋</span>
+                    <span class="btn-text">Lista</span>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-section snippets">
+                <button class="runner-btn" id="insertCSS" title="CSS blokk beszúrása">
+                    <span class="icon">🎨</span>
+                    <span class="btn-text">CSS</span>
+                </button>
+                <button class="runner-btn" id="insertFlex" title="Flexbox layout">
+                    <span class="icon">⬛</span>
+                    <span class="btn-text">Flexbox</span>
+                </button>
+                <button class="runner-btn" id="insertGrid" title="Grid layout">
+                    <span class="icon">▦</span>
+                    <span class="btn-text">Grid</span>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            
+            <!-- Közös gombok (mindig láthatók) -->
+            <div class="toolbar-section">
+                <button class="runner-btn" id="undoBtn" title="Visszavonás (Ctrl+Z)">
+                    <span class="icon">↩️</span>
+                    <span class="btn-text">Vissza</span>
+                </button>
+                <button class="runner-btn" id="redoBtn" title="Újra (Ctrl+Y)">
+                    <span class="icon">↪️</span>
+                    <span class="btn-text">Újra</span>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-section">
+                <button class="runner-btn danger" id="clearCode" title="Kód törlése">
+                    <span class="icon">🗑️</span>
+                    <span class="btn-text">Törlés</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="row">
             <div class="col-lg-6 col-md-12 col-sm-12" id="editor">
-                <textarea id="htmlInput" placeholder="Írd be ide a HTML kódot..."></textarea>
+                <div class="runner-panel">
+                    <div class="runner-panel-header">
+                        <div class="panel-title">
+                            <span>📝</span> Szerkesztő
+                        </div>
+                        <div class="panel-info" id="charCount">0 karakter</div>
+                    </div>
+                    <textarea id="htmlInput" spellcheck="false" placeholder="Írd be ide a HTML/CSS kódot, vagy kattints a 'HTML5 Sablon' gombra a kezdéshez..."></textarea>
+                </div>
             </div>
             <div class="col-lg-6 col-md-12 col-sm-12" id="preview">
-                <iframe id="previewFrame"></iframe>
+                <div class="runner-panel">
+                    <div class="runner-panel-header">
+                        <div class="panel-title">
+                            <span>👁️</span> Előnézet
+                        </div>
+                        <div class="panel-info">Élő frissítés</div>
+                    </div>
+                    <iframe id="previewFrame"></iframe>
+                </div>
             </div>
+        </div>
     </main>
-    <script>
-        const htmlInput = document.getElementById('htmlInput');
-        const previewFrame = document.getElementById('previewFrame');
-
-        htmlInput.addEventListener('input', function () {
-            const htmlContent = htmlInput.value;
-            const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
-            previewDoc.open();
-            previewDoc.write(htmlContent);
-            previewDoc.close();
-        });
-    </script>
-
+    
+    <script src="assets/js/html-runner.js"></script>
+    <script src="assets/js/nav.js"></script>
     <script src="assets/js/footer.js"></script>
 </body>
 

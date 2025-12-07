@@ -1,5 +1,0 @@
-footer.js:237 [agazati] init: last check within 4 hours, using cached date.
-footer.js:118 [agazati] Last check <4h ago. Using cached date: 2025. 12. 05.
-infosharer/:346 Uncaught ReferenceError: bootstrap is not defined
-    at infosharer/:346:27
-(anonymous) @ infosharer/:346

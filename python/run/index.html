@@ -35,7 +35,7 @@
   let loadingPromise = null; // egyszeri promise a betöltéshez
 
   function $id(id){ return document.getElementById(id); }
-  const runBtn = () => $id('run');
+  const runBtn = () => $id('runBtn');
   const outputEl = () => $id('output');
   const codeEl = () => $id('code');
 
@@ -237,21 +237,509 @@ finally:
   </div>
 
 
-  <h2 class="cim subsite">Python futtató</h2>
-
+  <h2 class="cim subsite">Python Futtató</h2>
 
   <main>
+    <!-- Toolbar -->
+    <div class="runner-toolbar">
+        <!-- Futtatás gomb (mindig látható) -->
+        <div class="toolbar-section">
+            <button class="runner-btn success" id="runBtn" title="Kód futtatása (Ctrl+Enter)">
+                <span class="icon">▶</span>
+                <span class="btn-text">Futtatás</span>
+            </button>
+        </div>
+        <div class="toolbar-divider"></div>
+        
+        <!-- Mobil dropdown -->
+        <div class="snippet-dropdown">
+            <button class="snippet-dropdown-btn" id="pySnippetDropdownBtn">
+                <span class="icon">🐍</span>
+                <span>Sablonok</span>
+            </button>
+            <div class="snippet-dropdown-content" id="pySnippetDropdownContent">
+                <button data-snippet="Hello"><span class="icon">👋</span> Hello World</button>
+                <button data-snippet="Input"><span class="icon">⌨️</span> Input</button>
+                <button data-snippet="Loop"><span class="icon">🔄</span> For ciklus</button>
+                <button data-snippet="Function"><span class="icon">🔧</span> Függvény</button>
+                <button data-snippet="Class"><span class="icon">📦</span> Osztály</button>
+                <hr>
+                <button data-snippet="List"><span class="icon">📋</span> Lista</button>
+                <button data-snippet="Dict"><span class="icon">📖</span> Szótár</button>
+                <button data-snippet="Try"><span class="icon">🛡️</span> Try-Except</button>
+            </div>
+        </div>
+        
+        <!-- Asztali snippet gombok -->
+        <div class="toolbar-section snippets">
+            <button class="runner-btn primary" id="insertHello" title="Hello World példa">
+                <span class="icon">👋</span>
+                <span class="btn-text">Hello World</span>
+            </button>
+            <button class="runner-btn" id="insertInput" title="Input kérés">
+                <span class="icon">⌨️</span>
+                <span class="btn-text">Input</span>
+            </button>
+            <button class="runner-btn" id="insertLoop" title="For ciklus">
+                <span class="icon">🔄</span>
+                <span class="btn-text">For ciklus</span>
+            </button>
+            <button class="runner-btn" id="insertFunction" title="Függvény">
+                <span class="icon">🔧</span>
+                <span class="btn-text">Függvény</span>
+            </button>
+            <button class="runner-btn" id="insertClass" title="Osztály">
+                <span class="icon">📦</span>
+                <span class="btn-text">Osztály</span>
+            </button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-section snippets">
+            <button class="runner-btn" id="insertList" title="Lista műveletek">
+                <span class="icon">📋</span>
+                <span class="btn-text">Lista</span>
+            </button>
+            <button class="runner-btn" id="insertDict" title="Szótár">
+                <span class="icon">📖</span>
+                <span class="btn-text">Szótár</span>
+            </button>
+            <button class="runner-btn" id="insertTry" title="Try-Except">
+                <span class="icon">🛡️</span>
+                <span class="btn-text">Try-Except</span>
+            </button>
+        </div>
+        <div class="toolbar-divider"></div>
+        
+        <!-- Közös gombok (mindig láthatók) -->
+        <div class="toolbar-section">
+            <button class="runner-btn" id="undoBtn" title="Visszavonás (Ctrl+Z)">
+                <span class="icon">↩️</span>
+                <span class="btn-text">Vissza</span>
+            </button>
+            <button class="runner-btn" id="redoBtn" title="Újra (Ctrl+Y)">
+                <span class="icon">↪️</span>
+                <span class="btn-text">Újra</span>
+            </button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-section">
+            <button class="runner-btn danger" id="clearCode" title="Kód törlése">
+                <span class="icon">🗑️</span>
+                <span class="btn-text">Törlés</span>
+            </button>
+            <button class="runner-btn" id="clearOutput" title="Kimenet törlése">
+                <span class="icon">🧹</span>
+                <span class="btn-text">Kimenet</span>
+            </button>
+        </div>
+    </div>
+    
     <div class="row">
       <div class="col-lg-6 col-md-12 col-sm-12" id="pyeditor">
-          <textarea id="code" spellcheck="false" placeholder="Írd vagy másold ide a Python kódod...">print("Helló Agazati!")</textarea>
-          <button id="run">▶ Futtatás</button>
+          <div class="runner-panel">
+              <div class="runner-panel-header">
+                  <div class="panel-title">
+                      <span>🐍</span> Python Szerkesztő
+                  </div>
+                  <div class="panel-info" id="lineCount">1 sor</div>
+              </div>
+              <textarea id="code" spellcheck="false" placeholder="Írd ide a Python kódod, vagy válassz a sablonok közül...">print("Helló Agazati!")</textarea>
+          </div>
       </div>
       <div class="col-lg-6 col-md-12 col-sm-12" id="outputArea">
-        <pre id="output"></pre>
+          <div class="runner-panel">
+              <div class="runner-panel-header">
+                  <div class="panel-title">
+                      <span>📤</span> Kimenet
+                  </div>
+                  <div class="panel-info" id="runStatus">Készen áll</div>
+              </div>
+              <pre id="output">Készen: kattints 'Futtatás'-ra vagy nyomj Ctrl+Enter-t.</pre>
+          </div>
       </div>
     </div>
   </main>
   
+  <script>
+    // Toolbar gombok kezelése
+    const codeArea = document.getElementById('code');
+    const outputArea = document.getElementById('output');
+    const lineCount = document.getElementById('lineCount');
+    const runStatus = document.getElementById('runStatus');
+    
+    // === Dropdown kezelés ===
+    const pyDropdownBtn = document.getElementById('pySnippetDropdownBtn');
+    const pyDropdownContent = document.getElementById('pySnippetDropdownContent');
+    
+    if (pyDropdownBtn && pyDropdownContent) {
+        pyDropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            pyDropdownContent.classList.toggle('show');
+        });
+        
+        // Kívülre kattintáskor bezárás
+        document.addEventListener('click', function() {
+            pyDropdownContent.classList.remove('show');
+        });
+        
+        // Dropdown snippet gombok
+        pyDropdownContent.querySelectorAll('button[data-snippet]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const snippet = this.dataset.snippet;
+                const targetBtn = document.getElementById('insert' + snippet);
+                if (targetBtn) targetBtn.click();
+                pyDropdownContent.classList.remove('show');
+            });
+        });
+    }
+    
+    // === VSCode-szerű szerkesztési funkciók ===
+    
+    // Zárójelek párosítása
+    const brackets = {
+        '(': ')',
+        '[': ']',
+        '{': '}',
+        '"': '"',
+        "'": "'",
+        '`': '`'
+    };
+    
+    codeArea.addEventListener('keydown', function(e) {
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        const value = this.value;
+        
+        // Ctrl+Enter futtatás
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('runBtn').click();
+            return;
+        }
+        
+        // Tab kezelés
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            
+            if (e.shiftKey) {
+                // Shift+Tab: behúzás csökkentése
+                const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+                const lineContent = value.substring(lineStart, start);
+                
+                if (lineContent.startsWith('    ')) {
+                    this.value = value.substring(0, lineStart) + value.substring(lineStart + 4);
+                    this.selectionStart = this.selectionEnd = start - 4;
+                } else if (lineContent.startsWith('\t')) {
+                    this.value = value.substring(0, lineStart) + value.substring(lineStart + 1);
+                    this.selectionStart = this.selectionEnd = start - 1;
+                }
+            } else {
+                // Tab: 4 szóköz beszúrása
+                this.value = value.substring(0, start) + '    ' + value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 4;
+            }
+            updateLineCount();
+            return;
+        }
+        
+        // Enter: automatikus behúzás (Python-specifikus)
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            
+            // Aktuális sor behúzásának megkeresése
+            const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+            const lineContent = value.substring(lineStart, start);
+            const indent = lineContent.match(/^[\t ]*/)[0];
+            
+            // Ellenőrizzük, hogy Python blokk kezdő kulcsszó van-e (def, class, if, for, while, try, with, elif, else, except, finally)
+            const trimmedLine = lineContent.trim();
+            const blockStarters = /^(def |class |if |for |while |try:|with |elif |else:|except|finally:)/;
+            
+            let newText = '\n' + indent;
+            
+            // Ha kettősponttal végződik vagy blokk kezdő, extra behúzás
+            if (trimmedLine.endsWith(':') || blockStarters.test(trimmedLine)) {
+                newText = '\n' + indent + '    ';
+            }
+            
+            this.value = value.substring(0, start) + newText + value.substring(end);
+            this.selectionStart = this.selectionEnd = start + newText.length;
+            updateLineCount();
+            return;
+        }
+        
+        // Zárójelek automatikus párosítása
+        if (brackets[e.key]) {
+            const selectedText = value.substring(start, end);
+            
+            // Ha van kijelölés, körbefogjuk
+            if (start !== end) {
+                e.preventDefault();
+                const wrapped = e.key + selectedText + brackets[e.key];
+                this.value = value.substring(0, start) + wrapped + value.substring(end);
+                this.selectionStart = start + 1;
+                this.selectionEnd = end + 1;
+                updateLineCount();
+                return;
+            }
+            
+            // Idézőjeleknél ellenőrizzük, hogy ne duplázzon
+            if ((e.key === '"' || e.key === "'" || e.key === '`') && value[start] === e.key) {
+                e.preventDefault();
+                this.selectionStart = this.selectionEnd = start + 1;
+                return;
+            }
+            
+            // Automatikus záró karakter
+            e.preventDefault();
+            this.value = value.substring(0, start) + e.key + brackets[e.key] + value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 1;
+            updateLineCount();
+            return;
+        }
+        
+        // Záró zárójel átlépése ha már ott van
+        if (['}', ']', ')', '"', "'", '`'].includes(e.key) && value[start] === e.key) {
+            e.preventDefault();
+            this.selectionStart = this.selectionEnd = start + 1;
+            return;
+        }
+        
+        // Backspace: páros törlése
+        if (e.key === 'Backspace' && start === end && start > 0) {
+            const charBefore = value[start - 1];
+            const charAfter = value[start];
+            
+            if (brackets[charBefore] && brackets[charBefore] === charAfter) {
+                e.preventDefault();
+                this.value = value.substring(0, start - 1) + value.substring(start + 1);
+                this.selectionStart = this.selectionEnd = start - 1;
+                updateLineCount();
+                return;
+            }
+        }
+    });
+    
+    // Beszúrás a kurzor pozíciójához
+    function insertAtCursor(text) {
+        const start = codeArea.selectionStart;
+        const end = codeArea.selectionEnd;
+        const before = codeArea.value.substring(0, start);
+        const after = codeArea.value.substring(end);
+        codeArea.value = before + text + after;
+        codeArea.selectionStart = codeArea.selectionEnd = start + text.length;
+        codeArea.focus();
+        updateLineCount();
+    }
+    
+    // Sorszám frissítése
+    function updateLineCount() {
+        const lines = codeArea.value.split('\n').length;
+        lineCount.textContent = lines + ' sor';
+    }
+    
+    codeArea.addEventListener('input', updateLineCount);
+    updateLineCount();
+    
+    // Hello World
+    document.getElementById('insertHello').addEventListener('click', function() {
+        codeArea.value = `# Hello World program
+print("Helló Világ!")
+print("Üdvözöllek a Python programozásban!")
+
+# Változók
+nev = "Agazati"
+print(f"Helló, {nev}!")`;
+        updateLineCount();
+    });
+    
+    // Input
+    document.getElementById('insertInput').addEventListener('click', function() {
+        insertAtCursor(`# Input kezelés (Pyodide-ban korlátozottan működik)
+# Helyette használj változókat:
+nev = "Felhasználó"  # input("Mi a neved? ")
+kor = 25  # int(input("Hány éves vagy? "))
+
+print(f"Helló {nev}, te {kor} éves vagy!")`);
+    });
+    
+    // For ciklus
+    document.getElementById('insertLoop').addEventListener('click', function() {
+        insertAtCursor(`# For ciklus példák
+print("Számok 1-től 5-ig:")
+for i in range(1, 6):
+    print(f"  {i}")
+
+print("\\nLista bejárása:")
+gyumolcsok = ["alma", "banán", "cseresznye"]
+for gyumolcs in gyumolcsok:
+    print(f"  - {gyumolcs}")`);
+    });
+    
+    // Függvény
+    document.getElementById('insertFunction').addEventListener('click', function() {
+        insertAtCursor(`# Függvény definiálása
+def udvozles(nev, nyelv="magyar"):
+    """Üdvözlő függvény"""
+    if nyelv == "magyar":
+        return f"Helló, {nev}!"
+    else:
+        return f"Hello, {nev}!"
+
+# Függvény hívása
+print(udvozles("Világ"))
+print(udvozles("World", "angol"))`);
+    });
+    
+    // Osztály
+    document.getElementById('insertClass').addEventListener('click', function() {
+        insertAtCursor(`# Osztály definiálása
+class Kutya:
+    def __init__(self, nev, kor):
+        self.nev = nev
+        self.kor = kor
+    
+    def ugat(self):
+        return f"{self.nev} azt mondja: Vau!"
+    
+    def __str__(self):
+        return f"{self.nev} ({self.kor} éves)"
+
+# Objektum létrehozása
+buksi = Kutya("Buksi", 3)
+print(buksi)
+print(buksi.ugat())`);
+    });
+    
+    // Lista
+    document.getElementById('insertList').addEventListener('click', function() {
+        insertAtCursor(`# Lista műveletek
+szamok = [1, 2, 3, 4, 5]
+print(f"Eredeti lista: {szamok}")
+
+# Elem hozzáadása
+szamok.append(6)
+print(f"Append után: {szamok}")
+
+# Lista comprehension
+negyzetek = [x**2 for x in szamok]
+print(f"Négyzetek: {negyzetek}")
+
+# Szűrés
+parosak = [x for x in szamok if x % 2 == 0]
+print(f"Páros számok: {parosak}")`);
+    });
+    
+    // Szótár
+    document.getElementById('insertDict').addEventListener('click', function() {
+        insertAtCursor(`# Szótár (dictionary) műveletek
+szemely = {
+    "nev": "Kiss János",
+    "kor": 30,
+    "varos": "Budapest"
+}
+
+print(f"Név: {szemely['nev']}")
+print(f"Kor: {szemely.get('kor', 'Ismeretlen')}")
+
+# Bejárás
+print("\\nÖsszes adat:")
+for kulcs, ertek in szemely.items():
+    print(f"  {kulcs}: {ertek}")`);
+    });
+    
+    // Try-Except
+    document.getElementById('insertTry').addEventListener('click', function() {
+        insertAtCursor(`# Hibakezelés try-except-tel
+def osztas(a, b):
+    try:
+        eredmeny = a / b
+        return f"{a} / {b} = {eredmeny}"
+    except ZeroDivisionError:
+        return "Hiba: Nullával nem lehet osztani!"
+    except TypeError:
+        return "Hiba: Érvénytelen típus!"
+    finally:
+        print("Művelet befejezve.")
+
+print(osztas(10, 2))
+print(osztas(10, 0))`);
+    });
+    
+    // Törlés
+    document.getElementById('clearCode').addEventListener('click', function() {
+        if (confirm('Biztosan törölni szeretnéd a kódot?')) {
+            codeArea.value = '';
+            updateLineCount();
+        }
+    });
+    
+    // Kimenet törlése
+    document.getElementById('clearOutput').addEventListener('click', function() {
+        outputArea.textContent = 'Kimenet törölve.';
+        runStatus.textContent = 'Készen áll';
+    });
+    
+    // Undo/Redo rendszer
+    let undoStack = [];
+    let redoStack = [];
+    let lastSavedValue = '';
+    
+    function saveState() {
+        if (codeArea.value !== lastSavedValue) {
+            undoStack.push(lastSavedValue);
+            redoStack = [];
+            lastSavedValue = codeArea.value;
+            // Maximum 50 lépés
+            if (undoStack.length > 50) undoStack.shift();
+        }
+    }
+    
+    // Mentés minden változásnál (debounce-olva)
+    let saveTimeout;
+    codeArea.addEventListener('input', function() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveState, 500);
+    });
+    
+    // Undo gomb
+    document.getElementById('undoBtn').addEventListener('click', function() {
+        if (undoStack.length > 0) {
+            redoStack.push(codeArea.value);
+            const previousState = undoStack.pop();
+            codeArea.value = previousState;
+            lastSavedValue = previousState;
+            updateLineCount();
+        }
+    });
+    
+    // Redo gomb
+    document.getElementById('redoBtn').addEventListener('click', function() {
+        if (redoStack.length > 0) {
+            undoStack.push(codeArea.value);
+            const nextState = redoStack.pop();
+            codeArea.value = nextState;
+            lastSavedValue = nextState;
+            updateLineCount();
+        }
+    });
+    
+    // Billentyűparancsok
+    codeArea.addEventListener('keydown', function(e) {
+        // Ctrl+Z - Visszavonás
+        if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('undoBtn').click();
+        }
+        // Ctrl+Y vagy Ctrl+Shift+Z - Újra
+        if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+            e.preventDefault();
+            document.getElementById('redoBtn').click();
+        }
+    });
+  </script>
+  
+  <script src="assets/js/nav.js"></script>
   <script src="assets/js/footer.js"></script>
 
 </body>
