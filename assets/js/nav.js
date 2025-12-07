@@ -184,11 +184,13 @@
   opacity: 1;
   background-color: rgba(127,90,240,0.06);
 }
-/* képek a megadott asset útvonalról (user kérésére) */
-.toggle-password.show {
+/* képek a megadott asset útvonalról (user kérésére) - csak sidebar modal */
+#pwBox .toggle-password.show,
+#pwModal .toggle-password.show {
   background-image: url("assets/images/hide.png") !important;
 }
-.toggle-password:not(.show) {
+#pwBox .toggle-password:not(.show),
+#pwModal .toggle-password:not(.show) {
   background-image: url("assets/images/view.png") !important;
 }
 

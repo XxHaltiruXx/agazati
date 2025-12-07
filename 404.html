@@ -33,7 +33,7 @@
         <p>A keresett oldal nem létezik a szerveren.</p>
         <div class="links">
           <a href="/agazati/" class="link-primary">Vissza a főoldalra</a>
-          <a href="index.html" class="link-secondary">nézz körül</a>
+          <a href="#" id="goBackBtn" class="link-secondary">Vissza</a>
         </div>
       </div>
     </div>
@@ -45,6 +45,23 @@
       crossorigin="anonymous"
     ></script>
 
+    <script>
+      // Vissza gomb: az előző oldalra navigál, ha van history
+      document.getElementById('goBackBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        // Ellenőrizzük, hogy van-e előző oldal a history-ban
+        if (document.referrer && document.referrer !== '') {
+          // Ha van referrer (honnan jött), oda megyünk vissza
+          window.location.href = document.referrer;
+        } else if (window.history.length > 1) {
+          // Ha van history, használjuk a back()-ot
+          window.history.back();
+        } else {
+          // Ha nincs semmi, főoldalra
+          window.location.href = '/agazati/';
+        }
+      });
+    </script>
 
     <script src="assets/js/footer.js"></script>
   </body>
