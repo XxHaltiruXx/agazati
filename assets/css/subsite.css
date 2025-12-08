@@ -1,0 +1,265 @@
+/* Subsite styling for tutorial pages */
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 100px 60px 40px 60px;
+  background-color: #1a1d23;
+  min-height: 100vh;
+}
+
+/* Navigation buttons */
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.navigation-buttons.bottom {
+  margin-top: 40px;
+  margin-bottom: 0;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background-color: #2d3139;
+  color: #e0e0e0;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 1px solid #3d4149;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  min-width: 200px;
+}
+
+.nav-btn:hover {
+  background-color: #3d4149;
+  color: #fff;
+  border-color: #4c0bce;
+  transform: translateY(-2px);
+}
+
+.nav-btn .arrow {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.nav-btn .nav-text {
+  font-size: 0.95em;
+}
+
+
+
+h1.cim {
+  margin-bottom: 40px;
+  color: #e0e0e0;
+  font-weight: 700;
+}
+
+section {
+  background: #252932;
+  border-radius: 12px;
+  padding: 40px;
+  border: 1px solid #3d4149;
+}
+
+section > div {
+  background: #2d3139;
+  padding: 30px;
+  margin-bottom: 30px;
+  border-radius: 10px;
+  border: 1px solid #3d4149;
+}
+
+section > div:last-child {
+  margin-bottom: 0;
+}
+
+h3 {
+  color: #e0e0e0;
+  font-weight: 600;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #4c0bce;
+  padding-bottom: 12px;
+}
+
+p {
+  line-height: 1.9;
+  color: #b0b0b0;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+ul {
+  line-height: 1.9;
+  color: #b0b0b0;
+  text-align: left;
+}
+
+ul li {
+  margin-bottom: 10px;
+}
+
+/* Code blocks */
+pre {
+  background: #1e1e1e !important;
+  color: #d4d4d4 !important;
+  padding: 20px !important;
+  border-radius: 8px !important;
+  border: 1px solid #3d4149 !important;
+  overflow-x: auto;
+  text-align: left;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+pre code {
+  display: block;
+  white-space: pre;
+  word-wrap: normal;
+  color: inherit !important;
+}
+
+code:not(pre code) {
+  background: #3d4149;
+  color: #996bf7;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.9em;
+}
+
+/* Button styling */
+.btn-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.btn-primary {
+  background: #4c0bce;
+  border: 1px solid #5d1cdf;
+  color: #fff;
+  padding: 12px 30px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary:hover {
+  background: #5d1cdf;
+  border-color: #6e2ef0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 11, 206, 0.4);
+  color: #fff;
+}
+
+/* Mobile optimizations */
+@media (max-width: 992px) {
+  main {
+    padding: 100px 30px 40px 30px;
+  }
+
+  .navigation-buttons {
+    flex-direction: column;
+  }
+
+  .prev-btn, .next-btn {
+    margin: 0 !important;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  main {
+    padding: 90px 20px 30px 20px;
+  }
+
+  h1.cim {
+    font-size: 1.75rem;
+    margin-bottom: 30px;
+  }
+
+  section {
+    padding: 20px;
+  }
+
+  section > div {
+    padding: 20px;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  pre {
+    padding: 15px !important;
+    font-size: 13px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  ul {
+    padding-left: 20px;
+  }
+
+  p, ul li {
+    font-size: 0.95rem;
+  }
+
+  .nav-btn {
+    padding: 10px 20px;
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 480px) {
+  main {
+    padding: 80px 15px 25px 15px;
+  }
+
+  h1.cim {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  section {
+    padding: 15px;
+  }
+
+  section > div {
+    padding: 15px;
+  }
+
+  pre {
+    font-size: 12px;
+    padding: 12px !important;
+  }
+
+  code:not(pre code) {
+    font-size: 0.85rem;
+  }
+
+  .btn-primary {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .nav-btn .nav-text {
+    font-size: 0.85em;
+  }
+}

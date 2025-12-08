@@ -247,6 +247,36 @@
     };
   }
 
+  /* ======= Top Navbar létrehozása ======= */
+  function createTopNavbar() {
+    let header = document.querySelector('header');
+    if (!header) {
+      header = document.createElement('header');
+      document.body.insertBefore(header, document.body.firstChild);
+    }
+
+    // Ha már van navbar, ne hozzuk létre újra
+    if (header.querySelector('nav.navbar')) return;
+
+    header.innerHTML = `
+      <nav class="navbar navbar-expand">
+        <div class="container-fluid">
+          <div class="navbar-collapse">
+            <div class="navbar-nav">
+              <span style="font-size: 30px; cursor: pointer" onclick="toggleNav()" class="sidebargomb">&#9776;</span>
+              <a class="nav-link" aria-current="page" href="">főoldal</a>
+              <a class="nav-link" href="html/alapok">html</a>
+              <a class="nav-link" href="css/alapok">css</a>
+              <a class="nav-link" href="python/alapok">python</a>
+              <a class="nav-link" href="network/alapok">hálózat</a>
+              <a class="nav-link" href="math/">matek</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    `;
+  }
+
   /* ======= Konstansok, állapot ======= */
   const NAV_STATE_KEY = '__agazati_nav_state';
   const SUBMENU_STATE_KEY = '__agazati_submenu_state';
@@ -1096,7 +1126,10 @@ window.toggleNav = function () {
 
   /* ======= Betöltési rutinok ======= */
   function initNav() {
-    // Először hozzuk létre a modalt
+    // Először hozzuk létre a navbar-t
+    createTopNavbar();
+    
+    // Aztán a modalt
     createLoginModal();
 
     // Inicializáljuk a sidenav-et

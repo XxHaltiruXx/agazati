@@ -8,33 +8,30 @@ footer {
   height: fit-content;
 }
 
-p {
+footer p {
   font-size: 20px;
   margin-top: 0;
   margin-bottom: 1rem;
   color: white;
+  text-align: center;
 }
 
-hr {
-  background-color: #9318f8;
-  width: 80%;
-  height: 4px;
-  display: block;
-  margin: 5px auto;
-  border: 0;
-}
-
-h3 {
+footer h3 {
   color: white;
   text-align: center;
   line-height: 1.2;
   font-size: 21.6px;
   margin: 35px;
+  border-bottom: none !important;
 }
 
-hr.black {
+footer hr.black {
   background-color: black;
   width: 95%;
+  height: 4px;
+  display: block;
+  margin: 20px auto;
+  border: 0;
 }
 
 div.contacts {

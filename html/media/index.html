@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="HTML multimédia tananyag." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <title>Agazati - HTML Multimédia</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="html/tables" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: HTML táblázatok</span>
+        </a>
+        <a href="html/run" class="nav-btn next-btn">
+          <span class="nav-text">Következő: HTML futtató</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">HTML Multimédia</h1>
+      <section>
+        <div>
+          <h3>Képek, videók és hangok</h3>
+          <p>
+            A HTML5 beépített támogatást nyújt multimédiás tartalmak megjelenítéséhez böngészőben, pluginok nélkül.
+          </p>
+          <ul>
+            <li><strong>&lt;img&gt;</strong>: Képek beillesztése</li>
+            <li><strong>&lt;video&gt;</strong>: Videók lejátszása</li>
+            <li><strong>&lt;audio&gt;</strong>: Hangfájlok lejátszása</li>
+            <li><strong>&lt;iframe&gt;</strong>: Beágyazott tartalom (YouTube, térképek)</li>
+            <li><strong>&lt;svg&gt;</strong>: Vektorgrafika</li>
+            <li><strong>&lt;canvas&gt;</strong>: Rajzolási felület JavaScript-tel</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Példa: Multimédia elemek</h3>
+          <p>
+            Képek, videók és hangok használata HTML-ben:
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Multimédia példa&lt;/title&gt;
+    &lt;style&gt;
+        img { max-width: 100%; height: auto; border: 2px solid #ddd; }
+        video, audio { width: 100%; max-width: 600px; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Multimédia tartalom&lt;/h1&gt;
+    
+    &lt;h2&gt;Kép&lt;/h2&gt;
+    &lt;img src="https://via.placeholder.com/600x400" alt="Placeholder kép"&gt;
+    
+    &lt;h2&gt;Videó&lt;/h2&gt;
+    &lt;video controls&gt;
+        &lt;source src="video.mp4" type="video/mp4"&gt;
+        A böngésződ nem támogatja a videó lejátszást.
+    &lt;/video&gt;
+    
+    &lt;h2&gt;Hang&lt;/h2&gt;
+    &lt;audio controls&gt;
+        &lt;source src="audio.mp3" type="audio/mpeg"&gt;
+        A böngésződ nem támogatja a hang lejátszást.
+    &lt;/audio&gt;
+    
+    &lt;h2&gt;YouTube videó beágyazása&lt;/h2&gt;
+    &lt;iframe width="560" height="315" 
+        src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+        frameborder="0" allowfullscreen&gt;
+    &lt;/iframe&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="html/run/" class="btn btn-primary" 
+               onclick="localStorage.setItem('htmlRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="html/tables" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: HTML táblázatok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="html/run" class="nav-btn next-btn">
+          <span class="nav-text">Következő: HTML futtató</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

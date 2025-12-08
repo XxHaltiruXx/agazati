@@ -4,8 +4,8 @@
     const previewFrame = document.getElementById('previewFrame');
     const charCount = document.getElementById('charCount');
 
-    // Élő előnézet frissítése
-    htmlInput.addEventListener('input', function () {
+    // Függvény a preview frissítésére
+    function updatePreview() {
         const htmlContent = htmlInput.value;
         const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
         previewDoc.open();
@@ -14,7 +14,22 @@
         
         // Karakterszám frissítése
         charCount.textContent = htmlContent.length + ' karakter';
-    });
+    }
+
+    // localStorage-ból betöltés (ha van mentett kód)
+    const savedCode = localStorage.getItem('htmlRunnerCode');
+    if (savedCode) {
+        htmlInput.value = savedCode;
+        localStorage.removeItem('htmlRunnerCode'); // Töröljük, hogy ne maradjon ott
+    }
+
+    // Kezdeti betöltéskor is frissítsük, ha van kód a textarea-ban
+    if (htmlInput.value.trim()) {
+        updatePreview();
+    }
+
+    // Élő előnézet frissítése
+    htmlInput.addEventListener('input', updatePreview);
     
     // === Dropdown kezelés ===
     const dropdownBtn = document.getElementById('snippetDropdownBtn');

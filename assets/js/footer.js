@@ -1,4 +1,4 @@
-const APP_VERSION = "1.4.1";
+const APP_VERSION = "1.4.2";
 
 // Verziószám frissítése
 document.addEventListener("DOMContentLoaded", function () {

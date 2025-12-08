@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="HTML struktúra tananyag." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <title>Agazati - HTML Struktúra</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="html/alapok" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: HTML alapok</span>
+        </a>
+        <a href="html/forms" class="nav-btn next-btn">
+          <span class="nav-text">Következő: HTML űrlapok</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">HTML Struktúra</h1>
+      <section>
+        <div>
+          <h3>Szemantikus HTML</h3>
+          <p>
+            A szemantikus HTML elemek világosan kifejezik jelentésüket mind a böngészőnek, mind a fejlesztőnek. 
+            Ezek az elemek segítenek strukturálni a tartalmat és javítják az oldalak hozzáférhetőségét.
+          </p>
+          <ul>
+            <li><strong>&lt;header&gt;</strong>: Fejléc szakasz, általában logó, navigáció</li>
+            <li><strong>&lt;nav&gt;</strong>: Navigációs linkek</li>
+            <li><strong>&lt;main&gt;</strong>: Fő tartalom</li>
+            <li><strong>&lt;article&gt;</strong>: Önálló tartalom (pl. blog poszt)</li>
+            <li><strong>&lt;section&gt;</strong>: Tematikus csoportosítás</li>
+            <li><strong>&lt;aside&gt;</strong>: Oldalsáv, kiegészítő tartalom</li>
+            <li><strong>&lt;footer&gt;</strong>: Lábléc</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Példa: Jól strukturált oldal</h3>
+          <p>
+            Így néz ki egy modern, szemantikus HTML struktúra:
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Strukturált oldal&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;header&gt;
+        &lt;h1&gt;Weboldal címe&lt;/h1&gt;
+        &lt;nav&gt;
+            &lt;a href="#home"&gt;Főoldal&lt;/a&gt;
+            &lt;a href="#about"&gt;Rólunk&lt;/a&gt;
+        &lt;/nav&gt;
+    &lt;/header&gt;
+    
+    &lt;main&gt;
+        &lt;article&gt;
+            &lt;h2&gt;Cikk címe&lt;/h2&gt;
+            &lt;p&gt;Cikk tartalma...&lt;/p&gt;
+        &lt;/article&gt;
+        
+        &lt;aside&gt;
+            &lt;h3&gt;Kapcsolódó&lt;/h3&gt;
+            &lt;p&gt;Oldalsáv tartalma&lt;/p&gt;
+        &lt;/aside&gt;
+    &lt;/main&gt;
+    
+    &lt;footer&gt;
+        &lt;p&gt;&copy; 2025 Weboldal&lt;/p&gt;
+    &lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="html/run/" class="btn btn-primary" 
+               onclick="localStorage.setItem('htmlRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="html/alapok" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: HTML alapok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="html/forms" class="nav-btn next-btn">
+          <span class="nav-text">Következő: HTML űrlapok</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

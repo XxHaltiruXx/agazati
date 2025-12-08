@@ -1,224 +1,157 @@
 <!DOCTYPE html>
 <html lang="hu">
-
-<head>
-  <meta charset="utf-8" />
-  <meta name="description" content="Itt tanulhatsz HTML és CSS-t." />
- <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script>(function(){var basePath="/";if(location.pathname.indexOf("/agazati/")===0){basePath="/agazati/";}var base=document.createElement("base");base.href=basePath;document.head.appendChild(base);})();</script><link  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"  rel="stylesheet"  integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"  crossorigin="anonymous"/>
-    <script  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"  crossorigin="anonymous"></script>
-    <link  rel="shortcut icon"  href="assets/images/agazati.ico"  type="image/x-icon"/>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Itt tanulhatsz HTML-t." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/main.css" />
     <link rel="stylesheet" href="assets/css/nav.css" />
     <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
     <link rel="stylesheet" href="assets/css/footer.css" />
-  <title>Agazati - HTML Alapok</title>
-</head>
-<body>
-  <header>
-    <nav class="navbar navbar-expand">
-      <div class="container-fluid align-items-center">
-        <span onclick="toggleNav()" class="sidebargomb">&#9776;</span>
-        <div class="navbar-nav">
-          <a class="nav-link" href="">főoldal</a>
-          <a class="nav-link" href="html">html</a>
-          <a class="nav-link" href="css">css</a>
-          <a class="nav-link" href="python">python</a>
-          <a class="nav-link" href="network">hálózat</a>
-          <a class="nav-link" href="math">matek</a>
-        </div>
+    <title>Agazati - HTML Alapok</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Főoldal</span>
+        </a>
+        <a href="html/structure" class="nav-btn next-btn">
+          <span class="nav-text">Következő: HTML struktúra</span>
+          <span class="arrow">→</span>
+        </a>
       </div>
-    </nav>
-  </header>
+      
+      <h1 class="cim text-center">HTML Alapok</h1>
+      <section>
+        <div>
+          <h3>Mi az a HTML?</h3>
+          <p>
+            A HTML (HyperText Markup Language) egy jelölőnyelv, a weboldalak
+            alapja, amely a tartalom struktúráját és jelentését határozza meg
+            (fejezetek, bekezdések, képek, linkek, táblázatok).
+          </p>
+        </div>
 
-  <div id="mySidenav" class="sidenav">
-    <div>
-      <input type="text" id="searchNav" placeholder="🔍Keresés..." />
-    </div>
-  </div>
-  <main>
-    <h1 class="cim text-center">HTML</h1>
+        <div>
+          <h3>Alapvető HTML struktúra</h3>
+          <p>
+            Minden HTML dokumentum egy alap struktúrával kezdődik. A <code>&lt;!DOCTYPE html&gt;</code> meghatározza, hogy HTML5-öt használunk. 
+            A <code>&lt;html&gt;</code> tag a dokumentum gyökere, a <code>&lt;head&gt;</code> tartalmazza a metaadatokat, 
+            míg a <code>&lt;body&gt;</code>-ban helyezkedik el a látható tartalom.
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Az oldalam címe&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Helló Világ!&lt;/h1&gt;
+    &lt;p&gt;Ez az első HTML oldalam.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="html/run/" class="btn btn-primary" 
+               onclick="localStorage.setItem('htmlRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
 
-    <section id="html" class="container py-3 html-section">
-      <div class="text-center mb-5">
-        <h2 class="display-4 fw-bold html-title">HTML Alapok</h2>
-        <hr class="mx-auto html-divider" />
+        <div>
+          <h3>Alapvető HTML elemek</h3>
+          <ul>
+            <li><strong>&lt;h1&gt; - &lt;h6&gt;</strong>: Címsorok (h1 a legnagyobb, h6 a legkisebb)</li>
+            <li><strong>&lt;p&gt;</strong>: Bekezdés (paragraph)</li>
+            <li><strong>&lt;a href="..."&gt;</strong>: Link más oldalra</li>
+            <li><strong>&lt;img src="..."&gt;</strong>: Kép beszúrása</li>
+            <li><strong>&lt;div&gt;</strong>: Általános konténer elem</li>
+            <li><strong>&lt;span&gt;</strong>: Szövegrészlet megjelölése</li>
+            <li><strong>&lt;ul&gt; / &lt;ol&gt;</strong>: Listakészítés (ul = számozatlan, ol = számozott)</li>
+            <li><strong>&lt;li&gt;</strong>: Lista elem</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa</h3>
+          <p>
+            Nézzünk egy összetettebb példát, amely bemutatja a címeket, bekezdéseket, listákat és linkeket:
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Bemutatkozó oldal&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Üdvözöllek az oldalamon!&lt;/h1&gt;
+    
+    &lt;h2&gt;Rólam&lt;/h2&gt;
+    &lt;p&gt;Szia! Én vagyok XY, és szeretek programozni.&lt;/p&gt;
+    
+    &lt;h2&gt;Érdeklődési körök&lt;/h2&gt;
+    &lt;ul&gt;
+        &lt;li&gt;Webfejlesztés&lt;/li&gt;
+        &lt;li&gt;Python programozás&lt;/li&gt;
+        &lt;li&gt;Hálózati technológiák&lt;/li&gt;
+    &lt;/ul&gt;
+    
+    &lt;h2&gt;Elérhetőségek&lt;/h2&gt;
+    &lt;p&gt;Keress meg a &lt;a href="mailto:pelda@email.com"&gt;pelda@email.com&lt;/a&gt; címen!&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="html/run/" class="btn btn-primary" 
+               onclick="localStorage.setItem('htmlRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Főoldal</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="html/structure" class="nav-btn next-btn">
+          <span class="nav-text">Következő: HTML struktúra</span>
+          <span class="arrow">→</span>
+        </a>
       </div>
-
-      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;p&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Bekezdés</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;h1&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Címsor</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;img&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Kép elem</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;img src="..." alt="..."&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;a&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Link</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;a href="..."&gt;Link&lt;/a&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;ul&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Felsorolás</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;ul&gt; &lt;li&gt;...&lt;/li&gt; &lt;/ul&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;table&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Táblázat</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;table&gt; &lt;tr&gt; &lt;td&gt;...&lt;/td&gt; &lt;/tr&gt;
-                  &lt;/table&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;ol&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Listás felsorolás</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;ol&gt; &lt;li&gt;...&lt;/li&gt; &lt;/ol&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;form&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Form</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;form action="..." method="..."&gt; &lt;!-- form elemei
-                  --&gt; &lt;/form&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;video&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Videó</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;video src="..."&gt;&lt;/video&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;audio&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Hang</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;audio src="..."&gt;&lt;/audio&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;div&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Doboz (div)</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;div&gt;...&lt;/div&gt;</code>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card h-100 border-0 shadow-lg card-custom">
-            <div class="card-header py-3 card-header-custom">
-              <h5 class="mb-0 text-white html-tag">&lt;span&gt;</h5>
-            </div>
-            <div class="card-body">
-              <div class="align-items-center gap-3">
-                <span class="text-light">Címke (span)</span>
-              </div>
-              <code class="d-block mt-3 text-info">&lt;span&gt;...&lt;/span&gt;</code>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-  <script src="assets/js/nav.js"></script>
-  <script src="assets/js/footer.js"></script>
-</body>
-
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
 </html>
