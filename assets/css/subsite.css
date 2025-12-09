@@ -22,7 +22,9 @@ main {
 
 .nav-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   padding: 12px 24px;
   background-color: #2d3139;
@@ -33,6 +35,7 @@ main {
   transition: all 0.3s ease;
   font-weight: 500;
   min-width: 200px;
+  width: 300px;
 }
 
 .nav-btn:hover {
@@ -45,16 +48,22 @@ main {
 .nav-btn .arrow {
   font-size: 1.2em;
   font-weight: bold;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 .nav-btn .nav-text {
   font-size: 0.95em;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 
 
 h1.cim {
-  margin-bottom: 40px;
+  margin-bottom: 50px;
   color: #e0e0e0;
   font-weight: 700;
 }
@@ -64,6 +73,7 @@ section {
   border-radius: 12px;
   padding: 40px;
   border: 1px solid #3d4149;
+  margin-top: 20px;
 }
 
 section > div {
@@ -164,45 +174,61 @@ code:not(pre code) {
 /* Mobile optimizations */
 @media (max-width: 992px) {
   main {
-    padding: 100px 30px 40px 30px;
+    padding: 120px 30px 40px 30px;
+  }
+
+  h1.cim {
+    margin-bottom: 40px;
+  }
+
+  section {
+    margin-top: 15px;
   }
 
   .navigation-buttons {
     flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
   }
 
-  .prev-btn, .next-btn {
-    margin: 0 !important;
+  .nav-btn {
     width: 100%;
+    min-width: 0;
     justify-content: center;
   }
 }
 
 @media (max-width: 768px) {
   main {
-    padding: 90px 20px 30px 20px;
+    padding: 110px 20px 30px 20px;
   }
 
   h1.cim {
     font-size: 1.75rem;
-    margin-bottom: 30px;
+    margin-bottom: 35px;
   }
 
   section {
-    padding: 20px;
+    padding: 20px 15px;
+    margin-top: 10px;
   }
 
   section > div {
-    padding: 20px;
+    padding: 20px 15px;
+    margin-bottom: 20px;
   }
 
   h3 {
     font-size: 1.25rem;
+    margin-bottom: 15px;
   }
 
   pre {
-    padding: 15px !important;
-    font-size: 13px;
+    padding: 12px !important;
+    font-size: 11px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .btn-primary {
@@ -219,39 +245,58 @@ code:not(pre code) {
   }
 
   .nav-btn {
-    padding: 10px 20px;
+    padding: 12px 16px;
     font-size: 0.9em;
+  }
+  
+  .nav-btn .nav-text {
+    font-size: 0.9em;
+  }
+  
+  .prev-btn,
+  .next-btn,
+  .top-btn {
+    justify-content: center !important;
   }
 }
 
 @media (max-width: 480px) {
   main {
-    padding: 80px 15px 25px 15px;
+    padding: 100px 12px 25px 12px;
   }
 
   h1.cim {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    margin-bottom: 30px;
   }
 
   h3 {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    margin-bottom: 12px;
   }
 
   section {
-    padding: 15px;
+    padding: 15px 10px;
+    margin-top: 8px;
   }
 
   section > div {
-    padding: 15px;
+    padding: 15px 10px;
+    margin-bottom: 18px;
   }
 
   pre {
-    font-size: 12px;
-    padding: 12px !important;
+    font-size: 10px;
+    padding: 10px !important;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
   }
 
   code:not(pre code) {
     font-size: 0.85rem;
+    word-break: break-word;
   }
 
   .btn-primary {
@@ -259,7 +304,15 @@ code:not(pre code) {
     font-size: 0.9rem;
   }
 
+  .nav-btn {
+    padding: 10px 14px;
+  }
+
   .nav-btn .nav-text {
     font-size: 0.85em;
+  }
+  
+  .nav-btn .arrow {
+    font-size: 1em;
   }
 }
