@@ -70,13 +70,22 @@
   padding: 0.45rem 0.6rem;
   width: 100%;
   box-sizing: border-box;
-  color: var(--muted);
+  color: #6a6a8a;
   text-decoration: none;
   border-radius: 6px;
+  border-left: 3px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 #mySidenav .subnav-content a:hover {
   color: var(--text);
-  background: rgba(127,90,240,0.03);
+  background: rgba(127,90,240,0.08);
+  border-left-color: #a693ff;
+}
+#mySidenav .subnav-content a[aria-current="page"] {
+  color: var(--text);
+  background: rgba(127,90,240,0.15);
+  border-left-color: var(--accent);
+  font-weight: 600;
 }
 
 /* auth gomb (lila) */
@@ -264,7 +273,7 @@
           <div class="navbar-collapse">
             <div class="navbar-nav">
               <span style="font-size: 30px; cursor: pointer" onclick="toggleNav()" class="sidebargomb">&#9776;</span>
-              <a class="nav-link" aria-current="page" href="">főoldal</a>
+              <a class="nav-link" href="">főoldal</a>
               <a class="nav-link" href="html/alapok">html</a>
               <a class="nav-link" href="css/alapok">css</a>
               <a class="nav-link" href="python/alapok">python</a>
@@ -275,6 +284,42 @@
         </div>
       </nav>
     `;
+    
+    // Dinamikusan beállítjuk az aria-current="page"-et az aktuális oldalon
+    try {
+      const currentPath = location.pathname.toLowerCase().replace(/\/+$/, '');
+      const navLinks = header.querySelectorAll('.nav-link');
+      
+      // Kinyerjük az aktuális oldal kategóriáját (első szegmens az URL-ből)
+      // pl. "/html/structure/" -> "html", "/python/run/" -> "python"
+      const pathSegments = currentPath.split('/').filter(s => s);
+      const currentCategory = pathSegments.length > 0 ? pathSegments[0] : '';
+      
+      navLinks.forEach(link => {
+        const linkHref = link.getAttribute('href');
+        if (!linkHref) return;
+        
+        const linkPath = linkHref.toLowerCase().replace(/\/+$/, '');
+        
+        // Főoldal ellenőrzése (pontos egyezés)
+        if (linkPath === '' && (currentPath === '' || currentPath === '/' || currentPath === '/index.html')) {
+          link.setAttribute('aria-current', 'page');
+        }
+        // Kategória oldalak ellenőrzése - kivesszük a link első szegmensét
+        // pl. "html/alapok" -> "html", "python/alapok" -> "python"
+        else if (linkPath) {
+          const linkSegments = linkPath.split('/').filter(s => s);
+          const linkCategory = linkSegments.length > 0 ? linkSegments[0] : '';
+          
+          // Ha az aktuális kategória megegyezik a link kategóriájával
+          if (linkCategory && currentCategory === linkCategory) {
+            link.setAttribute('aria-current', 'page');
+          }
+        }
+      });
+    } catch (e) {
+      console.error('Error setting aria-current:', e);
+    }
   }
 
   /* ======= Konstansok, állapot ======= */
@@ -947,6 +992,7 @@ window.toggleNav = function () {
           
           if (isMatch && itemLink) {
             link.classList.add('active');
+            link.setAttribute('aria-current', 'page');
             button.classList.add('active');
             content.style.display = 'block';
             content.style.overflow = 'hidden';
