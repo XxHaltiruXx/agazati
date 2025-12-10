@@ -7,7 +7,6 @@ div.background {
   padding: 20px;
 }
 
-
 div.card {
   width: 90%;
   max-width: 980px;    
@@ -30,14 +29,12 @@ div.card {
   box-shadow 0.3s ease;
 }
 
-
 .felkialt {
   width: 60px;
   height: auto;
   display: block;
   margin: 0 auto;
 }
-
 
 h1 {
   color: var(--title-color);
@@ -47,7 +44,6 @@ h1 {
   line-height: 1.08;
   font-weight: 600;
 }
-
 
 .links {
   display: flex;
@@ -82,8 +78,6 @@ hr {
   margin: 5px auto;
   border: 0;
 }
-
-
 
 @media (max-width: 599px) {
   html { font-size: 15px; } 
@@ -120,8 +114,6 @@ hr {
   h1 { font-size: 1.25rem; }
 }
 
-
-
 @media (min-width: 992px) {
   html { font-size: 16px; }
   div.card {
@@ -141,4 +133,8 @@ hr {
 a:focus, button:focus {
   outline: 3px solid rgba(147,24,248,0.25);
   outline-offset: 3px;
+}
+
+p{
+  color: var(--title-color);
 }

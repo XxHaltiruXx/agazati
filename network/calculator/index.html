@@ -1,12 +1,105 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IP Cím / Subnet Kalkulátor</title>
-    <link rel="stylesheet" href="../../assets/css/base.css">
-    <link rel="stylesheet" href="../../assets/css/main.css">
+    <meta charset="utf-8" />
+    <meta name="description" content="IP cím és subnet kalkulátor - CIDR, VLSM, ELSM számítások gyakorló feladatokkal." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - IP Kalkulátor</title>
     <style>
+        :root {
+            --bg-primary: #1a1d23;
+            --bg-secondary: #2d3139;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent-color: #4c0bce;
+            --accent-color-dark: #3a0999;
+            --border-color: #3d4149;
+            --info-color: #3b82f6;
+        }
+
+        /* Navigation buttons */
+        .navigation-buttons {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 30px;
+            gap: 20px;
+            padding: 0;
+        }
+
+        .navigation-buttons.hidden-nav {
+            display: none !important;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: white !important;
+            text-decoration: none;
+        }
+
+        .nav-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .nav-btn .arrow {
+            font-size: 1.3em;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .nav-btn .nav-text {
+            font-size: 1rem;
+            line-height: 1.2;
+        }
+
+        .nav-btn.prev-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .nav-btn.prev-btn:hover {
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+
         .calculator-container {
             max-width: 1000px;
             margin: 2rem auto;
@@ -280,8 +373,18 @@
     </style>
 </head>
 <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+
     <div class="calculator-container">
-        <h1>🌐 IP Cím / Subnet Kalkulátor</h1>
+        <div class="navigation-buttons hidden-nav" id="backNavigation">
+            <a href="network/routing/" class="nav-btn prev-btn">
+                <span class="nav-text">Vissza: Routing</span>
+                <span class="arrow">←</span>
+            </a>
+        </div>
+
+        <h1 class="cim text-center">🌐 IP Cím / Subnet Kalkulátor</h1>
 
         <div class="tabs">
             <button class="tab-button active" data-tab="calculator">Kalkulátor</button>
@@ -293,18 +396,18 @@
         <!-- Kalkulátor Tab -->
         <div id="calculator" class="tab-content active">
             <div class="info-box">
-                <p>Adja meg az IP címet és a subnet maszkot (vagy CIDR jelölést) az alhálózat adatainak kiszámításához.</p>
+                <p>📊 Adja meg az IP címet és a subnet maszkot (vagy CIDR jelölést) az alhálózat részletes adatainak kiszámításához. A kalkulátor automatikusan kiszámolja a hálózati címet, broadcast címet, használható host címeket és egyéb fontos információkat.</p>
             </div>
 
             <div class="input-group">
                 <div class="form-group">
                     <label for="ip-address">IP Cím:</label>
-                    <input type="text" id="ip-address" placeholder="pl. 206.210.210.162">
+                    <input type="text" id="ip-address" placeholder="pl. 163.199.149.109">
                     <div class="error" id="ip-error"></div>
                 </div>
                 <div class="form-group">
                     <label for="subnet-mask">Subnet Maszk / CIDR:</label>
-                    <input type="text" id="subnet-mask" placeholder="pl. 255.255.255.248 vagy /29">
+                    <input type="text" id="subnet-mask" placeholder="pl. 255.255.248.0 vagy /21">
                     <div class="error" id="subnet-error"></div>
                 </div>
             </div>
@@ -415,7 +518,16 @@
             </div>
 
             <div id="task-stats" class="info-box">
-                <p><strong>Helyes:</strong> <span id="correct-count">0</span> / <strong>Hibás:</strong> <span id="wrong-count">0</span></p>
+                <div style="display: flex; justify-content: center; gap: 3rem; align-items: center;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.3rem;">✅ Helyes</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #10b981;"><span id="correct-count">0</span></div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.3rem;">❌ Hibás</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #ef4444;"><span id="wrong-count">0</span></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -529,39 +641,60 @@
             const firstHost = binaryToIP(ipToBinary(network).substr(0, 31) + '1');
             const lastHost = binaryToIP(ipToBinary(broadcast).substr(0, 31) + '0');
 
+            const totalHosts = Math.pow(2, 32 - cidr);
+            const ipBinary = ipToBinary(ipInput);
+            const subnetBinary = ipToBinary(subnet);
+            const networkBinary = ipToBinary(network);
+
             const resultsDiv = document.getElementById('subnet-results');
             resultsDiv.innerHTML = `
                 <div class="result-card">
-                    <h3>IP Cím</h3>
+                    <h3>IP address base256</h3>
                     <div class="result-value">${ipInput}</div>
                 </div>
                 <div class="result-card">
-                    <h3>Subnet Maszk</h3>
-                    <div class="result-value">${subnet}</div>
+                    <h3>IP address binary</h3>
+                    <div class="result-value">${ipBinary.match(/.{8}/g).join('.')}</div>
                 </div>
                 <div class="result-card">
-                    <h3>CIDR Jelölés</h3>
+                    <h3>SNM short format</h3>
                     <div class="result-value">/${cidr}</div>
                 </div>
                 <div class="result-card">
-                    <h3>Hálózati Cím</h3>
+                    <h3>Subnet Mask base 256</h3>
+                    <div class="result-value">${subnet}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Subnet Mask binary</h3>
+                    <div class="result-value">${subnetBinary.match(/.{8}/g).join('.')}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Network Address base 256</h3>
                     <div class="result-value">${network}</div>
                 </div>
                 <div class="result-card">
-                    <h3>Broadcast Cím</h3>
-                    <div class="result-value">${broadcast}</div>
-                </div>
-                <div class="result-card">
-                    <h3>Első Host</h3>
+                    <h3>First usable ip address base 256</h3>
                     <div class="result-value">${firstHost}</div>
                 </div>
                 <div class="result-card">
-                    <h3>Utolsó Host</h3>
+                    <h3>Last usable ip address base 256</h3>
                     <div class="result-value">${lastHost}</div>
                 </div>
                 <div class="result-card">
-                    <h3>Elérhető Hostok</h3>
-                    <div class="result-value">${hostCount}</div>
+                    <h3>Broadcast address base 256</h3>
+                    <div class="result-value">${broadcast}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Total Number of Hosts</h3>
+                    <div class="result-value">${totalHosts.toLocaleString()}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Number of Usable Hosts</h3>
+                    <div class="result-value">${hostCount.toLocaleString()}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Short IP address with snm</h3>
+                    <div class="result-value">${ipInput}/${cidr}</div>
                 </div>
             `;
             resultsDiv.classList.remove('hidden');
@@ -807,15 +940,15 @@
                 difficulty: 'easy',
                 generator: function() {
                     const cidr = Math.floor(Math.random() * 20) + 8;
-                    const parts = [Math.floor(Math.random() * 223) + 1, Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), 0];
+                    const parts = [Math.floor(Math.random() * 223) + 1, Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)];
                     const ip = parts.join('.');
                     const network = getNetworkAddress(ip, cidr);
                     const subnet = cidrToSubnetMask(cidr);
                     
                     return {
-                        question: `Adott az ${ip} cím és a ${subnet} maszk. Hálózati cím?`,
-                        answers: { network: network, subnet: subnet, cidr: `/${cidr}` },
-                        correctField: 'network'
+                        question: `Adott az IP cím: ${ip}/${cidr}. Mi a hálózati cím (Network Address)?`,
+                        correctAnswer: network,
+                        inputLabel: 'Network Address'
                     };
                 }
             },
@@ -826,12 +959,41 @@
                     const parts = [Math.floor(Math.random() * 223) + 1, Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)];
                     const ip = parts.join('.');
                     const broadcast = getBroadcastAddress(ip, cidr);
-                    const subnet = cidrToSubnetMask(cidr);
                     
                     return {
-                        question: `Adott az ${ip} cím és a /${cidr} CIDR. Broadcast cím?`,
-                        answers: { broadcast: broadcast, subnet: subnet, cidr: `/${cidr}` },
-                        correctField: 'broadcast'
+                        question: `Adott az IP cím: ${ip}/${cidr}. Mi a broadcast cím?`,
+                        correctAnswer: broadcast,
+                        inputLabel: 'Broadcast Address'
+                    };
+                }
+            },
+            {
+                difficulty: 'easy',
+                generator: function() {
+                    const cidr = Math.floor(Math.random() * 20) + 8;
+                    const parts = [Math.floor(Math.random() * 223) + 1, Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)];
+                    const ip = parts.join('.');
+                    const firstHost = binaryToIP(ipToBinary(getNetworkAddress(ip, cidr)).substr(0, 31) + '1');
+                    
+                    return {
+                        question: `Adott az IP cím: ${ip}/${cidr}. Mi az első használható host cím?`,
+                        correctAnswer: firstHost,
+                        inputLabel: 'First Usable IP Address'
+                    };
+                }
+            },
+            {
+                difficulty: 'easy',
+                generator: function() {
+                    const cidr = Math.floor(Math.random() * 20) + 8;
+                    const parts = [Math.floor(Math.random() * 223) + 1, Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)];
+                    const ip = parts.join('.');
+                    const lastHost = binaryToIP(ipToBinary(getBroadcastAddress(ip, cidr)).substr(0, 31) + '0');
+                    
+                    return {
+                        question: `Adott az IP cím: ${ip}/${cidr}. Mi az utolsó használható host cím?`,
+                        correctAnswer: lastHost,
+                        inputLabel: 'Last Usable IP Address'
                     };
                 }
             },
@@ -840,12 +1002,11 @@
                 generator: function() {
                     const cidr = Math.floor(Math.random() * 15) + 10;
                     const hostCount = Math.pow(2, 32 - cidr) - 2;
-                    const subnet = cidrToSubnetMask(cidr);
                     
                     return {
-                        question: `Hány elérhető host van a /${cidr} alhálózatban?`,
-                        answers: { hosts: hostCount.toString(), subnet: subnet, cidr: `/${cidr}` },
-                        correctField: 'hosts'
+                        question: `Hány használható host cím van egy /${cidr} hálózatban?`,
+                        correctAnswer: hostCount.toString(),
+                        inputLabel: 'Number of Usable Hosts'
                     };
                 }
             },
@@ -856,9 +1017,37 @@
                     const subnet = cidrToSubnetMask(cidr);
                     
                     return {
-                        question: `CIDR jelölés, ha a subnet maszk: ${subnet}?`,
-                        answers: { cidr: `/${cidr}`, subnet: subnet },
-                        correctField: 'cidr'
+                        question: `Mi a CIDR jelölés, ha a subnet maszk: ${subnet}?`,
+                        correctAnswer: `/${cidr}`,
+                        inputLabel: 'CIDR Notation'
+                    };
+                }
+            },
+            {
+                difficulty: 'medium',
+                generator: function() {
+                    const cidr = Math.floor(Math.random() * 20) + 8;
+                    const subnet = cidrToSubnetMask(cidr);
+                    
+                    return {
+                        question: `Mi a subnet maszk decimális formában, ha a CIDR: /${cidr}?`,
+                        correctAnswer: subnet,
+                        inputLabel: 'Subnet Mask'
+                    };
+                }
+            },
+            {
+                difficulty: 'hard',
+                generator: function() {
+                    const cidr = Math.floor(Math.random() * 20) + 8;
+                    const parts = [Math.floor(Math.random() * 223) + 1, Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)];
+                    const ip = parts.join('.');
+                    const totalHosts = Math.pow(2, 32 - cidr);
+                    
+                    return {
+                        question: `Adott az IP cím: ${ip}/${cidr}. Hány összes IP cím van ebben a hálózatban? (beleértve a network és broadcast címet is)`,
+                        correctAnswer: totalHosts.toString(),
+                        inputLabel: 'Total Number of Hosts'
                     };
                 }
             }
@@ -867,22 +1056,21 @@
         function generateNewTask() {
             const randomType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
             currentTask = randomType.generator();
+            currentTask.difficulty = randomType.difficulty;
             
             document.getElementById('task-text').textContent = currentTask.question;
             const diffClass = `difficulty-${randomType.difficulty}`;
-            document.getElementById('task-type').textContent = randomType.difficulty === 'easy' ? 'Könnyű' : 'Közepes';
+            const diffText = randomType.difficulty === 'easy' ? 'Könnyű' : randomType.difficulty === 'medium' ? 'Közepes' : 'Nehéz';
+            document.getElementById('task-type').textContent = diffText;
             document.getElementById('task-type').className = `task-difficulty ${diffClass}`;
 
             const answersDiv = document.getElementById('task-answers');
             answersDiv.innerHTML = '';
 
-            Object.keys(currentTask.answers).forEach(key => {
-                const div = document.createElement('div');
-                div.className = 'form-group';
-                const labelText = key === 'network' ? 'Hálózat' : key === 'broadcast' ? 'Broadcast' : key === 'hosts' ? 'Hostok' : 'CIDR';
-                div.innerHTML = `<label for="answer-${key}">${labelText}:</label><input type="text" id="answer-${key}" placeholder="Válasz">`;
-                answersDiv.appendChild(div);
-            });
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `<label for="answer-input">${currentTask.inputLabel}:</label><input type="text" id="answer-input" placeholder="Írja be a választ">`;
+            answersDiv.appendChild(div);
 
             document.getElementById('answer-feedback').classList.remove('feedback-correct', 'feedback-incorrect');
             document.getElementById('answer-feedback').style.display = 'none';
@@ -890,12 +1078,18 @@
 
         function checkAnswer() {
             if (!currentTask) {
-                alert('Generáljon feladatot!');
+                alert('Kérem, generáljon először egy feladatot!');
                 return;
             }
 
-            const userAnswer = document.getElementById(`answer-${currentTask.correctField}`).value.trim();
-            const correctAnswer = currentTask.answers[currentTask.correctField];
+            const userAnswer = document.getElementById('answer-input').value.trim();
+            const correctAnswer = currentTask.correctAnswer;
+            
+            if (!userAnswer) {
+                alert('Kérem, adjon meg egy választ!');
+                return;
+            }
+
             const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
 
             const feedback = document.getElementById('answer-feedback');
@@ -906,14 +1100,14 @@
                 correctCount++;
                 feedback.classList.remove('feedback-incorrect');
                 feedback.classList.add('feedback-correct');
-                feedbackTitle.textContent = '✅ Helyes!';
-                feedbackDetails.innerHTML = `<strong>Válasz:</strong> ${userAnswer}<br><strong>Helyes:</strong> ${correctAnswer}`;
+                feedbackTitle.textContent = '✅ Helyes válasz!';
+                feedbackDetails.innerHTML = `<strong>Az Ön válasza:</strong> ${userAnswer}<br><strong>Helyes válasz:</strong> ${correctAnswer}`;
             } else {
                 wrongCount++;
                 feedback.classList.remove('feedback-correct');
                 feedback.classList.add('feedback-incorrect');
-                feedbackTitle.textContent = '❌ Hibás!';
-                feedbackDetails.innerHTML = `<strong>Válasz:</strong> ${userAnswer}<br><strong>Helyes:</strong> ${correctAnswer}`;
+                feedbackTitle.textContent = '❌ Hibás válasz!';
+                feedbackDetails.innerHTML = `<strong>Az Ön válasza:</strong> ${userAnswer}<br><strong>Helyes válasz:</strong> ${correctAnswer}`;
             }
 
             feedback.style.display = 'block';
@@ -945,6 +1139,26 @@
         document.getElementById('subnet-mask')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') calculateSubnet();
         });
+
+        // Vissza gomb megjelenítése csak akkor, ha ?from=next URL paraméter van
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const backNav = document.getElementById('backNavigation');
+            
+            console.log('Calculator - URL search:', window.location.search);
+            console.log('Calculator - from parameter:', urlParams.get('from'));
+            console.log('Calculator - backNav element:', backNav);
+            
+            if (urlParams.get('from') === 'next') {
+                console.log('Calculator - Showing back navigation');
+                backNav.classList.remove('hidden-nav');
+            } else {
+                console.log('Calculator - Hiding back navigation');
+            }
+        });
     </script>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
 </body>
 </html>

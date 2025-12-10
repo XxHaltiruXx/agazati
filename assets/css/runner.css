@@ -2,6 +2,66 @@ div.row{
     margin: 0;
 }
 
+/* ==================== NAVIGATION BUTTONS ==================== */
+.navigation-buttons {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 30px;
+  gap: 20px;
+  padding: 0;
+}
+
+.navigation-buttons.hidden-nav {
+  display: none !important;
+}
+
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white !important;
+  text-decoration: none;
+}
+
+.nav-btn:active {
+  transform: translateY(-1px);
+}
+
+.nav-btn .arrow {
+  font-size: 1.3em;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.nav-btn .nav-text {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.nav-btn.prev-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.nav-btn.prev-btn:hover {
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+}
+
 /* ==================== KÖZÖS RUNNER STÍLUSOK ==================== */
 
 .runner-toolbar {

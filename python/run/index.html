@@ -22,10 +22,16 @@
 
   <div id="mySidenav" class="sidenav"></div>
 
-
   <h2 class="cim subsite">Python Futtató</h2>
 
   <main>
+    <div class="navigation-buttons hidden-nav" id="backNavigation">
+      <a href="python/exceptions/" class="nav-btn prev-btn">
+        <span class="nav-text">Vissza: Hibakezelés</span>
+        <span class="arrow">←</span>
+      </a>
+    </div>
+
     <!-- Toolbar -->
     <div class="runner-toolbar">
         <!-- Futtatás gomb (mindig látható) -->
@@ -659,6 +665,25 @@ finally:
 
     window.__pyodide_lazy_loader = { ensureLoaded: ensurePyodideLoaded, isReady: () => pyodideReady };
   })();
+  </script>
+  
+  <script>
+    // Vissza gomb megjelenítése csak akkor, ha ?from=next URL paraméter van
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const backNav = document.getElementById('backNavigation');
+      
+      console.log('URL search:', window.location.search);
+      console.log('from parameter:', urlParams.get('from'));
+      console.log('backNav element:', backNav);
+      
+      if (urlParams.get('from') === 'next') {
+        console.log('Showing back navigation');
+        backNav.classList.remove('hidden-nav');
+      } else {
+        console.log('Hiding back navigation');
+      }
+    });
   </script>
   
   <script src="assets/js/nav.js"></script>

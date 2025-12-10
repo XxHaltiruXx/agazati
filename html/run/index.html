@@ -19,10 +19,17 @@
 
 <body>
     <div id="mySidenav" class="sidenav"></div>
+
     <div>
         <h2 class="cim subsite">HTML & CSS Futtató</h2>
     </div>
     <main>
+        <div class="navigation-buttons hidden-nav" id="backNavigation">
+            <a href="html/media/" class="nav-btn prev-btn">
+                <span class="nav-text">Vissza: Multimédia</span>
+                <span class="arrow">←</span>
+            </a>
+        </div>
         <!-- Toolbar -->
         <div class="runner-toolbar">
             <!-- Mobil dropdown -->
@@ -131,6 +138,26 @@
     </main>
     
     <script src="assets/js/html-runner.js"></script>
+    
+    <script>
+      // Vissza gomb megjelenítése csak akkor, ha ?from=next URL paraméter van
+      document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const backNav = document.getElementById('backNavigation');
+        
+        console.log('HTML Runner - URL search:', window.location.search);
+        console.log('HTML Runner - from parameter:', urlParams.get('from'));
+        console.log('HTML Runner - backNav element:', backNav);
+        
+        if (urlParams.get('from') === 'next') {
+          console.log('HTML Runner - Showing back navigation');
+          backNav.classList.remove('hidden-nav');
+        } else {
+          console.log('HTML Runner - Hiding back navigation');
+        }
+      });
+    </script>
+    
     <script src="assets/js/nav.js"></script>
     <script src="assets/js/footer.js"></script>
 </body>
