@@ -287,11 +287,14 @@
     
     // Dinamikusan beállítjuk az aria-current="page"-et az aktuális oldalon
     try {
-      let currentPath = location.pathname.toLowerCase().replace(/\/+$/, '');
+      let currentPath = location.pathname.toLowerCase();
       
       // GitHub Pages esetén eltávolítjuk a repository prefix-et (pl. /agazati/)
       // hogy ugyanúgy működjön mint lokálisan
       currentPath = currentPath.replace(/^\/agazati\/?/i, '/');
+      
+      // Lezáró / eltávolítása, de csak ha nem a főoldal
+      currentPath = currentPath.replace(/\/+$/, '') || '/';
       
       const navLinks = header.querySelectorAll('.nav-link');
       
@@ -302,18 +305,21 @@
       
       navLinks.forEach(link => {
         const linkHref = link.getAttribute('href');
-        if (!linkHref) return;
+        if (linkHref === null) return;
         
-        const linkPath = linkHref.toLowerCase().replace(/\/+$/, '');
+        const linkPath = linkHref.toLowerCase().trim();
         
-        // Főoldal ellenőrzése (pontos egyezés)
-        if (linkPath === '' && (currentPath === '' || currentPath === '/' || currentPath === '/index.html')) {
+        // Főoldal ellenőrzése - ha a link üres vagy csak "/", és az oldal a főoldal
+        const isHomepageLink = linkPath === '' || linkPath === '/';
+        const isHomepage = currentPath === '/' || currentPath === '/index.html' || currentPath === '/index';
+        
+        if (isHomepageLink && isHomepage) {
           link.setAttribute('aria-current', 'page');
         }
         // Kategória oldalak ellenőrzése - kivesszük a link első szegmensét
         // pl. "html/alapok" -> "html", "python/alapok" -> "python"
-        else if (linkPath) {
-          const linkSegments = linkPath.split('/').filter(s => s);
+        else if (linkPath && !isHomepageLink) {
+          const linkSegments = linkPath.replace(/^\/+|\/+$/g, '').split('/').filter(s => s);
           const linkCategory = linkSegments.length > 0 ? linkSegments[0] : '';
           
           // Ha az aktuális kategória megegyezik a link kategóriájával
