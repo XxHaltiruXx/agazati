@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Python változók és adattípusok részletesen." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Python Változók és Típusok</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="python/alapok" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Alapok</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="python/control" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Vezérlési szerkezetek</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Változók és Adattípusok</h1>
+      <section>
+        <div>
+          <h3>Mi az a változó?</h3>
+          <p>
+            A <strong>változó</strong> egy névvel ellátott tárolóhely a memóriában, ahol adatokat 
+            tárolhatunk. Python-ban a változók dinamikusan típusosak, ami azt jelenti, hogy nem kell 
+            előre megadni a típusukat, és később megváltoztathatjuk őket.
+          </p>
+          <div class="code-container">
+            <pre><code># Változó létrehozása
+x = 10        # x most egy egész szám
+print(x)      # 10
+
+x = "Hello"   # x most egy string
+print(x)      # Hello
+
+x = 3.14      # x most egy lebegőpontos szám
+print(x)      # 3.14</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Változóelnevezési szabályok</h3>
+          <ul>
+            <li>Csak <strong>betűvel vagy aláhúzással (_)</strong> kezdődhet</li>
+            <li>Csak <strong>betűket, számokat és aláhúzást</strong> tartalmazhat</li>
+            <li><strong>Case-sensitive</strong> (kis- és nagybetű különbözik): <code>Nev</code> ≠ <code>nev</code></li>
+            <li>Ne használj <strong>kulcsszavakat</strong> (pl. <code>if</code>, <code>for</code>, <code>class</code>)</li>
+            <li>Használj <strong>értelmes neveket</strong> (<code>kor</code> > <code>x</code>)</li>
+            <li>Használj <strong>snake_case</strong>-t több szóból álló neveknél</li>
+          </ul>
+          <div class="code-container">
+            <pre><code># Helyes változónevek
+nev = "Péter"
+kor = 25
+felhasznalo_nev = "peter123"
+_privat = "rejtett"
+nev2 = "Második név"
+
+# Helytelen változónevek
+# 2nev = "Hiba"       # Számmal kezdődik
+# nev-valtozo = ""    # Kötőjelet tartalmaz
+# for = 5             # Kulcsszó</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Alapvető adattípusok</h3>
+          
+          <h4>1. Integer (int) - Egész számok</h4>
+          <p>Egész számok tárolására szolgál, nincs méretkorlát:</p>
+          <div class="code-container">
+            <pre><code># Egész számok
+szam = 42
+negativ = -100
+nagy_szam = 999999999999999999
+
+print(type(szam))  # <class 'int'>
+
+# Műveletek
+print(10 + 5)   # 15
+print(10 - 3)   # 7
+print(10 * 2)   # 20
+print(10 // 3)  # 3 (egész osztás)
+print(10 % 3)   # 1 (maradék)
+print(2 ** 8)   # 256 (hatványozás)</code></pre>
+          </div>
+
+          <h4>2. Float - Lebegőpontos számok</h4>
+          <p>Tizedestört számok tárolására:</p>
+          <div class="code-container">
+            <pre><code># Lebegőpontos számok
+pi = 3.14159
+negativ = -2.5
+tudomanyos = 1.5e-4  # 0.00015
+
+print(type(pi))  # <class 'float'>
+
+# Műveletek
+print(10.5 + 2.3)   # 12.8
+print(10 / 3)       # 3.3333...
+print(round(3.14159, 2))  # 3.14 (kerekítés)</code></pre>
+          </div>
+
+          <h4>3. String (str) - Szövegek</h4>
+          <p>Karakterláncok tárolására, egyszerű vagy dupla idézőjellel:</p>
+          <div class="code-container">
+            <pre><code># Stringek létrehozása
+nev = "Anna"
+uzenet = 'Helló'
+tobbsoros = """Ez egy
+többsoros
+szöveg"""
+
+print(type(nev))  # <class 'str'>
+
+# String műveletek
+print("Hello" + " " + "World")  # Hello World
+print("Ha" * 3)                 # HaHaHa
+print(len("Python"))            # 6
+
+# Indexelés és szeletelés
+szoveg = "Python"
+print(szoveg[0])      # P (első karakter)
+print(szoveg[-1])     # n (utolsó)
+print(szoveg[0:3])    # Pyt (0-tól 3-ig)
+print(szoveg[2:])     # thon (2-től végig)</code></pre>
+          </div>
+
+          <h4>4. Boolean (bool) - Logikai értékek</h4>
+          <p>Igaz vagy hamis értékek tárolására:</p>
+          <div class="code-container">
+            <pre><code># Boolean értékek
+aktiv = True
+inaktiv = False
+
+print(type(aktiv))  # <class 'bool'>
+
+# Összehasonlítások
+print(5 > 3)      # True
+print(5 < 3)      # False
+print(5 == 5)     # True (egyenlő)
+print(5 != 3)     # True (nem egyenlő)
+
+# Logikai műveletek
+print(True and False)  # False
+print(True or False)   # True
+print(not True)        # False</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Összetett adattípusok</h3>
+          
+          <h4>5. List - Listák (tömbök)</h4>
+          <p>Rendezett, módosítható gyűjtemény, amely különböző típusokat tartalmazhat:</p>
+          <div class="code-container">
+            <pre><code># Lista létrehozása
+gyumolcsok = ["alma", "banán", "cseresznye"]
+szamok = [1, 2, 3, 4, 5]
+vegyes = [1, "kettő", 3.0, True]
+
+print(type(gyumolcsok))  # <class 'list'>
+
+# Lista műveletek
+print(gyumolcsok[0])        # alma
+print(len(gyumolcsok))      # 3
+
+gyumolcsok.append("dinnye") # hozzáad a végére
+gyumolcsok.insert(0, "eper") # beszúr az elejére
+gyumolcsok.remove("banán")  # eltávolít
+gyumolcsok.pop()            # utolsó elem eltávolítása
+
+print(gyumolcsok)</code></pre>
+          </div>
+
+          <h4>6. Tuple - Rendezett halmaz</h4>
+          <p>Rendezett, <strong>NEM módosítható</strong> gyűjtemény:</p>
+          <div class="code-container">
+            <pre><code># Tuple létrehozása
+koordinatak = (10, 20)
+szinek = ("piros", "zöld", "kék")
+
+print(type(koordinatak))  # <class 'tuple'>
+
+# Tuple műveletek
+print(koordinatak[0])  # 10
+print(len(szinek))     # 3
+
+# Nem módosítható!
+# szinek[0] = "sárga"  # TypeError!</code></pre>
+          </div>
+
+          <h4>7. Set - Halmaz</h4>
+          <p>Rendezetlen, egyedi elemeket tartalmazó gyűjtemény:</p>
+          <div class="code-container">
+            <pre><code># Set létrehozása
+szamok = {1, 2, 3, 4, 5}
+gyumolcsok = {"alma", "banán", "alma"}  # duplikátumok törlődnek
+
+print(type(szamok))  # <class 'set'>
+print(gyumolcsok)    # {'alma', 'banán'}
+
+# Set műveletek
+szamok.add(6)      # elem hozzáadása
+szamok.remove(2)   # elem eltávolítása
+
+# Halmazműveletek
+set1 = {1, 2, 3}
+set2 = {3, 4, 5}
+print(set1 | set2)  # Unió: {1, 2, 3, 4, 5}
+print(set1 & set2)  # Metszet: {3}</code></pre>
+          </div>
+
+          <h4>8. Dictionary (dict) - Szótárak</h4>
+          <p>Kulcs-érték párok tárolására:</p>
+          <div class="code-container">
+            <pre><code># Dictionary létrehozása
+szemely = {
+    "nev": "Péter",
+    "kor": 25,
+    "varos": "Budapest"
+}
+
+print(type(szemely))  # <class 'dict'>
+
+# Dictionary műveletek
+print(szemely["nev"])     # Péter
+print(szemely.get("kor")) # 25
+
+szemely["email"] = "peter@example.com"  # új kulcs
+szemely["kor"] = 26  # módosítás
+
+# Iterálás
+for kulcs, ertek in szemely.items():
+    print(f"{kulcs}: {ertek}")</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Típuskonverzió</h3>
+          <p>Az egyik típusról a másikra való átváltás:</p>
+          <div class="code-container">
+            <pre><code># String → Int
+szam_str = "42"
+szam = int(szam_str)
+print(szam + 8)  # 50
+
+# String → Float
+pi_str = "3.14"
+pi = float(pi_str)
+print(pi * 2)  # 6.28
+
+# Int/Float → String
+szam = 100
+szoveg = str(szam)
+print("A szám: " + szoveg)
+
+# Int → Float
+egesz = 5
+tort = float(egesz)
+print(tort)  # 5.0
+
+# Float → Int (levágja a törtrészt)
+tort = 3.99
+egesz = int(tort)
+print(egesz)  # 3
+
+# Lista → Tuple
+lista = [1, 2, 3]
+tuple_alakban = tuple(lista)
+
+# String → Lista
+szoveg = "Python"
+karakterek = list(szoveg)
+print(karakterek)  # ['P', 'y', 't', 'h', 'o', 'n']</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Változók többszörös értékadása</h3>
+          <p>Python lehetővé teszi több változó egyidejű értékadását:</p>
+          <div class="code-container">
+            <pre><code># Egyidejű értékadás
+x, y, z = 1, 2, 3
+print(x, y, z)  # 1 2 3
+
+# Ugyanaz az érték több változónak
+a = b = c = 10
+print(a, b, c)  # 10 10 10
+
+# Értékek cseréje
+a, b = 5, 10
+a, b = b, a  # Csere
+print(a, b)  # 10 5
+
+# Lista kibontása
+szamok = [1, 2, 3]
+x, y, z = szamok
+print(x, y, z)  # 1 2 3</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Adattípusok összefoglaló táblázata</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Típus</th>
+                <th>Neve</th>
+                <th>Módosítható</th>
+                <th>Példa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>int</td>
+                <td>Egész szám</td>
+                <td>Igen</td>
+                <td>42, -10, 0</td>
+              </tr>
+              <tr>
+                <td>float</td>
+                <td>Lebegőpontos szám</td>
+                <td>Igen</td>
+                <td>3.14, -0.5</td>
+              </tr>
+              <tr>
+                <td>str</td>
+                <td>String (szöveg)</td>
+                <td>Nem</td>
+                <td>"Hello", 'Python'</td>
+              </tr>
+              <tr>
+                <td>bool</td>
+                <td>Logikai érték</td>
+                <td>Igen</td>
+                <td>True, False</td>
+              </tr>
+              <tr>
+                <td>list</td>
+                <td>Lista</td>
+                <td>Igen</td>
+                <td>[1, 2, 3]</td>
+              </tr>
+              <tr>
+                <td>tuple</td>
+                <td>Rendezett halmaz</td>
+                <td>Nem</td>
+                <td>(1, 2, 3)</td>
+              </tr>
+              <tr>
+                <td>set</td>
+                <td>Halmaz</td>
+                <td>Igen</td>
+                <td>{1, 2, 3}</td>
+              </tr>
+              <tr>
+                <td>dict</td>
+                <td>Szótár</td>
+                <td>Igen</td>
+                <td>{"nev": "Anna"}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Személyes adatok kezelése</h3>
+          <div class="code-container">
+            <pre><code># Személyes adatok különböző típusokban
+nev = "Kovács Anna"
+kor = 28
+magassag = 1.68  # méterben
+aktiv_felhasznalo = True
+
+# Lista kedvenc hobbiról
+hobbik = ["olvasás", "futás", "programozás"]
+
+# Tuple születési dátummal (nem változik)
+szuletesi_datum = (1995, 5, 15)
+
+# Set kedvenc színekkel (nincs duplikátum)
+kedvenc_szinek = {"kék", "zöld", "lila"}
+
+# Dictionary minden adattal
+szemely = {
+    "nev": nev,
+    "kor": kor,
+    "magassag": magassag,
+    "aktiv": aktiv_felhasznalo,
+    "hobbik": hobbik,
+    "szuletett": szuletesi_datum,
+    "szinek": kedvenc_szinek
+}
+
+# Adatok kiírása
+print(f"Név: {szemely['nev']}")
+print(f"Kor: {szemely['kor']} év")
+print(f"Magasság: {szemely['magassag']} m")
+print(f"Hobbik: {', '.join(szemely['hobbik'])}")
+print(f"Kedvenc színek: {len(szemely['szinek'])} darab")</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek</h3>
+          <ul>
+            <li>Használd a <code>type()</code> függvényt, ha nem vagy biztos a változó típusában</li>
+            <li>A <strong>lista</strong> a legalkalmasabb, ha rendezett, módosítható gyűjteményre van szükséged</li>
+            <li>A <strong>tuple</strong>-t használd fix adatoknál (pl. koordináták, RGB színek)</li>
+            <li>A <strong>set</strong> tökéletes egyedi értékek tárolására és halmazműveletekre</li>
+            <li>A <strong>dictionary</strong> kiváló strukturált adatok tárolására</li>
+            <li>Figyelj a típuskonverziónál, nem minden átalakítás lehetséges (pl. <code>int("hello")</code> hibát ad)</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="python/alapok" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Alapok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="python/control" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Vezérlési szerkezetek</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Tanulj meg mindent a reszponzív webdizájnról." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Reszponzív Dizájn</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="css/grid" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: CSS Grid</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="css/animation" class="nav-btn next-btn">
+          <span class="nav-text">Következő: CSS animációk</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Reszponzív Dizájn</h1>
+      <section>
+        <div>
+          <h3>Mi az a reszponzív dizájn?</h3>
+          <p>
+            A reszponzív webdizájn olyan megközelítés, amely biztosítja, hogy a weboldalak jól nézzenek ki 
+            és használhatóak legyenek minden eszközön - asztali számítógépen, táblagépen és mobiltelefonon egyaránt. 
+            Az oldal automatikusan alkalmazkodik a képernyő méretéhez és orientációjához.
+          </p>
+        </div>
+
+        <div>
+          <h3>Viewport meta tag</h3>
+          <p>
+            A reszponzív dizájn első lépése a viewport meta tag beállítása a HTML head részében:
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</code></pre>
+          </div>
+          <p>
+            Ez utasítja a böngészőt, hogy az oldal szélességét az eszköz szélességéhez igazítsa, 
+            és 1:1 arányban (100%) jelenítse meg.
+          </p>
+        </div>
+
+        <div>
+          <h3>Media Queries - Médialekérdezések</h3>
+          <p>
+            A media query-k lehetővé teszik, hogy különböző CSS szabályokat alkalmazzunk 
+            különböző képernyőméretekhez:
+          </p>
+          <div class="code-container">
+            <pre><code>/* Alapértelmezett stílusok (mobil first) */
+.kontener {
+    width: 100%;
+    padding: 10px;
+}
+
+/* Tablet mérettől (768px) */
+@media (min-width: 768px) {
+    .kontener {
+        width: 750px;
+        margin: 0 auto;
+    }
+}
+
+/* Desktop mérettől (1024px) */
+@media (min-width: 1024px) {
+    .kontener {
+        width: 960px;
+    }
+}
+
+/* Nagy desktop mérettől (1200px) */
+@media (min-width: 1200px) {
+    .kontener {
+        width: 1140px;
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakori breakpoint-ok</h3>
+          <p>
+            A leggyakrabban használt töréspontok különböző eszközökhöz:
+          </p>
+          <div class="code-container">
+            <pre><code>/* Extra kis eszközök (telefonok, 600px és alatta) */
+@media (max-width: 600px) { }
+
+/* Kis eszközök (telefon fekvő, tabletek, 768px és alatta) */
+@media (max-width: 768px) { }
+
+/* Közepes eszközök (tabletek, 992px és alatta) */
+@media (max-width: 992px) { }
+
+/* Nagy eszközök (asztali gépek, 1200px és alatta) */
+@media (max-width: 1200px) { }
+
+/* Extra nagy eszközök (nagy asztali gépek, 1200px feletti) */
+@media (min-width: 1200px) { }</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Mobil-first vs Desktop-first</h3>
+          
+          <h4>Mobil-first megközelítés (Ajánlott)</h4>
+          <p>Először a mobil nézethez írod a CSS-t, majd media query-kkel bővíted nagyobb képernyőkhöz:</p>
+          <div class="code-container">
+            <pre><code>/* Mobil alapértelmezett */
+.nav {
+    display: block;
+}
+
+/* Tablet és nagyobb */
+@media (min-width: 768px) {
+    .nav {
+        display: flex;
+    }
+}</code></pre>
+          </div>
+
+          <h4>Desktop-first megközelítés</h4>
+          <p>Először a desktop nézethez írod a CSS-t, majd media query-kkel alkalmazkodsz kisebb képernyőkhöz:</p>
+          <div class="code-container">
+            <pre><code>/* Desktop alapértelmezett */
+.nav {
+    display: flex;
+}
+
+/* Mobil */
+@media (max-width: 767px) {
+    .nav {
+        display: block;
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Rugalmas mértékegységek</h3>
+          <p>
+            A reszponzív dizájnban érdemes rugalmas mértékegységeket használni:
+          </p>
+          <div class="code-container">
+            <pre><code>/* Százalék - szülő elem százaléka */
+.kontener {
+    width: 90%;
+    max-width: 1200px;
+}
+
+/* em - szülő elem betűméretének többszöröse */
+.szoveg {
+    font-size: 1.2em;
+    padding: 0.5em;
+}
+
+/* rem - root (html) elem betűméretének többszöröse */
+.cim {
+    font-size: 2rem;     /* 32px ha root 16px */
+    margin-bottom: 1rem; /* 16px ha root 16px */
+}
+
+/* vw/vh - viewport szélesség/magasság százaléka */
+.hero {
+    height: 100vh;  /* teljes képernyő magasság */
+    width: 100vw;   /* teljes képernyő szélesség */
+}
+
+/* vmin/vmax - viewport kisebb/nagyobb dimenziója */
+.negyzet {
+    width: 50vmin;  /* 50% a kisebb dimenzióból */
+    height: 50vmin;
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Reszponzív képek</h3>
+          <p>
+            A képek megfelelő kezelése fontos a reszponzív dizájnban:
+          </p>
+          <div class="code-container">
+            <pre><code>/* Alapvető reszponzív kép */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Különböző képek különböző méretekhez */
+&lt;picture&gt;
+    &lt;source media="(min-width: 1024px)" srcset="nagy-kep.jpg"&gt;
+    &lt;source media="(min-width: 768px)" srcset="kozepes-kep.jpg"&gt;
+    &lt;img src="kicsi-kep.jpg" alt="Reszponzív kép"&gt;
+&lt;/picture&gt;
+
+/* Háttérkép media query-vel */
+.hero {
+    background-image: url('mobil-bg.jpg');
+}
+
+@media (min-width: 768px) {
+    .hero {
+        background-image: url('desktop-bg.jpg');
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Reszponzív kártya grid</h3>
+          <p>
+            Egy komplett reszponzív példa, amely alkalmazkodik különböző képernyőméretekhez:
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+    &lt;title&gt;Reszponzív Példa&lt;/title&gt;
+    &lt;style&gt;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        
+        /* Mobil alapértelmezett */
+        .kontener {
+            width: 95%;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .nav {
+            background-color: #34495e;
+            padding: 0.5rem;
+        }
+        
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem;
+            display: block;
+            border-radius: 4px;
+        }
+        
+        .nav a:hover {
+            background-color: #2c3e50;
+        }
+        
+        .kartya-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .kartya {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .kartya img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .kartya h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+        
+        .kartya p {
+            color: #7f8c8d;
+        }
+        
+        /* Tablet (768px és nagyobb) */
+        @media (min-width: 768px) {
+            .kontener {
+                width: 90%;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav ul {
+                flex-direction: row;
+                justify-content: center;
+            }
+            
+            .kartya-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+        }
+        
+        /* Desktop (1024px és nagyobb) */
+        @media (min-width: 1024px) {
+            .kontener {
+                max-width: 1200px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .kartya-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2rem;
+            }
+            
+            .kartya:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transition: all 0.3s ease;
+            }
+        }
+        
+        /* Nagy desktop (1440px és nagyobb) */
+        @media (min-width: 1440px) {
+            .kartya-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;header class="header"&gt;
+        &lt;h1&gt;Reszponzív Weboldal&lt;/h1&gt;
+    &lt;/header&gt;
+    
+    &lt;nav class="nav"&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;a href="#"&gt;Főoldal&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href="#"&gt;Rólunk&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href="#"&gt;Szolgáltatások&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href="#"&gt;Kapcsolat&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/nav&gt;
+    
+    &lt;div class="kontener"&gt;
+        &lt;div class="kartya-grid"&gt;
+            &lt;div class="kartya"&gt;
+                &lt;h3&gt;Kártya 1&lt;/h3&gt;
+                &lt;p&gt;Mobilon: 1 oszlop&lt;br&gt;Tableten: 2 oszlop&lt;br&gt;Desktopon: 3-4 oszlop&lt;/p&gt;
+            &lt;/div&gt;
+            
+            &lt;div class="kartya"&gt;
+                &lt;h3&gt;Kártya 2&lt;/h3&gt;
+                &lt;p&gt;Változtasd meg az ablak szélességét és figyeld meg az elrendezés változását!&lt;/p&gt;
+            &lt;/div&gt;
+            
+            &lt;div class="kartya"&gt;
+                &lt;h3&gt;Kártya 3&lt;/h3&gt;
+                &lt;p&gt;A reszponzív dizájn minden eszközön jól néz ki.&lt;/p&gt;
+            &lt;/div&gt;
+            
+            &lt;div class="kartya"&gt;
+                &lt;h3&gt;Kártya 4&lt;/h3&gt;
+                &lt;p&gt;Media query-k segítenek az alkalmazkodásban.&lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="html/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('htmlRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek</h3>
+          <ul>
+            <li>Mindig add meg a <code>&lt;meta name="viewport"&gt;</code> tag-et</li>
+            <li>Használj <strong>mobil-first</strong> megközelítést a gyorsabb mobilos betöltésért</li>
+            <li>Kerüld a fix szélességeket, használj <code>max-width</code>-et helyette</li>
+            <li>Tesztelj különböző eszközökön és böngészőkben</li>
+            <li>Használj relatív mértékegységeket (%, em, rem, vw, vh)</li>
+            <li>A képeknek mindig adj meg <code>max-width: 100%</code>-ot</li>
+            <li>Flexbox és Grid kiválóan támogatják a reszponzív dizájnt</li>
+            <li>Gondolj az érintőképernyős eszközökre (nagyobb kattintható területek)</li>
+            <li>Használd a böngésző DevTools reszponzív módját teszteléshez (F12 → Device Toolbar)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Elrejtés és megjelenítés</h3>
+          <p>
+            Bizonyos elemeket elrejthetsz vagy megjeleníthetsz különböző méretekben:
+          </p>
+          <div class="code-container">
+            <pre><code>/* Mobil navigáció elrejtése desktopon */
+.mobil-menu {
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .mobil-menu {
+        display: none;
+    }
+}
+
+/* Desktop navigáció elrejtése mobilon */
+.desktop-menu {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .desktop-menu {
+        display: block;
+    }
+}</code></pre>
+          </div>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="css/grid" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: CSS Grid</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="css/animation" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: CSS animációk</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

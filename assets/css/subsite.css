@@ -103,14 +103,25 @@ p {
   text-align: left;
 }
 
-ul {
+ul, ol {
   line-height: 1.9;
   color: #b0b0b0;
   text-align: left;
+  padding-left: 30px;
 }
 
-ul li {
+ul li, ol li {
   margin-bottom: 10px;
+}
+
+ol li strong {
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+ul li strong {
+  font-weight: 600;
+  color: #e0e0e0;
 }
 
 /* Code blocks */
@@ -314,5 +325,78 @@ code:not(pre code) {
   
   .nav-btn .arrow {
     font-size: 1em;
+  }
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background-color: #2d3139;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #3d4149;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  table-layout: fixed;
+}
+
+table thead {
+  background: linear-gradient(135deg, #3d4149 0%, #4a4f5a 100%);
+}
+
+table th {
+  padding: 15px 20px;
+  text-align: center;
+  font-weight: 600;
+  color: #ffffff;
+  border-bottom: 2px solid #4c0bce;
+  font-size: 1.05em;
+  letter-spacing: 0.5px;
+}
+
+table td {
+  padding: 15px 20px;
+  color: #b0b0b0;
+  border-bottom: 1px solid #3d4149;
+  vertical-align: top;
+  text-align: center;
+}
+
+table td:first-child {
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+table tbody tr {
+  transition: all 0.2s ease;
+}
+
+table tbody tr:hover {
+  background-color: #353942;
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(76, 11, 206, 0.15);
+}
+
+table tbody tr:nth-child(even) {
+  background-color: #292d35;
+}
+
+table tbody tr:nth-child(even):hover {
+  background-color: #353942;
+}
+
+@media (max-width: 768px) {
+  table {
+    font-size: 0.9rem;
+  }
+  
+  table th,
+  table td {
+    padding: 10px;
   }
 }

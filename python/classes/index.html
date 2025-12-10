@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Python objektum-orientált programozás: osztályok, objektumok, öröklés." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Python Osztályok (OOP)</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="python/functions" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Függvények</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="python/files" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Fájlkezelés</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Objektum-Orientált Programozás (OOP)</h1>
+      <section>
+        <div>
+          <h3>Mi az az OOP?</h3>
+          <p>
+            Az <strong>objektum-orientált programozás</strong> (OOP) egy programozási paradigma, 
+            amely objektumok köré szervezi a kódot. Az objektumok <strong>adatokat</strong> 
+            (attribútumok) és <strong>viselkedést</strong> (metódusok) tartalmaznak.
+          </p>
+          <p><strong>OOP alapelvei:</strong></p>
+          <ul>
+            <li><strong>Egységbezárás</strong> (Encapsulation) - adatok és metódusok összevonása</li>
+            <li><strong>Öröklődés</strong> (Inheritance) - tulajdonságok átvétele szülőosztálytól</li>
+            <li><strong>Polimorfizmus</strong> (Polymorphism) - többféle forma ugyanazon interfészhez</li>
+            <li><strong>Absztrakció</strong> (Abstraction) - lényeges jellemzők kiemelése</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Osztály létrehozása</h3>
+          <p>
+            Az <strong>osztály</strong> (class) egy tervrajz, sablon az objektumok létrehozásához. 
+            A <code>class</code> kulcsszóval definiáljuk:
+          </p>
+          <div class="code-container">
+            <pre><code># Egyszerű osztály
+class Kutya:
+    pass  # Üres osztály
+
+# Objektum létrehozása (példányosítás)
+kutyam = Kutya()
+print(kutyam)  # <__main__.Kutya object at 0x...></code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Konstruktor és attribútumok</h3>
+          <p>
+            A <code>__init__</code> metódus az osztály <strong>konstruktora</strong>, 
+            amely az objektum létrehozásakor fut le:
+          </p>
+          <div class="code-container">
+            <pre><code># Osztály attribútumokkal
+class Kutya:
+    def __init__(self, nev, kor):
+        self.nev = nev  # példány attribútum
+        self.kor = kor
+    
+# Objektumok létrehozása
+kutya1 = Kutya("Bodri", 3)
+kutya2 = Kutya("Rex", 5)
+
+# Attribútumok elérése
+print(kutya1.nev)  # Bodri
+print(kutya2.kor)  # 5
+
+# Módosítás
+kutya1.kor = 4
+print(kutya1.kor)  # 4</code></pre>
+          </div>
+          <p>
+            A <code>self</code> az aktuális objektumra hivatkozik. 
+            Kötelező első paraméter minden metódusban!
+          </p>
+        </div>
+
+        <div>
+          <h3>Metódusok</h3>
+          <p>Az osztályon belüli függvényeket <strong>metódusoknak</strong> nevezzük:</p>
+          <div class="code-container">
+            <pre><code># Osztály metódusokkal
+class Kutya:
+    def __init__(self, nev, kor):
+        self.nev = nev
+        self.kor = kor
+    
+    def ugat(self):
+        print(f"{self.nev} vau-vau!")
+    
+    def bemutatkozas(self):
+        print(f"Én {self.nev} vagyok, {self.kor} éves.")
+    
+    def szuletesnap(self):
+        self.kor += 1
+        print(f"{self.nev} most {self.kor} éves!")
+
+# Használat
+kutyam = Kutya("Bodri", 3)
+kutyam.ugat()             # Bodri vau-vau!
+kutyam.bemutatkozas()     # Én Bodri vagyok, 3 éves.
+kutyam.szuletesnap()      # Bodri most 4 éves!</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Osztály attribútumok vs Példány attribútumok</h3>
+          <div class="code-container">
+            <pre><code>class Kutya:
+    # Osztály attribútum (közös minden példányhoz)
+    faj = "Canis familiaris"
+    
+    def __init__(self, nev, kor):
+        # Példány attribútum (egyedi minden példányhoz)
+        self.nev = nev
+        self.kor = kor
+
+kutya1 = Kutya("Bodri", 3)
+kutya2 = Kutya("Rex", 5)
+
+# Osztály attribútum ugyanaz mindenhol
+print(kutya1.faj)  # Canis familiaris
+print(kutya2.faj)  # Canis familiaris
+print(Kutya.faj)   # Canis familiaris
+
+# Példány attribútum egyedi
+print(kutya1.nev)  # Bodri
+print(kutya2.nev)  # Rex</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Öröklés (Inheritance)</h3>
+          <p>
+            Az <strong>öröklés</strong> lehetővé teszi, hogy egy új osztály (gyerek) 
+            átvegye egy létező osztály (szülő) tulajdonságait:
+          </p>
+          <div class="code-container">
+            <pre><code># Szülő osztály
+class Allat:
+    def __init__(self, nev, kor):
+        self.nev = nev
+        self.kor = kor
+    
+    def hang(self):
+        print("Valami hang...")
+    
+    def aluszik(self):
+        print(f"{self.nev} alszik.")
+
+# Gyerek osztály (örökli Allat-ot)
+class Kutya(Allat):
+    def hang(self):  # Felülírás (override)
+        print(f"{self.nev}: Vau-vau!")
+    
+    def apport(self):  # Új metódus
+        print(f"{self.nev} hozza a labdát.")
+
+class Macska(Allat):
+    def hang(self):
+        print(f"{self.nev}: Miáú!")
+    
+    def dorombolas(self):
+        print(f"{self.nev} dorombol.")
+
+# Használat
+kutya = Kutya("Bodri", 3)
+macska = Macska("Cirmi", 2)
+
+kutya.hang()      # Bodri: Vau-vau! (felülírva)
+kutya.aluszik()   # Bodri alszik. (örökölt)
+kutya.apport()    # Bodri hozza a labdát. (új)
+
+macska.hang()     # Cirmi: Miáú! (felülírva)
+macska.aluszik()  # Cirmi alszik. (örökölt)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>super() függvény</h3>
+          <p>
+            A <code>super()</code> segítségével elérhetjük a szülő osztály metódusait:
+          </p>
+          <div class="code-container">
+            <pre><code>class Allat:
+    def __init__(self, nev, kor):
+        self.nev = nev
+        self.kor = kor
+        print("Állat létrehozva")
+
+class Kutya(Allat):
+    def __init__(self, nev, kor, fajta):
+        super().__init__(nev, kor)  # Szülő konstruktor hívása
+        self.fajta = fajta
+        print("Kutya létrehozva")
+    
+    def info(self):
+        print(f"{self.nev} egy {self.kor} éves {self.fajta}")
+
+kutya = Kutya("Bodri", 3, "Labrador")
+# Kimenet:
+# Állat létrehozva
+# Kutya létrehozva
+
+kutya.info()  # Bodri egy 3 éves Labrador</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Speciális metódusok (Magic Methods)</h3>
+          <p>
+            A <code>__</code> karakterekkel kezdődő és végződő metódusok speciális viselkedést adnak:
+          </p>
+          <div class="code-container">
+            <pre><code>class Konyv:
+    def __init__(self, cim, szerzo, oldalak):
+        self.cim = cim
+        self.szerzo = szerzo
+        self.oldalak = oldalak
+    
+    # __str__ - print() megjelenítés
+    def __str__(self):
+        return f"'{self.cim}' - {self.szerzo}"
+    
+    # __repr__ - hivatalos megjelenítés
+    def __repr__(self):
+        return f"Konyv('{self.cim}', '{self.szerzo}', {self.oldalak})"
+    
+    # __len__ - len() támogatás
+    def __len__(self):
+        return self.oldalak
+    
+    # __eq__ - == összehasonlítás
+    def __eq__(self, other):
+        return self.cim == other.cim and self.szerzo == other.szerzo
+
+# Használat
+konyv1 = Konyv("1984", "George Orwell", 328)
+konyv2 = Konyv("1984", "George Orwell", 328)
+
+print(konyv1)          # '1984' - George Orwell
+print(repr(konyv1))    # Konyv('1984', 'George Orwell', 328)
+print(len(konyv1))     # 328
+print(konyv1 == konyv2)  # True</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Privát változók és metódusok</h3>
+          <p>
+            Python-ban nincs igazi privát változó, de az <strong>aláhúzással</strong> 
+            jelezhetjük, hogy belső használatra szánt:
+          </p>
+          <div class="code-container">
+            <pre><code>class Bankszamla:
+    def __init__(self, tulajdonos, egyenleg):
+        self.tulajdonos = tulajdonos
+        self.__egyenleg = egyenleg  # "privát" (name mangling)
+    
+    def get_egyenleg(self):
+        return self.__egyenleg
+    
+    def befizetes(self, osszeg):
+        if osszeg > 0:
+            self.__egyenleg += osszeg
+            print(f"Befizetés: {osszeg} Ft")
+        else:
+            print("Érvénytelen összeg!")
+    
+    def kivetes(self, osszeg):
+        if 0 < osszeg <= self.__egyenleg:
+            self.__egyenleg -= osszeg
+            print(f"Kivétel: {osszeg} Ft")
+        else:
+            print("Nincs elég pénz!")
+
+# Használat
+szamla = Bankszamla("Kovács Péter", 10000)
+print(szamla.tulajdonos)  # Kovács Péter
+print(szamla.get_egyenleg())  # 10000
+
+# print(szamla.__egyenleg)  # AttributeError!
+
+szamla.befizetes(5000)    # Befizetés: 5000 Ft
+szamla.kivetes(3000)      # Kivétel: 3000 Ft
+print(szamla.get_egyenleg())  # 12000</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Property dekorátor</h3>
+          <p>
+            A <code>@property</code> dekorátor lehetővé teszi, hogy metódusokat attribútumként érjünk el:
+          </p>
+          <div class="code-container">
+            <pre><code>class Kor:
+    def __init__(self, sugar):
+        self._sugar = sugar
+    
+    @property
+    def sugar(self):
+        return self._sugar
+    
+    @sugar.setter
+    def sugar(self, ertek):
+        if ertek > 0:
+            self._sugar = ertek
+        else:
+            print("A sugár pozitív kell legyen!")
+    
+    @property
+    def terulet(self):
+        return 3.14159 * self._sugar ** 2
+    
+    @property
+    def kerulet(self):
+        return 2 * 3.14159 * self._sugar
+
+# Használat
+kor = Kor(5)
+print(kor.sugar)    # 5 (property getter)
+print(kor.terulet)  # 78.53975 (számított property)
+print(kor.kerulet)  # 31.4159
+
+kor.sugar = 10      # Property setter
+print(kor.terulet)  # 314.159
+
+kor.sugar = -5      # A sugár pozitív kell legyen!</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Osztály metódusok és statikus metódusok</h3>
+          <div class="code-container">
+            <pre><code>class Matematika:
+    pi = 3.14159
+    
+    # Osztály metódus - osztályhoz tartozik, nem példányhoz
+    @classmethod
+    def kor_terulet(cls, sugar):
+        return cls.pi * sugar ** 2
+    
+    # Statikus metódus - független az osztálytól
+    @staticmethod
+    def osszeadas(a, b):
+        return a + b
+    
+    # Normál példány metódus
+    def info(self):
+        print(f"Pi értéke: {self.pi}")
+
+# Használat osztály példány nélkül
+print(Matematika.kor_terulet(5))  # 78.53975
+print(Matematika.osszeadas(3, 7)) # 10
+
+# Vagy példánnyal
+mat = Matematika()
+mat.info()  # Pi értéke: 3.14159</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Többszörös öröklés</h3>
+          <p>Python támogatja, hogy egy osztály több szülőből örököljön:</p>
+          <div class="code-container">
+            <pre><code>class Repulo:
+    def repul(self):
+        print("Repülök az égen")
+
+class Uszo:
+    def uszas(self):
+        print("Úszom a vízben")
+
+# Többszörös öröklés
+class Kacsa(Repulo, Uszo):
+    def hap_hap(self):
+        print("Háp-háp!")
+
+kacsa = Kacsa()
+kacsa.repul()     # Repülök az égen
+kacsa.uszas()     # Úszom a vízben
+kacsa.hap_hap()   # Háp-háp!</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Banki rendszer</h3>
+          <div class="code-container">
+            <pre><code>class Bankszamla:
+    """Általános bankszámla osztály"""
+    
+    szamlaszam_szamlalo = 1000
+    
+    def __init__(self, tulajdonos, kezdo_egyenleg=0):
+        self.tulajdonos = tulajdonos
+        self._egyenleg = kezdo_egyenleg
+        self.szamlaszam = Bankszamla.szamlaszam_szamlalo
+        Bankszamla.szamlaszam_szamlalo += 1
+        self.tranzakciok = []
+    
+    def get_egyenleg(self):
+        return self._egyenleg
+    
+    def befizetes(self, osszeg):
+        if osszeg > 0:
+            self._egyenleg += osszeg
+            self.tranzakciok.append(f"+{osszeg} Ft")
+            return True
+        return False
+    
+    def kivetes(self, osszeg):
+        if 0 < osszeg <= self._egyenleg:
+            self._egyenleg -= osszeg
+            self.tranzakciok.append(f"-{osszeg} Ft")
+            return True
+        return False
+    
+    def kimutatas(self):
+        print(f"\n=== Számlakimutatás ===")
+        print(f"Tulajdonos: {self.tulajdonos}")
+        print(f"Számlaszám: {self.szamlaszam}")
+        print(f"Egyenleg: {self._egyenleg} Ft")
+        print(f"Tranzakciók: {len(self.tranzakciok)} db")
+    
+    def __str__(self):
+        return f"Számla #{self.szamlaszam}: {self._egyenleg} Ft"
+
+class Megtakaritasi(Bankszamla):
+    """Megtakarítási számla kamattal"""
+    
+    def __init__(self, tulajdonos, kezdo_egyenleg=0, kamat=0.02):
+        super().__init__(tulajdonos, kezdo_egyenleg)
+        self.kamat = kamat
+    
+    def kamat_jovairasa(self):
+        kamat_osszeg = self._egyenleg * self.kamat
+        self._egyenleg += kamat_osszeg
+        self.tranzakciok.append(f"+{kamat_osszeg:.2f} Ft (kamat)")
+        print(f"Kamat jóváírva: {kamat_osszeg:.2f} Ft")
+
+class Folyoszamla(Bankszamla):
+    """Folyószámla hitelkerettel"""
+    
+    def __init__(self, tulajdonos, kezdo_egyenleg=0, hitelkeret=50000):
+        super().__init__(tulajdonos, kezdo_egyenleg)
+        self.hitelkeret = hitelkeret
+    
+    def kivetes(self, osszeg):
+        if 0 < osszeg <= self._egyenleg + self.hitelkeret:
+            self._egyenleg -= osszeg
+            self.tranzakciok.append(f"-{osszeg} Ft")
+            return True
+        return False
+
+# Használat
+megtakaritas = Megtakaritasi("Kovács Anna", 100000, 0.05)
+folyoszamla = Folyoszamla("Nagy Péter", 50000, 100000)
+
+megtakaritas.befizetes(20000)
+megtakaritas.kamat_jovairasa()
+megtakaritas.kimutatas()
+
+folyoszamla.kivetes(120000)  # Hitelkerettel működik
+folyoszamla.kimutatas()</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Játék karakterek</h3>
+          <div class="code-container">
+            <pre><code>class Karakter:
+    """Alap játék karakter"""
+    
+    def __init__(self, nev, elet, tamadas):
+        self.nev = nev
+        self.elet = elet
+        self.max_elet = elet
+        self.tamadas = tamadas
+    
+    def tamad(self, cel):
+        print(f"{self.nev} megtámadja {cel.nev}-t!")
+        cel.sebzes(self.tamadas)
+    
+    def sebzes(self, sebzes):
+        self.elet -= sebzes
+        print(f"{self.nev} {sebzes} sebzést kapott! (Élet: {self.elet})")
+        if self.elet <= 0:
+            print(f"{self.nev} legyőzve!")
+    
+    def gyogyulas(self, mennyiseg):
+        self.elet = min(self.elet + mennyiseg, self.max_elet)
+        print(f"{self.nev} {mennyiseg} életet gyógyult! (Élet: {self.elet})")
+
+class Harcos(Karakter):
+    def __init__(self, nev):
+        super().__init__(nev, elet=120, tamadas=25)
+        self.panczel = 10
+    
+    def sebzes(self, sebzes):
+        elhárított = sebzes - self.panczel
+        if elhárított < 0:
+            elhárított = 0
+        super().sebzes(elhárított)
+
+class Varazslo(Karakter):
+    def __init__(self, nev):
+        super().__init__(nev, elet=80, tamadas=35)
+        self.mana = 100
+    
+    def varazslat(self, cel):
+        if self.mana >= 20:
+            print(f"{self.nev} varázslat használ!")
+            self.mana -= 20
+            cel.sebzes(self.tamadas * 2)
+        else:
+            print(f"{self.nev} mana hiány!")
+
+# Használat
+harcos = Harcos("Conan")
+varazslo = Varazslo("Gandalf")
+
+harcos.tamad(varazslo)
+varazslo.varazslat(harcos)
+harcos.gyogyulas(30)</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek</h3>
+          <ul>
+            <li>Használj <strong>CamelCase</strong>-t osztálynevek (<code>BankSzamla</code>, <code>Kutya</code>)</li>
+            <li>Egy osztály <strong>egy felelősségi kört</strong> képviseljen</li>
+            <li>Használj <strong>__init__</strong>-et az inicializáláshoz</li>
+            <li>A <code>self</code> mindig az <strong>első paraméter</strong> metódusokban</li>
+            <li>Használj <strong>@property</strong>-t szabályozott hozzáféréshez</li>
+            <li><strong>Öröklés</strong> helyett gyakran jobb a kompozíció</li>
+            <li>A <strong>dupla aláhúzás</strong> (__) valódi privát névmanglingot csinál</li>
+            <li>Dokumentáld az osztályokat és metódusokat <strong>docstring</strong>-gel</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="python/functions" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Függvények</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="python/files" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Fájlkezelés</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

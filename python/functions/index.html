@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Python függvények: def, paraméterek, return, lambda, scope." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Python Függvények</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="python/control" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Vezérlési szerkezetek</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="python/classes" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Osztályok (OOP)</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Függvények</h1>
+      <section>
+        <div>
+          <h3>Mi az a függvény?</h3>
+          <p>
+            A <strong>függvény</strong> egy újrafelhasználható kódblokk, amely egy meghatározott feladatot 
+            lát el. A függvények segítenek strukturálni a kódot, elkerülni az ismétlődést, és 
+            egyszerűbbé teszik a karbantartást.
+          </p>
+        </div>
+
+        <div>
+          <h3>Függvény definiálása</h3>
+          <p>A <code>def</code> kulcsszóval definiálunk függvényt:</p>
+          <div class="code-container">
+            <pre><code># Egyszerű függvény
+def udvozles():
+    print("Helló, Világ!")
+
+# Függvény meghívása
+udvozles()  # Helló, Világ!</code></pre>
+          </div>
+          <p>
+            <strong>Szintaxis:</strong> <code>def fuggveny_nev():</code> majd 4 szóköz behúzással 
+            a függvény törzse.
+          </p>
+        </div>
+
+        <div>
+          <h3>Paraméterek és argumentumok</h3>
+          <p>
+            A függvények <strong>paramétereket</strong> fogadhatnak, amelyek értékeket 
+            (argumentumokat) kapnak a hívásnál:
+          </p>
+          
+          <h4>Pozícionális paraméterek</h4>
+          <div class="code-container">
+            <pre><code># Egy paraméterrel
+def udvozles(nev):
+    print(f"Helló, {nev}!")
+
+udvozles("Anna")   # Helló, Anna!
+udvozles("Péter")  # Helló, Péter!
+
+# Több paraméterrel
+def osszeadas(a, b):
+    eredmeny = a + b
+    print(f"{a} + {b} = {eredmeny}")
+
+osszeadas(5, 3)  # 5 + 3 = 8
+osszeadas(10, 7) # 10 + 7 = 17</code></pre>
+          </div>
+
+          <h4>Alapértelmezett paraméterek</h4>
+          <div class="code-container">
+            <pre><code># Alapértelmezett értékkel
+def udvozles(nev, nyelvkod="hu"):
+    if nyelvkod == "hu":
+        print(f"Szia, {nev}!")
+    elif nyelvkod == "en":
+        print(f"Hello, {nev}!")
+    else:
+        print(f"Hi, {nev}!")
+
+udvozles("Anna")        # Szia, Anna! (alapértelmezett)
+udvozles("Bob", "en")   # Hello, Bob!
+udvozles("Chen", "cn")  # Hi, Chen!
+
+# Fontos: alapértelmezett paraméterek a végén!
+def adatok(nev, kor=18, varos="Budapest"):
+    print(f"{nev}, {kor} éves, {varos}")
+
+adatok("Anna")                    # Anna, 18 éves, Budapest
+adatok("Péter", 25)               # Péter, 25 éves, Budapest
+adatok("Kata", 30, "Szeged")      # Kata, 30 éves, Szeged</code></pre>
+          </div>
+
+          <h4>Kulcsszavas argumentumok</h4>
+          <div class="code-container">
+            <pre><code># Névvel átadott argumentumok
+def bemutatkozas(nev, kor, varos):
+    print(f"Én {nev} vagyok, {kor} éves, {varos}ból.")
+
+# Sorrend nem számít kulcsszavaknál
+bemutatkozas(nev="Anna", kor=25, varos="Budapest")
+bemutatkozas(kor=30, varos="Szeged", nev="Péter")
+bemutatkozas("Kata", varos="Debrecen", kor=28)  # Mix</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Return - Visszatérési érték</h3>
+          <p>
+            A <code>return</code> utasítás visszaadja az értéket a hívó helyre, 
+            és azonnal kilép a függvényből:
+          </p>
+          <div class="code-container">
+            <pre><code># Visszatérési értékkel
+def osszeadas(a, b):
+    return a + b
+
+eredmeny = osszeadas(5, 3)
+print(eredmeny)  # 8
+
+# Több művelet
+def hatvany(szam, kitevo):
+    eredmeny = szam ** kitevo
+    return eredmeny
+
+print(hatvany(2, 3))  # 8
+print(hatvany(5, 2))  # 25
+
+# Return nélküli függvény None-nal tér vissza
+def nincs_return():
+    print("Valami")
+
+x = nincs_return()
+print(x)  # None</code></pre>
+          </div>
+
+          <h4>Több érték visszaadása</h4>
+          <div class="code-container">
+            <pre><code># Tuple-ként több érték
+def stat(szamok):
+    minimum = min(szamok)
+    maximum = max(szamok)
+    atlag = sum(szamok) / len(szamok)
+    return minimum, maximum, atlag
+
+# Kibontás
+min_ertek, max_ertek, atlag = stat([5, 10, 15, 20])
+print(f"Min: {min_ertek}, Max: {max_ertek}, Átlag: {atlag}")
+
+# Vagy tuple-ként
+eredmeny = stat([1, 2, 3, 4, 5])
+print(eredmeny)  # (1, 5, 3.0)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>*args és **kwargs</h3>
+          <p>Változó számú argumentum fogadása:</p>
+          
+          <h4>*args - Pozícionális argumentumok</h4>
+          <div class="code-container">
+            <pre><code># Tetszőleges számú argumentum
+def osszeadas(*szamok):
+    osszeg = sum(szamok)
+    return osszeg
+
+print(osszeadas(1, 2))           # 3
+print(osszeadas(1, 2, 3, 4, 5))  # 15
+print(osszeadas(10))             # 10
+
+# Tuple-ként kapjuk meg
+def kiir_mindet(*elemek):
+    for elem in elemek:
+        print(elem)
+
+kiir_mindet("alma", "banán", "cseresznye")</code></pre>
+          </div>
+
+          <h4>**kwargs - Kulcsszavas argumentumok</h4>
+          <div class="code-container">
+            <pre><code># Tetszőleges kulcsszavas argumentum
+def szemely_info(**adatok):
+    for kulcs, ertek in adatok.items():
+        print(f"{kulcs}: {ertek}")
+
+szemely_info(nev="Anna", kor=25, varos="Budapest")
+# nev: Anna
+# kor: 25
+# varos: Budapest
+
+# Mix használat
+def teljes_info(kotelező, *args, **kwargs):
+    print(f"Kötelező: {kotelező}")
+    print(f"Args: {args}")
+    print(f"Kwargs: {kwargs}")
+
+teljes_info("valami", 1, 2, 3, nev="Anna", kor=25)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Változók hatóköre (Scope)</h3>
+          <p>A változók láthatósága és élettartama:</p>
+          
+          <h4>Lokális vs Globális</h4>
+          <div class="code-container">
+            <pre><code># Globális változó
+x = "globális"
+
+def fuggveny():
+    # Lokális változó
+    x = "lokális"
+    print(x)  # lokális
+
+fuggveny()
+print(x)  # globális
+
+# Globális módosítása
+szamlalo = 0
+
+def noveles():
+    global szamlalo  # Globális használata
+    szamlalo += 1
+
+noveles()
+noveles()
+print(szamlalo)  # 2</code></pre>
+          </div>
+
+          <h4>LEGB szabály</h4>
+          <p>Python a következő sorrendben keresi a változókat:</p>
+          <ol>
+            <li><strong>Local</strong> - Lokális (függvényen belül)</li>
+            <li><strong>Enclosing</strong> - Beágyazott függvények</li>
+            <li><strong>Global</strong> - Globális (modul szintű)</li>
+            <li><strong>Built-in</strong> - Beépített (pl. <code>print</code>, <code>len</code>)</li>
+          </ol>
+          <div class="code-container">
+            <pre><code>x = "globális"
+
+def kulso():
+    x = "beágyazott"
+    
+    def belso():
+        x = "lokális"
+        print(x)  # lokális
+    
+    belso()
+    print(x)  # beágyazott
+
+kulso()
+print(x)  # globális</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Lambda függvények</h3>
+          <p>
+            Kisméretű, névtelen függvények létrehozása egyetlen sorban. 
+            Hasznos rövid műveletekhez:
+          </p>
+          <div class="code-container">
+            <pre><code># Hagyományos függvény
+def dupla(x):
+    return x * 2
+
+print(dupla(5))  # 10
+
+# Lambda megfelelője
+dupla = lambda x: x * 2
+print(dupla(5))  # 10
+
+# Több paraméter
+osszeadas = lambda a, b: a + b
+print(osszeadas(3, 7))  # 10
+
+# Lambda listákkal
+szamok = [1, 2, 3, 4, 5]
+dupla_szamok = list(map(lambda x: x * 2, szamok))
+print(dupla_szamok)  # [2, 4, 6, 8, 10]
+
+# Lambda szűréshez
+paros_szamok = list(filter(lambda x: x % 2 == 0, szamok))
+print(paros_szamok)  # [2, 4]
+
+# Lambda rendezéshez
+nevek = ["Anna", "zebra", "Bela", "alma"]
+rendezett = sorted(nevek, key=lambda x: x.lower())
+print(rendezett)  # ['alma', 'Anna', 'Bela', 'zebra']</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Beágyazott függvények</h3>
+          <p>Függvényen belül definiált függvények:</p>
+          <div class="code-container">
+            <pre><code># Függvény a függvényben
+def kulso(x):
+    def belso(y):
+        return y * 2
+    
+    return belso(x) + 5
+
+print(kulso(10))  # 25 (10*2 + 5)
+
+# Closure - belső függvény emlékszik a külső változóira
+def szorzo(n):
+    def szorzas(x):
+        return x * n
+    return szorzas
+
+dupla = szorzo(2)
+tripla = szorzo(3)
+
+print(dupla(5))   # 10
+print(tripla(5))  # 15</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Dekorátorok</h3>
+          <p>
+            Függvények, amelyek más függvényeket módosítanak vagy bővítenek. 
+            Haladó technika, de fontos ismerni:
+          </p>
+          <div class="code-container">
+            <pre><code># Egyszerű dekorátor
+def dekorator(func):
+    def wrapper():
+        print("Valami a függvény előtt")
+        func()
+        print("Valami a függvény után")
+    return wrapper
+
+@dekorator
+def udvozles():
+    print("Helló!")
+
+udvozles()
+# Kimenet:
+# Valami a függvény előtt
+# Helló!
+# Valami a függvény után
+
+# Időmérő dekorátor
+import time
+
+def idomer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        eredmeny = func(*args, **kwargs)
+        end = time.time()
+        print(f"Futási idő: {end - start:.4f} másodperc")
+        return eredmeny
+    return wrapper
+
+@idomer
+def lassu_muvelet():
+    time.sleep(1)
+    print("Kész!")
+
+lassu_muvelet()</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Docstring - Függvény dokumentáció</h3>
+          <p>
+            A függvények első sorában tripla idézőjeles stringgel dokumentálhatjuk őket:
+          </p>
+          <div class="code-container">
+            <pre><code># Docstring használata
+def terulet(a, b):
+    """
+    Téglalap területének kiszámítása.
+    
+    Paraméterek:
+        a (float): Első oldal hossza
+        b (float): Második oldal hossza
+    
+    Visszatérés:
+        float: A téglalap területe
+    """
+    return a * b
+
+# Dokumentáció megtekintése
+print(terulet.__doc__)
+help(terulet)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Rekurzió</h3>
+          <p>Amikor egy függvény saját magát hívja meg:</p>
+          <div class="code-container">
+            <pre><code># Faktoriális számítás rekurzívan
+def faktorialis(n):
+    if n == 0 or n == 1:
+        return 1
+    else:
+        return n * faktorialis(n - 1)
+
+print(faktorialis(5))  # 120 (5*4*3*2*1)
+
+# Fibonacci sorozat
+def fibonacci(n):
+    if n <= 1:
+        return n
+    else:
+        return fibonacci(n-1) + fibonacci(n-2)
+
+for i in range(10):
+    print(fibonacci(i), end=" ")
+# 0 1 1 2 3 5 8 13 21 34
+
+# Figyelem: rekurzió lassabb lehet, használd óvatosan!</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Számológép függvényekkel</h3>
+          <div class="code-container">
+            <pre><code># Moduláris számológép
+def osszeadas(a, b):
+    """Két szám összege"""
+    return a + b
+
+def kivonas(a, b):
+    """Két szám különbsége"""
+    return a - b
+
+def szorzas(a, b):
+    """Két szám szorzata"""
+    return a * b
+
+def osztas(a, b):
+    """Két szám hányadosa"""
+    if b == 0:
+        return "Hiba: 0-val nem lehet osztani!"
+    return a / b
+
+def hatvanyozas(a, b):
+    """Első szám a második hatványán"""
+    return a ** b
+
+# Számológép függvény
+def szamologep(muvelet, a, b):
+    """
+    Egyszerű számológép függvény
+    
+    Paraméterek:
+        muvelet (str): '+', '-', '*', '/', '**'
+        a (float): Első szám
+        b (float): Második szám
+    """
+    if muvelet == '+':
+        return osszeadas(a, b)
+    elif muvelet == '-':
+        return kivonas(a, b)
+    elif muvelet == '*':
+        return szorzas(a, b)
+    elif muvelet == '/':
+        return osztas(a, b)
+    elif muvelet == '**':
+        return hatvanyozas(a, b)
+    else:
+        return "Ismeretlen művelet!"
+
+# Használat
+print(szamologep('+', 10, 5))   # 15
+print(szamologep('-', 10, 5))   # 5
+print(szamologep('*', 10, 5))   # 50
+print(szamologep('/', 10, 5))   # 2.0
+print(szamologep('**', 2, 8))   # 256</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Lista műveletek</h3>
+          <div class="code-container">
+            <pre><code># Lista segédfüggvények
+def lista_atlag(szamok):
+    """Számok átlaga"""
+    if len(szamok) == 0:
+        return 0
+    return sum(szamok) / len(szamok)
+
+def lista_max_index(szamok):
+    """Legnagyobb elem indexe"""
+    if len(szamok) == 0:
+        return -1
+    max_ertek = max(szamok)
+    return szamok.index(max_ertek)
+
+def lista_parosak(szamok):
+    """Páros számok szűrése"""
+    return [x for x in szamok if x % 2 == 0]
+
+def lista_dupla(szamok):
+    """Minden elem duplázása"""
+    return [x * 2 for x in szamok]
+
+# Használat
+szamok = [3, 7, 2, 9, 4, 6, 1]
+
+print(f"Átlag: {lista_atlag(szamok)}")
+print(f"Legnagyobb index: {lista_max_index(szamok)}")
+print(f"Párosak: {lista_parosak(szamok)}")
+print(f"Duplázva: {lista_dupla(szamok)}")</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek</h3>
+          <ul>
+            <li>Használj <strong>értelmes függvényneveket</strong> (ige formában: <code>szamit_terulet</code>)</li>
+            <li>Egy függvény <strong>egy feladatot</strong> lásson el (Single Responsibility)</li>
+            <li>Írj <strong>docstring</strong>-et minden fontosabb függvényhez</li>
+            <li>Kerüld a <strong>globális</strong> változók módosítását függvényekben</li>
+            <li>Az alapértelmezett paramétereket <strong>a végére</strong> tedd</li>
+            <li>A <strong>lambda</strong> függvények csak egyszerű műveletekhez jók</li>
+            <li>Használj <strong>return</strong>-t, ne csak <code>print</code>-et (újrafelhasználhatóság)</li>
+            <li>A <strong>rekurzió</strong> elegáns, de iteráció gyakran gyorsabb</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="python/control" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Vezérlési szerkezetek</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="python/classes" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Osztályok (OOP)</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

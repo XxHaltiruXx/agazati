@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Python fájlkezelés: open, read, write, with statement." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Python Fájlkezelés</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="python/classes" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Osztályok (OOP)</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="python/exceptions" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Hibakezelés</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Fájlkezelés</h1>
+      <section>
+        <div>
+          <h3>Fájlkezelés Python-ban</h3>
+          <p>
+            A fájlkezelés lehetővé teszi, hogy adatokat olvassunk be és írjunk ki 
+            fájlokba. Python egyszerű és hatékony eszközöket kínál fájlműveletekhez.
+          </p>
+        </div>
+
+        <div>
+          <h3>Fájl megnyitása - open()</h3>
+          <p>
+            Az <code>open()</code> függvény nyit meg egy fájlt. Mindig <strong>zárd be</strong> 
+            a fájlt használat után!
+          </p>
+          <div class="code-container">
+            <pre><code># Fájl megnyitása
+fajl = open("pelda.txt", "r")  # "r" = olvasás (read)
+
+# ... műveletek ...
+
+fajl.close()  # Mindig zárd be!</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Fájl módok</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Mód</th>
+                <th>Leírás</th>
+                <th>Megjegyzés</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>"r"</td>
+                <td>Olvasás (Read)</td>
+                <td>Alapértelmezett. Hiba, ha nem létezik.</td>
+              </tr>
+              <tr>
+                <td>"w"</td>
+                <td>Írás (Write)</td>
+                <td>Létrehozza/felülírja a fájlt.</td>
+              </tr>
+              <tr>
+                <td>"a"</td>
+                <td>Hozzáfűzés (Append)</td>
+                <td>A végére ír, létrehozza ha nincs.</td>
+              </tr>
+              <tr>
+                <td>"x"</td>
+                <td>Exkluzív létrehozás</td>
+                <td>Hiba, ha már létezik.</td>
+              </tr>
+              <tr>
+                <td>"r+"</td>
+                <td>Olvasás és írás</td>
+                <td>Fájl elejétől.</td>
+              </tr>
+              <tr>
+                <td>"b"</td>
+                <td>Bináris mód</td>
+                <td>Kombináld: "rb", "wb"</td>
+              </tr>
+              <tr>
+                <td>"t"</td>
+                <td>Szöveges mód</td>
+                <td>Alapértelmezett: "rt"</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3>Fájl olvasása</h3>
+          
+          <h4>Teljes fájl olvasása</h4>
+          <div class="code-container">
+            <pre><code># read() - teljes tartalom egy stringként
+fajl = open("pelda.txt", "r")
+tartalom = fajl.read()
+print(tartalom)
+fajl.close()
+
+# read(n) - első n karakter
+fajl = open("pelda.txt", "r")
+resz = fajl.read(10)  # Első 10 karakter
+print(resz)
+fajl.close()</code></pre>
+          </div>
+
+          <h4>Soronként olvasás</h4>
+          <div class="code-container">
+            <pre><code># readline() - egy sor olvasása
+fajl = open("pelda.txt", "r")
+elso_sor = fajl.readline()
+masodik_sor = fajl.readline()
+print(elso_sor)
+print(masodik_sor)
+fajl.close()
+
+# readlines() - összes sor listaként
+fajl = open("pelda.txt", "r")
+sorok = fajl.readlines()
+for sor in sorok:
+    print(sor.strip())  # strip() eltávolítja a \n-t
+fajl.close()
+
+# Iterálás a fájlon (legjobb módszer)
+fajl = open("pelda.txt", "r")
+for sor in fajl:
+    print(sor.strip())
+fajl.close()</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Fájl írása</h3>
+          
+          <h4>Írás (felülírás)</h4>
+          <div class="code-container">
+            <pre><code># write() - string írása
+fajl = open("kimenet.txt", "w")
+fajl.write("Helló, Világ!\n")
+fajl.write("Ez a második sor.\n")
+fajl.close()
+
+# writelines() - lista írása
+fajl = open("kimenet.txt", "w")
+sorok = ["Első sor\n", "Második sor\n", "Harmadik sor\n"]
+fajl.writelines(sorok)
+fajl.close()</code></pre>
+          </div>
+
+          <h4>Hozzáfűzés</h4>
+          <div class="code-container">
+            <pre><code># "a" mód - a végére ír
+fajl = open("kimenet.txt", "a")
+fajl.write("Ez hozzáadódik a végére.\n")
+fajl.close()</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>With statement - Automatikus lezárás</h3>
+          <p>
+            A <code>with</code> utasítás <strong>automatikusan bezárja</strong> a fájlt, 
+            még hiba esetén is. Ez a <strong>legjobb gyakorlat</strong>!
+          </p>
+          <div class="code-container">
+            <pre><code># With statement használata
+with open("pelda.txt", "r") as fajl:
+    tartalom = fajl.read()
+    print(tartalom)
+# Automatikusan bezáródik itt!
+
+# Írás with-tel
+with open("kimenet.txt", "w") as fajl:
+    fajl.write("Helló, Világ!\n")
+
+# Soronként olvasás with-tel
+with open("pelda.txt", "r") as fajl:
+    for sor in fajl:
+        print(sor.strip())</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Fájl létezésének ellenőrzése</h3>
+          <div class="code-container">
+            <pre><code>import os
+
+# Fájl létezik?
+if os.path.exists("pelda.txt"):
+    print("A fájl létezik")
+else:
+    print("A fájl nem létezik")
+
+# Fájl vagy mappa?
+if os.path.isfile("pelda.txt"):
+    print("Ez egy fájl")
+
+if os.path.isdir("mappa"):
+    print("Ez egy mappa")
+
+# Fájl mérete
+meret = os.path.getsize("pelda.txt")
+print(f"Fájlméret: {meret} byte")</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Fájl törlése és átnevezése</h3>
+          <div class="code-container">
+            <pre><code>import os
+
+# Fájl törlése
+if os.path.exists("torlendo.txt"):
+    os.remove("torlendo.txt")
+    print("Fájl törölve")
+
+# Mappa törlése (üres kell legyen)
+if os.path.exists("torlendo_mappa"):
+    os.rmdir("torlendo_mappa")
+
+# Fájl átnevezése / áthelyezése
+os.rename("regi_nev.txt", "uj_nev.txt")</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Mappák kezelése</h3>
+          <div class="code-container">
+            <pre><code>import os
+
+# Aktuális könyvtár
+aktualis = os.getcwd()
+print(f"Aktuális: {aktualis}")
+
+# Könyvtár váltás
+os.chdir("mappa")
+
+# Új mappa létrehozása
+if not os.path.exists("uj_mappa"):
+    os.mkdir("uj_mappa")
+
+# Több szintű mappa létrehozása
+os.makedirs("level1/level2/level3", exist_ok=True)
+
+# Mappa tartalmának listázása
+fajlok = os.listdir(".")
+for fajl in fajlok:
+    print(fajl)
+
+# Mappák és fájlok bejárása
+for gyoker, mappak, fajlok in os.walk("."):
+    print(f"Mappa: {gyoker}")
+    for fajl in fajlok:
+        print(f"  Fájl: {fajl}")</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Fájl útvonalak kezelése</h3>
+          <div class="code-container">
+            <pre><code>import os
+
+# Útvonal összefűzése (platform független)
+utvonal = os.path.join("mappa", "almappa", "fajl.txt")
+print(utvonal)  # Windows: mappa\almappa\fajl.txt
+                # Linux: mappa/almappa/fajl.txt
+
+# Útvonal szétbontása
+konyvtar, fajlnev = os.path.split("/mappa/fajl.txt")
+print(konyvtar)  # /mappa
+print(fajlnev)   # fajl.txt
+
+# Fájlnév és kiterjesztés
+nev, kiterjesztes = os.path.splitext("dokumentum.pdf")
+print(nev)          # dokumentum
+print(kiterjesztes) # .pdf
+
+# Abszolút útvonal
+abszolut = os.path.abspath("pelda.txt")
+print(abszolut)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>CSV fájlok kezelése</h3>
+          <p>CSV (Comma-Separated Values) fájlok táblázatos adatok tárolására:</p>
+          <div class="code-container">
+            <pre><code>import csv
+
+# CSV írása
+with open("adatok.csv", "w", newline="") as fajl:
+    iro = csv.writer(fajl)
+    iro.writerow(["Név", "Kor", "Város"])
+    iro.writerow(["Anna", 25, "Budapest"])
+    iro.writerow(["Péter", 30, "Szeged"])
+    iro.writerow(["Kata", 28, "Debrecen"])
+
+# CSV olvasása
+with open("adatok.csv", "r") as fajl:
+    olvaso = csv.reader(fajl)
+    for sor in olvaso:
+        print(sor)
+
+# CSV szótárként (dictionary)
+with open("adatok.csv", "r") as fajl:
+    olvaso = csv.DictReader(fajl)
+    for sor in olvaso:
+        print(f"{sor['Név']} - {sor['Kor']} éves")
+
+# CSV szótár írása
+with open("adatok.csv", "w", newline="") as fajl:
+    mezok = ["Név", "Kor", "Város"]
+    iro = csv.DictWriter(fajl, fieldnames=mezok)
+    
+    iro.writeheader()
+    iro.writerow({"Név": "Anna", "Kor": 25, "Város": "Budapest"})
+    iro.writerow({"Név": "Péter", "Kor": 30, "Város": "Szeged"})</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>JSON fájlok kezelése</h3>
+          <p>JSON fájlok strukturált adatok tárolására:</p>
+          <div class="code-container">
+            <pre><code>import json
+
+# JSON írása
+adatok = {
+    "nev": "Kovács Anna",
+    "kor": 25,
+    "varos": "Budapest",
+    "hobbik": ["olvasás", "futás", "programozás"]
+}
+
+with open("adatok.json", "w", encoding="utf-8") as fajl:
+    json.dump(adatok, fajl, ensure_ascii=False, indent=4)
+
+# JSON olvasása
+with open("adatok.json", "r", encoding="utf-8") as fajl:
+    betoltott = json.load(fajl)
+    print(betoltott["nev"])
+    print(betoltott["hobbik"])
+
+# String → JSON
+json_string = '{"nev": "Péter", "kor": 30}'
+adat = json.loads(json_string)
+print(adat["nev"])
+
+# JSON → String
+adat = {"nev": "Kata", "kor": 28}
+json_string = json.dumps(adat, ensure_ascii=False)
+print(json_string)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Bináris fájlok</h3>
+          <p>Nem szöveges fájlok (képek, videók, stb.) kezelése:</p>
+          <div class="code-container">
+            <pre><code># Bináris olvasás
+with open("kep.jpg", "rb") as fajl:
+    adatok = fajl.read()
+    print(f"Fájl mérete: {len(adatok)} byte")
+
+# Bináris írás (másolás)
+with open("kep.jpg", "rb") as forras:
+    with open("kep_masolat.jpg", "wb") as cel:
+        cel.write(forras.read())
+
+# Darabokban olvasás (nagy fájlokhoz)
+with open("nagy_fajl.bin", "rb") as fajl:
+    while True:
+        darab = fajl.read(1024)  # 1 KB darabok
+        if not darab:
+            break
+        # Feldolgozás...</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Napló fájl</h3>
+          <div class="code-container">
+            <pre><code>from datetime import datetime
+
+class Naplo:
+    """Egyszerű napló kezelő"""
+    
+    def __init__(self, fajlnev="naplo.txt"):
+        self.fajlnev = fajlnev
+    
+    def ir(self, uzenet):
+        """Bejegyzés írása időbélyeggel"""
+        ido = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        bejegyzes = f"[{ido}] {uzenet}\n"
+        
+        with open(self.fajlnev, "a", encoding="utf-8") as fajl:
+            fajl.write(bejegyzes)
+        
+        print(f"Naplóba írva: {uzenet}")
+    
+    def olvas(self):
+        """Teljes napló olvasása"""
+        try:
+            with open(self.fajlnev, "r", encoding="utf-8") as fajl:
+                return fajl.read()
+        except FileNotFoundError:
+            return "A napló fájl még nem létezik."
+    
+    def utolso_n(self, n=10):
+        """Utolsó N bejegyzés"""
+        try:
+            with open(self.fajlnev, "r", encoding="utf-8") as fajl:
+                sorok = fajl.readlines()
+                return "".join(sorok[-n:])
+        except FileNotFoundError:
+            return "A napló fájl még nem létezik."
+    
+    def torol(self):
+        """Napló törlése"""
+        import os
+        if os.path.exists(self.fajlnev):
+            os.remove(self.fajlnev)
+            print("Napló törölve")
+
+# Használat
+naplo = Naplo("alkalmazas.log")
+
+naplo.ir("Alkalmazás elindult")
+naplo.ir("Felhasználó bejelentkezett")
+naplo.ir("Adatok betöltve")
+naplo.ir("Művelet végrehajtva")
+
+print("\n=== Teljes napló ===")
+print(naplo.olvas())
+
+print("\n=== Utolsó 2 bejegyzés ===")
+print(naplo.utolso_n(2))</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Konfiguráció kezelő</h3>
+          <div class="code-container">
+            <pre><code>import json
+import os
+
+class Konfiguracio:
+    """Alkalmazás konfiguráció kezelő"""
+    
+    def __init__(self, fajlnev="config.json"):
+        self.fajlnev = fajlnev
+        self.config = self.betolt()
+    
+    def betolt(self):
+        """Konfiguráció betöltése"""
+        if os.path.exists(self.fajlnev):
+            with open(self.fajlnev, "r", encoding="utf-8") as fajl:
+                return json.load(fajl)
+        else:
+            # Alapértelmezett konfiguráció
+            return {
+                "tema": "sotet",
+                "nyelv": "hu",
+                "ertesitesek": True,
+                "auto_mentes": True
+            }
+    
+    def ment(self):
+        """Konfiguráció mentése"""
+        with open(self.fajlnev, "w", encoding="utf-8") as fajl:
+            json.dump(self.config, fajl, ensure_ascii=False, indent=4)
+        print("Konfiguráció mentve")
+    
+    def get(self, kulcs, alapertelmezett=None):
+        """Beállítás lekérdezése"""
+        return self.config.get(kulcs, alapertelmezett)
+    
+    def set(self, kulcs, ertek):
+        """Beállítás módosítása"""
+        self.config[kulcs] = ertek
+        self.ment()
+    
+    def kiir(self):
+        """Konfiguráció megjelenítése"""
+        print("\n=== Konfiguráció ===")
+        for kulcs, ertek in self.config.items():
+            print(f"{kulcs}: {ertek}")
+
+# Használat
+config = Konfiguracio()
+
+config.kiir()
+print(f"\nTéma: {config.get('tema')}")
+
+config.set("tema", "vilagos")
+config.set("nyelv", "en")
+config.kiir()</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek</h3>
+          <ul>
+            <li>Mindig használj <strong>with</strong> statementet - automatikus lezárás</li>
+            <li>Használj <strong>encoding="utf-8"</strong>-t magyar karakterekhez</li>
+            <li>Ellenőrizd a <strong>fájl létezését</strong> olvasás előtt</li>
+            <li>Nagy fájlokat <strong>darabokban</strong> dolgozz fel</li>
+            <li>A <code>"w"</code> mód <strong>felülírja</strong> a fájlt - használd <code>"a"</code>-t hozzáfűzéshez</li>
+            <li>Használj <strong>os.path.join()</strong>-t platform független útvonalakhoz</li>
+            <li><strong>JSON</strong> jobb strukturált adatokhoz, mint sima szöveg</li>
+            <li>Bináris fájloknál mindig <strong>"b"</strong> módot használj</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="python/classes" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Osztályok (OOP)</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="python/exceptions" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Hibakezelés</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

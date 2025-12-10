@@ -2,47 +2,269 @@
 <html lang="hu">
   <head>
     <meta charset="utf-8" />
-    <meta name="description" content="Itt tanulhatsz CSS-t." />
+    <meta name="description" content="Itt tanulhatsz CSS-t alapoktól." />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script>(function(){var basePath="/";if(location.pathname.indexOf("/agazati/")===0){basePath="/agazati/";}var base=document.createElement("base");base.href=basePath;document.head.appendChild(base);})();</script><link  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"  rel="stylesheet"  integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"  crossorigin="anonymous"/>
-    <script  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"  crossorigin="anonymous"></script>
-    <link  rel="shortcut icon"  href="assets/images/agazati.ico"  type="image/x-icon"/>
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/main.css" />
     <link rel="stylesheet" href="assets/css/nav.css" />
     <link rel="stylesheet" href="assets/css/utilities.css" />
     <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
     <title>Agazati - CSS Alapok</title>
   </head>
   <body>
     <div id="mySidenav" class="sidenav"></div>
     <main>
-      <h1 class="cim text-center">CSS</h1>
-
-      <section id="css-alapok" class="kartya">
-        <div class="kartya-item">
-          <h3>CSS Alapok</h3>
-          <hr />
+      <div class="navigation-buttons">
+        <a href="" class="nav-btn prev-btn">
+          <span class="nav-text">Főoldal</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="css/box" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Box modell</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">CSS Alapok</h1>
+      <section>
+        <div>
+          <h3>Mi az a CSS?</h3>
           <p>
-            A CSS (Cascading Style Sheets) felelős a weboldalak megjelenéséért.
-            Itt megtanulhatod az alapvető stílusokat és formázási lehetőségeket.
+            A CSS (Cascading Style Sheets) egy stílusleíró nyelv, amellyel a HTML elemek megjelenését 
+            szabályozzuk. A CSS segítségével színeket, betűtípusokat, elrendezést, méreteket és sok mást 
+            állíthatunk be a weboldalunkon.
           </p>
-          <div class="code-block">
-            <button class="copy-btn" onclick="copyText(this)">📋</button>
-            <pre><code>/* Alapvető CSS példák */
-body {
-  background-color: #f0f0f0;
-  font-family: Arial, sans-serif;
-}
+        </div>
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+        <div>
+          <h3>CSS szintaxis</h3>
+          <p>
+            A CSS szabályok szelektorokból és deklarációs blokkokból állnak. A szelektor kiválasztja az elem(ek)et, 
+            a deklarációs blokk pedig tartalmazza a stílus tulajdonságokat és értékeket.
+          </p>
+          <div class="code-container">
+            <pre><code>szelektor {
+    tulajdonság: érték;
+    tulajdonság: érték;
 }</code></pre>
           </div>
         </div>
+
+        <div>
+          <h3>CSS beillesztési módok</h3>
+          <p>A CSS-t háromféleképpen illeszthetjük be egy HTML dokumentumba:</p>
+          
+          <h4>1. Inline CSS</h4>
+          <p>Közvetlenül a HTML elem style attribútumában:</p>
+          <div class="code-container">
+            <pre><code>&lt;p style="color: blue; font-size: 18px;"&gt;Kék szöveg&lt;/p&gt;</code></pre>
+          </div>
+
+          <h4>2. Internal CSS</h4>
+          <p>A HTML dokumentum &lt;head&gt; részében, &lt;style&gt; tagben:</p>
+          <div class="code-container">
+            <pre><code>&lt;head&gt;
+    &lt;style&gt;
+        p {
+            color: blue;
+            font-size: 18px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;</code></pre>
+          </div>
+
+          <h4>3. External CSS (Ajánlott)</h4>
+          <p>Külön CSS fájlban, amelyet linkelünk a HTML-be:</p>
+          <div class="code-container">
+            <pre><code>&lt;head&gt;
+    &lt;link rel="stylesheet" href="stilus.css"&gt;
+&lt;/head&gt;</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>CSS szelektorok</h3>
+          <p>A szelektorok segítségével választjuk ki, hogy melyik HTML elemre szeretnénk stílust alkalmazni:</p>
+          
+          <ul>
+            <li><strong>Elem szelektor</strong>: <code>p { }</code> - Minden &lt;p&gt; elemre vonatkozik</li>
+            <li><strong>Class szelektor</strong>: <code>.osztaly { }</code> - class="osztaly" attribútumú elemekre</li>
+            <li><strong>ID szelektor</strong>: <code>#azonosito { }</code> - id="azonosito" attribútumú elemre</li>
+            <li><strong>Univerzális szelektor</strong>: <code>* { }</code> - Minden elemre vonatkozik</li>
+            <li><strong>Csoportos szelektor</strong>: <code>h1, h2, h3 { }</code> - Több elemre egyszerre</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Alapvető CSS tulajdonságok</h3>
+          
+          <h4>Színek</h4>
+          <div class="code-container">
+            <pre><code>color: red;                    /* Szöveg színe */
+background-color: #3498db;     /* Háttérszín */
+border-color: rgb(52, 152, 219); /* Keret színe */</code></pre>
+          </div>
+
+          <h4>Betűtípus</h4>
+          <div class="code-container">
+            <pre><code>font-family: Arial, sans-serif;  /* Betűtípus */
+font-size: 16px;                 /* Betűméret */
+font-weight: bold;               /* Betű vastagsága */
+font-style: italic;              /* Dőlt betű */</code></pre>
+          </div>
+
+          <h4>Szöveg formázás</h4>
+          <div class="code-container">
+            <pre><code>text-align: center;      /* Szöveg igazítása */
+text-decoration: underline; /* Aláhúzás */
+line-height: 1.5;        /* Sorköz */
+letter-spacing: 2px;     /* Betűköz */</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa</h3>
+          <p>
+            Nézzünk egy komplett példát, amely bemutatja a CSS alapvető használatát:
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;CSS Példa&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .kiemel {
+            background-color: #ffeb3b;
+            padding: 5px;
+            font-weight: bold;
+        }
+        
+        #fontos {
+            color: red;
+            font-size: 18px;
+        }
+        
+        p {
+            line-height: 1.6;
+            color: #333;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;CSS Bemutató Oldal&lt;/h1&gt;
+    
+    &lt;p&gt;Ez egy normál bekezdés.&lt;/p&gt;
+    
+    &lt;p class="kiemel"&gt;Ez egy kiemelt bekezdés class szelektorral.&lt;/p&gt;
+    
+    &lt;p id="fontos"&gt;Ez egy fontos üzenet ID szelektorral!&lt;/p&gt;
+    
+    &lt;p&gt;A CSS segítségével &lt;span class="kiemel"&gt;szövegrészleteket&lt;/span&gt; is kiemelhetünk.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="html/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('htmlRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>CSS prioritás (Specificity)</h3>
+          <p>
+            Ha több CSS szabály is vonatkozik egy elemre, a böngésző prioritás szerint dönti el, melyiket alkalmazza:
+          </p>
+          <ol>
+            <li><strong>!important</strong> - Legmagasabb prioritás</li>
+            <li><strong>Inline stílus</strong> - style attribútum</li>
+            <li><strong>ID szelektor</strong> - #azonosito</li>
+            <li><strong>Class, attribute, pseudo-class szelektor</strong> - .osztaly, [type="text"], :hover</li>
+            <li><strong>Elem szelektor</strong> - p, div, h1</li>
+          </ol>
+          <div class="code-container">
+            <pre><code>/* Alacsony prioritás */
+p {
+    color: blue;
+}
+
+/* Közepes prioritás */
+.kiemelt {
+    color: green;
+}
+
+/* Magas prioritás */
+#fontos {
+    color: red;
+}
+
+/* Legmagasabb prioritás */
+p {
+    color: purple !important;
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek</h3>
+          <ul>
+            <li>Használj <strong>external CSS</strong>-t a tiszta kód érdekében</li>
+            <li>A <strong>class</strong>-t használd újrafelhasználható stílusokhoz</li>
+            <li>Az <strong>ID</strong>-t csak egyedi elemekhez használd</li>
+            <li>Kerüld az <strong>!important</strong> túlzott használatát</li>
+            <li>Használj <strong>értelmes class neveket</strong> (pl. .gomb-primer, .kiemel-szoveg)</li>
+            <li>Csoportosítsd a hasonló stílusokat együtt</li>
+          </ul>
+        </div>
       </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Főoldal</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="css/box" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Box modell</span>
+        </a>
+      </div>
     </main>
     <script src="assets/js/nav.js"></script>
     <script src="assets/js/footer.js"></script>

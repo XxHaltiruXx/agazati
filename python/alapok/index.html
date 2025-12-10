@@ -2,63 +2,289 @@
 <html lang="hu">
   <head>
     <meta charset="utf-8" />
-    <meta name="description" content="Itt tanulhatsz python-t." />
+    <meta name="description" content="Itt tanulhatsz Python-t alapoktól." />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script>(function(){var basePath="/";if(location.pathname.indexOf("/agazati/")===0){basePath="/agazati/";}var base=document.createElement("base");base.href=basePath;document.head.appendChild(base);})();</script><link  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"  rel="stylesheet"  integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"  crossorigin="anonymous"/>
-    <script  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"  crossorigin="anonymous"></script>
-    <link  rel="shortcut icon"  href="assets/images/agazati.ico"  type="image/x-icon"/>
-    <link rel="stylesheet" href="assets/css/base.css">
-    <link rel="stylesheet" href="assets/css/main.css">
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
     <link rel="stylesheet" href="assets/css/nav.css" />
     <link rel="stylesheet" href="assets/css/utilities.css" />
     <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
     <title>Agazati - Python Alapok</title>
   </head>
-
   <body>
     <div id="mySidenav" class="sidenav"></div>
     <main>
-      <h1 class="cim">Python</h1>
-      <section id="python" class="kartya">
-        <div class="kartya-item">
-          <h3>Python Alapok</h3>
-          <hr />
+      <div class="navigation-buttons">
+        <a href="" class="nav-btn prev-btn">
+          <span class="nav-text">Főoldal</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="python/types" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Változók és típusok</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Python Alapok</h1>
+      <section>
+        <div>
+          <h3>Mi az a Python?</h3>
           <p>
-            A Python az egyik legnépszerűbb és legkönnyebben tanulható
-            programozási nyelv. Egyszerű szintaxisa és hatalmas
-            könyvtártámogatása miatt kezdőknek és haladóknak egyaránt kiváló
-            választás.
-          </p>
-          <p>
-            Az alábbi példakód kiírja a képernyőre a híres "Helló, világ!"
-            üzenetet:
-          </p>
-          <div class="console-bgc">
-            <p class="console-title">Példa</p>
-            <div class="console-holder">
-              <div class="console">
-                <p>print("Helló, világ!")</p>
-              </div>
-            </div>
-            <div class="tryitbtn-holder">
-              <a class="tryitbtn" href="python/run/">Próbáld ki magad! >></a>
-            </div>
-          </div>
-          <h4>Miért érdemes Pythont tanulni?</h4>
-          <ul>
-            <li>Egyszerű és olvasható szintaxis</li>
-            <li>
-              Széles körű felhasználási lehetőségek (webfejlesztés,
-              adatfeldolgozás, mesterséges intelligencia, stb.)
-            </li>
-            <li>Hatalmas közösségi támogatás és ingyenes források</li>
-          </ul>
-          <p>
-            Ha szeretnél mélyebben belemerülni a Python világába, próbáld ki az
-            interaktív példákat, és kezdj el kódolni!
+            A Python egy magas szintű, általános célú programozási nyelv, amelyet Guido van Rossum 
+            hozott létre 1991-ben. Filozófiája a kód olvashatóságát helyezi előtérbe egyszerű, tiszta 
+            szintaxisával. A Python az egyik legnépszerűbb programozási nyelv a világon.
           </p>
         </div>
+
+        <div>
+          <h3>Miért érdemes Pythont tanulni?</h3>
+          <ul>
+            <li><strong>Egyszerű szintaxis</strong> - könnyen olvasható és tanulható</li>
+            <li><strong>Sokoldalúság</strong> - webfejlesztés, adatelemzés, AI, automatizálás, játékfejlesztés</li>
+            <li><strong>Hatalmas közösség</strong> - rengeteg ingyenes könyvtár és forrás</li>
+            <li><strong>Magas kereslet</strong> - a munkaerőpiacon nagy kereslet van Python fejlesztőkre</li>
+            <li><strong>Gyors fejlesztés</strong> - kevesebb kóddal több eredmény</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Az első Python programod - "Helló, Világ!"</h3>
+          <p>
+            A hagyományos első program bármely nyelvben a "Helló, Világ!" kiírása. 
+            Python-ban ez egyetlen sor:
+          </p>
+          <div class="code-container">
+            <pre><code>print("Helló, Világ!")</code></pre>
+          </div>
+          <p>
+            A <code>print()</code> függvény kiírja a zárójelben megadott szöveget a képernyőre. 
+            Egyszerű, igaz? Python-ban a dolgok általában ennyire egyszerűek!
+          </p>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki a Python Futtatóban!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Python alapfogalmak</h3>
+          
+          <h4>Kommentek</h4>
+          <p>A kommentek a kód magyarázatára szolgálnak, a Python futtatáskor figyelmen kívül hagyja őket:</p>
+          <div class="code-container">
+            <pre><code># Ez egy egysoros komment
+
+"""
+Ez egy többsoros komment.
+Több sorban is írhatunk magyarázatot.
+"""
+
+print("Ez fut!")  # Ez is komment, de a print fut</code></pre>
+          </div>
+
+          <h4>Indentálás (Behúzás)</h4>
+          <p>
+            A Python az indentálással jelöli a kódblokkok tartozását. Ez kötelező, nem csak stílus kérdése!
+          </p>
+          <div class="code-container">
+            <pre><code>if 5 > 2:
+    print("Öt nagyobb mint kettő")  # 4 szóköz behúzás
+    print("Ez is a blokkhoz tartozik")
+
+print("Ez már kívül van")</code></pre>
+          </div>
+
+          <h4>Változók létrehozása</h4>
+          <p>
+            Python-ban nem kell deklarálni a változó típusát, automatikusan felismeri:
+          </p>
+          <div class="code-container">
+            <pre><code># Számok
+x = 5
+y = 3.14
+
+# Szöveg (string)
+nev = "Anna"
+uzenet = 'Helló!'
+
+# Logikai érték (boolean)
+igaz = True
+hamis = False
+
+# Kiírás
+print(nev)  # Anna
+print(x + y)  # 8.14</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Alapvető adattípusok</h3>
+          <div class="code-container">
+            <pre><code># Egész szám (int)
+szam = 42
+
+# Lebegőpontos szám (float)
+pi = 3.14159
+
+# Szöveg (string)
+szoveg = "Python"
+
+# Logikai érték (boolean)
+aktiv = True
+
+# Típus lekérdezése
+print(type(szam))     # <class 'int'>
+print(type(pi))       # <class 'float'>
+print(type(szoveg))   # <class 'str'>
+print(type(aktiv))    # <class 'bool'></code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Alapműveletek</h3>
+          
+          <h4>Matematikai műveletek</h4>
+          <div class="code-container">
+            <pre><code># Összeadás, kivonás, szorzás
+print(10 + 5)   # 15
+print(10 - 5)   # 5
+print(10 * 5)   # 50
+
+# Osztás (mindig float eredmény)
+print(10 / 3)   # 3.3333...
+
+# Egész osztás (lefelé kerekít)
+print(10 // 3)  # 3
+
+# Maradékos osztás (modulo)
+print(10 % 3)   # 1
+
+# Hatványozás
+print(2 ** 3)   # 8 (2 a harmadikon)</code></pre>
+          </div>
+
+          <h4>String műveletek</h4>
+          <div class="code-container">
+            <pre><code># Összefűzés
+print("Helló " + "Világ")  # Helló Világ
+
+# Ismétlés
+print("Ha" * 3)  # HaHaHa
+
+# Hossz
+print(len("Python"))  # 6
+
+# Indexelés (0-tól kezdődik)
+szoveg = "Python"
+print(szoveg[0])   # P
+print(szoveg[-1])  # n (utolsó karakter)
+
+# Szeletelés
+print(szoveg[0:3])  # Pyt</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Bemenet bekérése</h3>
+          <p>
+            Az <code>input()</code> függvénnyel kérhetsz be adatot a felhasználótól:
+          </p>
+          <div class="code-container">
+            <pre><code># Szöveg bekérése
+nev = input("Mi a neved? ")
+print("Helló, " + nev + "!")
+
+# Szám bekérése (input mindig stringet ad vissza)
+kor = input("Hány éves vagy? ")
+kor = int(kor)  # átalakítás számmá
+print("Te " + str(kor) + " éves vagy")</code></pre>
+          </div>
+          <p><strong>Megjegyzés:</strong> Az online Python futtatónkban az input() nem működik, csak lokálisan.</p>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Egyszerű számológép</h3>
+          <p>
+            Készítsünk egy egyszerű programot, amely két számot összeada:
+          </p>
+          <div class="code-container">
+            <pre><code># Egyszerű számológép
+print("=== Egyszerű Számológép ===")
+
+# Számok definiálása
+szam1 = 15
+szam2 = 27
+
+# Műveletek
+osszeadas = szam1 + szam2
+kivonas = szam1 - szam2
+szorzas = szam1 * szam2
+osztas = szam1 / szam2
+
+# Eredmények kiírása
+print(f"{szam1} + {szam2} = {osszeadas}")
+print(f"{szam1} - {szam2} = {kivonas}")
+print(f"{szam1} * {szam2} = {szorzas}")
+print(f"{szam1} / {szam2} = {osztas:.2f}")
+
+# f-string: modern, kényelmes szöveg formázás</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek kezdőknek</h3>
+          <ul>
+            <li>Használj <strong>értelmes változóneveket</strong> (pl. <code>kor</code> jobb mint <code>x</code>)</li>
+            <li>A Python <strong>case-sensitive</strong> - a <code>Nev</code> és <code>nev</code> különböző</li>
+            <li>Kezdj minden nevet <strong>kisbetűvel</strong> (változók, függvények)</li>
+            <li>Használj <strong>snake_case</strong>-t több szóból álló neveknél (pl. <code>felhasznalo_nev</code>)</li>
+            <li><strong>Kommentezz</strong>, ha a kód nem magától értetődő</li>
+            <li>Az <strong>indentálás</strong> 4 szóköz (ne használj Tab-ot vegyesen)</li>
+            <li>Próbálj ki mindent a Python futtatóban!</li>
+          </ul>
+        </div>
       </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Főoldal</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="python/types" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Változók és típusok</span>
+        </a>
+      </div>
     </main>
     <script src="assets/js/nav.js"></script>
     <script src="assets/js/footer.js"></script>

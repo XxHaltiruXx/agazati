@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Python vezérlési szerkezetek: if, elif, else, for, while ciklusok." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Python Vezérlési Szerkezetek</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="python/types" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Változók és típusok</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="python/functions" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Függvények</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Vezérlési Szerkezetek</h1>
+      <section>
+        <div>
+          <h3>Feltételes szerkezetek - if/elif/else</h3>
+          <p>
+            A feltételes szerkezetek lehetővé teszik, hogy a kód különböző műveleteket hajtson végre 
+            attól függően, hogy egy feltétel igaz vagy hamis. Python-ban az <strong>indentálás</strong> 
+            (behúzás) határozza meg, hogy mely utasítások tartoznak egy blokkhoz.
+          </p>
+        </div>
+
+        <div>
+          <h3>Egyszerű if utasítás</h3>
+          <p>Az <code>if</code> utasítás akkor futtatja a blokkot, ha a feltétel igaz:</p>
+          <div class="code-container">
+            <pre><code># Egyszerű if
+kor = 18
+
+if kor >= 18:
+    print("Nagykorú vagy")  # Ez lefut
+    print("Vezethetsz autót")
+
+print("Ez mindig lefut")</code></pre>
+          </div>
+          <p><strong>Fontos:</strong> A blokkba tartozó sorokat 4 szóközzel kell behúzni!</p>
+        </div>
+
+        <div>
+          <h3>if-else szerkezet</h3>
+          <p>Az <code>else</code> ág akkor fut le, ha a feltétel hamis:</p>
+          <div class="code-container">
+            <pre><code># if-else
+kor = 15
+
+if kor >= 18:
+    print("Nagykorú vagy")
+else:
+    print("Kiskorú vagy")  # Ez fut le
+    print("Még " + str(18 - kor) + " év van hátra")</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>if-elif-else szerkezet</h3>
+          <p>Több feltétel ellenőrzéséhez használjuk az <code>elif</code> (else if) ágakat:</p>
+          <div class="code-container">
+            <pre><code># if-elif-else
+jegy = 85
+
+if jegy >= 90:
+    print("Jeles (5)")
+elif jegy >= 80:
+    print("Jó (4)")  # Ez fut le
+elif jegy >= 70:
+    print("Közepes (3)")
+elif jegy >= 60:
+    print("Elégséges (2)")
+else:
+    print("Elégtelen (1)")
+
+# Az első igaz feltételnél megáll!</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Összehasonlító operátorok</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Operátor</th>
+                <th>Jelentés</th>
+                <th>Példa</th>
+                <th>Eredmény</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>==</td>
+                <td>Egyenlő</td>
+                <td>5 == 5</td>
+                <td>True</td>
+              </tr>
+              <tr>
+                <td>!=</td>
+                <td>Nem egyenlő</td>
+                <td>5 != 3</td>
+                <td>True</td>
+              </tr>
+              <tr>
+                <td>&gt;</td>
+                <td>Nagyobb</td>
+                <td>5 &gt; 3</td>
+                <td>True</td>
+              </tr>
+              <tr>
+                <td>&lt;</td>
+                <td>Kisebb</td>
+                <td>5 &lt; 3</td>
+                <td>False</td>
+              </tr>
+              <tr>
+                <td>&gt;=</td>
+                <td>Nagyobb vagy egyenlő</td>
+                <td>5 &gt;= 5</td>
+                <td>True</td>
+              </tr>
+              <tr>
+                <td>&lt;=</td>
+                <td>Kisebb vagy egyenlő</td>
+                <td>5 &lt;= 3</td>
+                <td>False</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3>Logikai operátorok</h3>
+          <p>Több feltétel kombinálására használjuk őket:</p>
+          <div class="code-container">
+            <pre><code># AND - mindkét feltételnek igaznak kell lennie
+kor = 20
+jogositvany = True
+
+if kor >= 18 and jogositvany:
+    print("Vezethetsz autót")
+
+# OR - legalább egy feltételnek igaznak kell lennie
+nap = "szombat"
+
+if nap == "szombat" or nap == "vasárnap":
+    print("Hétvége van!")
+
+# NOT - megfordítja a logikai értéket
+esik = False
+
+if not esik:
+    print("Nem esik az eső")
+
+# Összetett feltételek
+kor = 25
+jovedelem = 300000
+
+if (kor >= 18 and kor <= 65) and jovedelem > 200000:
+    print("Jogosult a hitelre")</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Egysorosított if (ternary operator)</h3>
+          <p>Rövid if-else szerkezetek egyetlen sorban:</p>
+          <div class="code-container">
+            <pre><code># Hagyományos if-else
+kor = 20
+if kor >= 18:
+    statusz = "nagykorú"
+else:
+    statusz = "kiskorú"
+
+# Egysorosított verzió
+kor = 20
+statusz = "nagykorú" if kor >= 18 else "kiskorú"
+
+print(statusz)  # nagykorú
+
+# Másik példa
+szam = 15
+paros_paratlan = "páros" if szam % 2 == 0 else "páratlan"
+print(paros_paratlan)  # páratlan</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>For ciklus - Ismétlés meghatározott számban</h3>
+          <p>
+            A <code>for</code> ciklus egy sorozaton megy végig (lista, string, tartomány stb.) 
+            és minden elemre végrehajtja a blokkot:
+          </p>
+          
+          <h4>For ciklus listával</h4>
+          <div class="code-container">
+            <pre><code># Lista bejárása
+gyumolcsok = ["alma", "banán", "cseresznye"]
+
+for gyumolcs in gyumolcsok:
+    print(gyumolcs)
+
+# Kimenet:
+# alma
+# banán
+# cseresznye</code></pre>
+          </div>
+
+          <h4>For ciklus range()-dzsel</h4>
+          <div class="code-container">
+            <pre><code># range(stop) - 0-tól stop-1-ig
+for i in range(5):
+    print(i)  # 0, 1, 2, 3, 4
+
+# range(start, stop) - start-tól stop-1-ig
+for i in range(2, 6):
+    print(i)  # 2, 3, 4, 5
+
+# range(start, stop, step) - lépésközzel
+for i in range(0, 10, 2):
+    print(i)  # 0, 2, 4, 6, 8
+
+# Visszafelé számolás
+for i in range(10, 0, -1):
+    print(i)  # 10, 9, 8, ..., 1</code></pre>
+          </div>
+
+          <h4>For ciklus stringgel</h4>
+          <div class="code-container">
+            <pre><code># String karaktereinek bejárása
+nev = "Python"
+
+for betu in nev:
+    print(betu)
+
+# Kimenet: P, y, t, h, o, n</code></pre>
+          </div>
+
+          <h4>For ciklus enumerate()-tel</h4>
+          <div class="code-container">
+            <pre><code># Index és érték együtt
+gyumolcsok = ["alma", "banán", "cseresznye"]
+
+for index, gyumolcs in enumerate(gyumolcsok):
+    print(f"{index}: {gyumolcs}")
+
+# Kimenet:
+# 0: alma
+# 1: banán
+# 2: cseresznye
+
+# Kezdő index megadása
+for index, gyumolcs in enumerate(gyumolcsok, start=1):
+    print(f"{index}. {gyumolcs}")
+
+# 1. alma
+# 2. banán
+# 3. cseresznye</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>While ciklus - Ismétlés feltétel szerint</h3>
+          <p>
+            A <code>while</code> ciklus addig ismétlődik, amíg a feltétel igaz. 
+            <strong>Vigyázat:</strong> végtelen ciklusba kerülhetsz, ha a feltétel soha nem lesz hamis!
+          </p>
+          <div class="code-container">
+            <pre><code># Egyszerű while ciklus
+szamlalo = 0
+
+while szamlalo < 5:
+    print(szamlalo)
+    szamlalo += 1  # Növeljük, különben végtelen!
+
+# Kimenet: 0, 1, 2, 3, 4
+
+# Feltételes kilépés
+szam = 1
+
+while szam <= 100:
+    if szam % 13 == 0:
+        print(f"Az első 13-mal osztható szám: {szam}")
+        break
+    szam += 1</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Break és Continue</h3>
+          <p>Ciklus végrehajtásának befolyásolása:</p>
+          
+          <h4>Break - Ciklus megszakítása</h4>
+          <div class="code-container">
+            <pre><code># Break - azonnal kilép a ciklusból
+for i in range(10):
+    if i == 5:
+        break  # Megáll i=5-nél
+    print(i)
+
+# Kimenet: 0, 1, 2, 3, 4
+
+# Keresés listában
+szamok = [3, 7, 12, 9, 15, 4]
+keresett = 9
+
+for szam in szamok:
+    if szam == keresett:
+        print(f"Megtaláltam: {szam}")
+        break
+else:
+    print("Nem találtam")</code></pre>
+          </div>
+
+          <h4>Continue - Következő iteráció</h4>
+          <div class="code-container">
+            <pre><code># Continue - átugorja a jelenlegi iterációt
+for i in range(10):
+    if i % 2 == 0:
+        continue  # Páros számoknál továbblép
+    print(i)
+
+# Kimenet: 1, 3, 5, 7, 9 (csak páratlanok)
+
+# Csak pozitívak kiírása
+szamok = [-2, 5, -8, 10, -3, 7]
+
+for szam in szamok:
+    if szam < 0:
+        continue  # Negatívakat kihagyja
+    print(szam)
+
+# Kimenet: 5, 10, 7</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Beágyazott ciklusok</h3>
+          <p>Ciklusok egymásba ágyazása:</p>
+          <div class="code-container">
+            <pre><code># Szorzótábla generálása
+for i in range(1, 6):
+    for j in range(1, 6):
+        print(f"{i} x {j} = {i*j}")
+    print("---")  # Elválasztó
+
+# Mátrix bejárása
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+for sor in matrix:
+    for elem in sor:
+        print(elem, end=" ")
+    print()  # Új sor
+
+# Kimenet:
+# 1 2 3
+# 4 5 6
+# 7 8 9</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Else ág ciklusoknál</h3>
+          <p>
+            Python-ban a ciklusoknak lehet <code>else</code> águk, amely akkor fut le, 
+            ha a ciklus <strong>természetesen ért véget</strong> (nem break-kel):
+          </p>
+          <div class="code-container">
+            <pre><code># For-else
+for i in range(5):
+    print(i)
+else:
+    print("Ciklus befejezve")
+
+# While-else
+szam = 0
+while szam < 5:
+    print(szam)
+    szam += 1
+else:
+    print("Elértük az 5-öt")
+
+# Ha break van, az else NEM fut le
+for i in range(10):
+    if i == 5:
+        break
+    print(i)
+else:
+    print("Ez nem fog lefutni")  # Nem fut le!</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Pass utasítás</h3>
+          <p>
+            A <code>pass</code> egy "üres" utasítás, helykitöltőként szolgál, 
+            ahol szintaktikailag szükséges kód, de még nem írtad meg:
+          </p>
+          <div class="code-container">
+            <pre><code># Pass használata
+for i in range(5):
+    pass  # Később implementálom
+
+if 5 > 3:
+    pass  # TODO: valami logika ide
+
+# Hasznos vázlat készítésénél
+def osszetett_fuggveny():
+    pass  # Később írom meg</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Számmisztikai játék</h3>
+          <div class="code-container">
+            <pre><code># Találd ki a számot játék (1-100 között)
+import random
+
+# Véletlenszerű szám generálása
+titok = random.randint(1, 100)
+probalkozasok = 0
+max_probalkozas = 10
+
+print("=== Találd ki a számot! ===")
+print("Gondoltam egy számra 1 és 100 között.")
+print(f"Neked {max_probalkozas} próbálkozásod van.\n")
+
+while probalkozasok < max_probalkozas:
+    # Tipp bekérése (szimulált példában fix értékekkel)
+    tipp = 50  # Helyettesíti: int(input("Tipped: "))
+    probalkozasok += 1
+    
+    if tipp == titok:
+        print(f"🎉 Gratulálok! Eltaláltad {probalkozasok} próbálkozásból!")
+        break
+    elif tipp < titok:
+        print("📈 Nagyobb számra gondoltam!")
+    else:
+        print("📉 Kisebb számra gondoltam!")
+    
+    hatra_van = max_probalkozas - probalkozasok
+    if hatra_van > 0:
+        print(f"Még {hatra_van} próbálkozásod van.\n")
+else:
+    print(f"\n❌ Sajnos elfogytak a próbálkozásaid!")
+    print(f"A szám {titok} volt.")</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - FizzBuzz</h3>
+          <p>Klasszikus programozói feladat:</p>
+          <div class="code-container">
+            <pre><code># FizzBuzz: 1-100-ig számolunk
+# - Ha 3-mal osztható: "Fizz"
+# - Ha 5-tel osztható: "Buzz"
+# - Ha mindkettővel: "FizzBuzz"
+# - Egyébként: a szám
+
+for szam in range(1, 101):
+    if szam % 3 == 0 and szam % 5 == 0:
+        print("FizzBuzz")
+    elif szam % 3 == 0:
+        print("Fizz")
+    elif szam % 5 == 0:
+        print("Buzz")
+    else:
+        print(szam)
+
+# Elegánsabb verzió
+for szam in range(1, 101):
+    kimenet = ""
+    if szam % 3 == 0:
+        kimenet += "Fizz"
+    if szam % 5 == 0:
+        kimenet += "Buzz"
+    print(kimenet or szam)</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="python/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('pythonRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek</h3>
+          <ul>
+            <li>Mindig figyelj az <strong>indentálásra</strong> (4 szóköz ajánlott)</li>
+            <li>Ne felejts el <strong>kettőspontot</strong> tenni a feltételek és ciklusok végére!</li>
+            <li>Használj <strong>értelmes változóneveket</strong> ciklusokban (<code>gyumolcs</code> > <code>i</code>)</li>
+            <li><code>break</code> és <code>continue</code> spórolhat sok beágyazást</li>
+            <li>Végtelen ciklusoknál mindig legyen <strong>kilépési feltétel</strong></li>
+            <li>A <code>for</code> ciklus általában egyszerűbb, mint a <code>while</code></li>
+            <li>Az <code>else</code> ág ciklusoknál ritkán használt, de hasznos lehet keresésnél</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="python/types" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Változók és típusok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="python/functions" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Függvények</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

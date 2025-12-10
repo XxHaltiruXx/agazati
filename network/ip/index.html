@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="IP címzés: IPv4, IPv6, cím osztályok, privát tartományok és CIDR jelölés." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - IP címzés</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="network/szamrendszer" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Számrendszerek</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="network/subnet" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Alhálózatok</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">IP címzés</h1>
+      <section>
+        <div>
+          <h3>Mi az az IP cím?</h3>
+          <p>
+            Az <strong>IP cím (Internet Protocol Address)</strong> egy egyedi azonosító, amely minden hálózati eszközhöz hozzá van rendelve. 
+            Lehetővé teszi az eszközök közötti kommunikációt és az adatcsomagok helyes útvonalválasztását.
+          </p>
+        </div>
+
+        <div>
+          <h3>IP cím funkciói</h3>
+          <ul>
+            <li><strong>Azonosítás</strong> - Egyedi címként működik minden eszközhöz</li>
+            <li><strong>Helymeghatározás</strong> - Meghatározza az eszköz hálózati helyét</li>
+            <li><strong>Útvonalválasztás</strong> - Segíti a routereket az adatcsomagok továbbításában</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>IP cím két fő verziója</h3>
+          <ul>
+            <li><strong>IPv4</strong> - 32 bites címek (4.3 milliárd lehetséges cím)</li>
+            <li><strong>IPv6</strong> - 128 bites címek (340 undecillió lehetséges cím)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>IPv4 címzés</h3>
+          <p>
+            Az <strong>IPv4</strong> cím 32 bitből áll, amelyet 4 darab 8 bites oktettre (byte) bontunk. 
+            Decimális formában 4 számként írjuk le, pontokkal elválasztva.
+          </p>
+          <div class="code-container">
+            <pre><code>IPv4 cím formátuma:
+Decimális:  192.168.1.100
+Bináris:    11000000.10101000.00000001.01100100
+
+Minden oktett: 0-255 közötti szám (2⁸ = 256 lehetőség)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>IPv4 cím felépítése</h3>
+          <ul>
+            <li><strong>Hálózati rész (Network ID)</strong> - Azonosítja a hálózatot</li>
+            <li><strong>Gép rész (Host ID)</strong> - Azonosítja a hálózaton belüli eszközt</li>
+          </ul>
+          <div class="code-container">
+            <pre><code>Példa: 192.168.1.100 /24
+
+Hálózati rész: 192.168.1   (első 24 bit)
+Gép rész:      100          (utolsó 8 bit)
+
+A /24 jelöli, hogy hány bit tartozik a hálózati részhez.</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>IPv4 cím osztályok (Classful Addressing)</h3>
+          <p>
+            Az eredeti IPv4 címzés 5 osztályra volt bontva, amely a cím első oktetje alapján határozta meg a hálózat méretét.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Osztály</th>
+                <th>Első oktett</th>
+                <th>Első bitek</th>
+                <th>Alapértelmezett maszk</th>
+                <th>Hálózatok száma</th>    
+                <th>Gépek/hálózat</th>
+                <th>Használat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A</td>
+                <td>1-126</td>
+                <td>0xxxxxxx</td>
+                <td>255.0.0.0 (/8)</td>
+                <td>126</td>
+                <td>16,777,214</td>
+                <td>Nagy vállalatok</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td>128-191</td>
+                <td>10xxxxxx</td>
+                <td>255.255.0.0 (/16)</td>
+                <td>16,384</td>
+                <td>65,534</td>
+                <td>Közepes szervezetek</td>
+              </tr>
+              <tr>
+                <td>C</td>
+                <td>192-223</td>
+                <td>110xxxxx</td>
+                <td>255.255.255.0 (/24)</td>
+                <td>2,097,152</td>
+                <td>254</td>
+                <td>Kis hálózatok</td>
+              </tr>
+              <tr>
+                <td>D</td>
+                <td>224-239</td>
+                <td>1110xxxx</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>Multicast</td>
+              </tr>
+              <tr>
+                <td>E</td>
+                <td>240-255</td>
+                <td>1111xxxx</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>Kísérleti</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="code-container">
+            <pre><code>Példák osztályokra:
+• Osztály A: 10.0.0.1       (nagy szervezet)
+• Osztály B: 172.16.0.1     (közepes szervezet)
+• Osztály C: 192.168.1.1    (kis hálózat)
+• Osztály D: 224.0.0.1      (multicast csoport)
+• Osztály E: 240.0.0.1      (fenntartva)</code></pre>
+          </div>
+          <p><strong>Megjegyzés:</strong> Ma már nem használjuk szigorúan az osztályokat, helyette <strong>CIDR (Classless Inter-Domain Routing)</strong> rendszert alkalmazzuk.</p>
+        </div>
+
+        <div>
+          <h3>Privát és publikus IP címek</h3>
+          <p>
+            Az IP címek két fő csoportra oszthatók: <strong>privát</strong> (csak helyi hálózatban) és <strong>publikus</strong> (interneten elérhető).
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Osztály</th>
+                <th>Privát IP tartomány</th>
+                <th>Alapértelmezett maszk</th>
+                <th>Hálózatok száma</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A</td>
+                <td>10.0.0.0 - 10.255.255.255</td>
+                <td>255.0.0.0 (/8)</td>
+                <td>1 nagy hálózat</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td>172.16.0.0 - 172.31.255.255</td>
+                <td>255.255.0.0 (/16)</td>
+                <td>16 közepes hálózat</td>
+              </tr>
+              <tr>
+                <td>C</td>
+                <td>192.168.0.0 - 192.168.255.255</td>
+                <td>255.255.255.0 (/24)</td>
+                <td>256 kis hálózat</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3>Privát IP címek jellemzői</h3>
+          <ul>
+            <li>Nem irányíthatók az interneten</li>
+            <li>NAT (Network Address Translation) szükséges a publikus internet eléréséhez</li>
+            <li>Szabadon használhatók helyi hálózatokban</li>
+            <li>Többször felhasználhatók különböző hálózatokban</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Speciális IP címek</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>IP cím / Tartomány</th>
+                <th>Jelentés</th>
+                <th>Használat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>0.0.0.0</td>
+                <td>Ez a gép / Alapértelmezett útvonal</td>
+                <td>Útválasztási táblázatokban</td>
+              </tr>
+              <tr>
+                <td>127.0.0.0 - 127.255.255.255</td>
+                <td>Loopback (saját gép)</td>
+                <td>Helyi tesztelés</td>
+              </tr>
+              <tr>
+                <td>169.254.0.0 - 169.254.255.255</td>
+                <td>APIPA (Automatic Private IP)</td>
+                <td>DHCP hiba esetén</td>
+              </tr>
+              <tr>
+                <td>255.255.255.255</td>
+                <td>Korlátozott broadcast</td>
+                <td>Helyi hálózati broadcast</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="code-container">
+            <pre><code>Loopback teszt:
+ping 127.0.0.1
+ping localhost
+
+APIPA észlelése (DHCP hiba):
+Ha a gép 169.254.x.x címet kap, nincs DHCP szerver.</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Subnet maszk (Alhálózati maszk)</h3>
+          <p>
+            A <strong>subnet maszk</strong> meghatározza, hogy az IP cím melyik része a hálózati azonosító, 
+            és melyik a gép azonosító. Binárisan 1-esek jelölik a hálózati részt, 0-ák a gép részt.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Maszk (decimális)</th>
+                <th>Maszk (bináris)</th>
+                <th>CIDR</th>
+                <th>Gépek száma</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>255.0.0.0</td>
+                <td>11111111.00000000.00000000.00000000</td>
+                <td>/8</td>
+                <td>16,777,214</td>
+              </tr>
+              <tr>
+                <td>255.255.0.0</td>
+                <td>11111111.11111111.00000000.00000000</td>
+                <td>/16</td>
+                <td>65,534</td>
+              </tr>
+              <tr>
+                <td>255.255.255.0</td>
+                <td>11111111.11111111.11111111.00000000</td>
+                <td>/24</td>
+                <td>254</td>
+              </tr>
+              <tr>
+                <td>255.255.255.128</td>
+                <td>11111111.11111111.11111111.10000000</td>
+                <td>/25</td>
+                <td>126</td>
+              </tr>
+              <tr>
+                <td>255.255.255.192</td>
+                <td>11111111.11111111.11111111.11000000</td>
+                <td>/26</td>
+                <td>62</td>
+              </tr>
+              <tr>
+                <td>255.255.255.224</td>
+                <td>11111111.11111111.11111111.11100000</td>
+                <td>/27</td>
+                <td>30</td>
+              </tr>
+              <tr>
+                <td>255.255.255.240</td>
+                <td>11111111.11111111.11111111.11110000</td>
+                <td>/28</td>
+                <td>14</td>
+              </tr>
+              <tr>
+                <td>255.255.255.252</td>
+                <td>11111111.11111111.11111111.11111100</td>
+                <td>/30</td>
+                <td>2</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>Gépek száma képlet:
+Használható gépek = 2^(host bitek száma) - 2
+
+Miért -2?
+- 1 cím: Hálózati cím (pl. 192.168.1.0)
+- 1 cím: Broadcast cím (pl. 192.168.1.255)
+
+Példa /24 hálózatra:
+Host bitek: 32 - 24 = 8 bit
+Gépek: 2⁸ - 2 = 256 - 2 = 254</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>CIDR jelölés (Classless Inter-Domain Routing)</h3>
+          <p>
+            A <strong>CIDR</strong> egy rugalmasabb címzési rendszer, amely lehetővé teszi a hálózatok precízebb felosztását. 
+            A cím után perjellel (/) és egy számmal jelöljük a hálózati bitek számát.
+          </p>
+          <div class="code-container">
+            <pre><code>CIDR formátum: IP_cím/prefix_hossz
+
+Példák:
+192.168.1.0/24  → 254 használható gép
+10.0.0.0/8      → 16,777,214 használható gép
+172.16.0.0/12   → 1,048,574 használható gép</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>CIDR előnyei</h3>
+          <ul>
+            <li>Hatékonyabb IP cím kihasználás</li>
+            <li>Csökkenti az útválasztási táblázatok méretét (route aggregation)</li>
+            <li>Rugalmasabb hálózattervezés</li>
+          </ul>
+          <table>
+            <thead>
+              <tr>
+                <th>CIDR</th>
+                <th>Maszk</th>
+                <th>Címek száma</th>
+                <th>Használható gépek</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>/30</td><td>255.255.255.252</td><td>4</td><td>2</td></tr>
+              <tr><td>/29</td><td>255.255.255.248</td><td>8</td><td>6</td></tr>
+              <tr><td>/28</td><td>255.255.255.240</td><td>16</td><td>14</td></tr>
+              <tr><td>/27</td><td>255.255.255.224</td><td>32</td><td>30</td></tr>
+              <tr><td>/26</td><td>255.255.255.192</td><td>64</td><td>62</td></tr>
+              <tr><td>/25</td><td>255.255.255.128</td><td>128</td><td>126</td></tr>
+              <tr><td>/24</td><td>255.255.255.0</td><td>256</td><td>254</td></tr>
+              <tr><td>/16</td><td>255.255.0.0</td><td>65,536</td><td>65,534</td></tr>
+              <tr><td>/8</td><td>255.0.0.0</td><td>16,777,216</td><td>16,777,214</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>IPv6 címzés</h3>
+          <p>
+            Az <strong>IPv6</strong> a következő generációs IP protokoll, amely 128 bites címeket használ. 
+            Az IPv4 címkészlet kimerülése miatt fejlesztették ki.
+          </p>
+          <div class="code-container">
+            <pre><code>IPv6 cím formátuma:
+8 csoport, egyenként 4 hexadecimális számjegy, kettőspontokkal elválasztva
+
+Teljes forma:
+2001:0db8:85a3:0000:0000:8a2e:0370:7334
+
+Rövidített forma:
+2001:db8:85a3::8a2e:370:7334
+
+Szabályok:
+• Kezdő 0-ák elhagyhatók egy csoportban
+• Egy vagy több 0000 csoport helyettesíthető ::-vel (csak egyszer!)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>IPv6 cím típusok</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Típus</th>
+                <th>Prefix</th>
+                <th>Leírás</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Unicast Global</td>
+                <td>2000::/3</td>
+                <td>Publikus, globálisan elérhető címek</td>
+              </tr>
+              <tr>
+                <td>Link-Local</td>
+                <td>fe80::/10</td>
+                <td>Csak helyi szegmensen érvényes</td>
+              </tr>
+              <tr>
+                <td>Unique Local</td>
+                <td>fc00::/7</td>
+                <td>Privát címek (mint IPv4 10.x.x.x)</td>
+              </tr>
+              <tr>
+                <td>Multicast</td>
+                <td>ff00::/8</td>
+                <td>Többes címzés</td>
+              </tr>
+              <tr>
+                <td>Loopback</td>
+                <td>::1/128</td>
+                <td>Saját gép (mint 127.0.0.1)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3>IPv6 előnyei IPv4-hez képest</h3>
+          <ul>
+            <li><strong>Óriási címkészlet</strong> - 340 undecillió cím (340 × 10³⁶)</li>
+            <li><strong>Nincs NAT szükséglet</strong> - Minden eszköz kap publikus címet</li>
+            <li><strong>Egyszerűbb fejléc</strong> - Gyorsabb routing</li>
+            <li><strong>Beépített IPsec</strong> - Jobb biztonság</li>
+            <li><strong>Automatikus konfiguráció</strong> - SLAAC (Stateless Address Autoconfiguration)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Hálózati és broadcast címek</h3>
+          <p>
+            Minden IP hálózatnak van egy <strong>hálózati címe</strong> és egy <strong>broadcast címe</strong>, 
+            amelyeket nem lehet gépekhez rendelni.
+          </p>
+          <div class="code-container">
+            <pre><code>Példa hálózat: 192.168.1.0/24
+
+Hálózati cím:  192.168.1.0    (első cím, host bitek mind 0)
+Első gép:      192.168.1.1
+Utolsó gép:    192.168.1.254
+Broadcast cím: 192.168.1.255  (utolsó cím, host bitek mind 1)
+
+Használható címek: 192.168.1.1 - 192.168.1.254 (254 darab)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Példa /26 hálózatra</h3>
+          <div class="code-container">
+            <pre><code>Hálózat: 192.168.1.64/26
+
+Subnet maszk: 255.255.255.192 (11111111.11111111.11111111.11000000)
+Host bitek: 6 bit → 2⁶ = 64 cím összesen
+
+Hálózati cím:  192.168.1.64
+Első gép:      192.168.1.65
+Utolsó gép:    192.168.1.126
+Broadcast:     192.168.1.127
+Használható:   62 gép (64 - 2)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <div class="navigation-buttons bottom">
+        <a href="network/szamrendszer" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Számrendszerek</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="network/subnet" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Alhálózatok</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

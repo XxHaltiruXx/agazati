@@ -395,7 +395,8 @@
           { title: "Alhálózatok", link: "network/subnet/" },
           { title: "Cisco parancsok", link: "network/cisco/" },
           { title: "VLAN-ok", link: "network/vlan/" },
-          { title: "Routing", link: "network/routing/" }
+          { title: "Routing", link: "network/routing/" },
+          { title: "IP / SUBNET számoló", link: "network/calculator/" }
         ]
       },
       "Matematika": {
@@ -415,7 +416,6 @@
       baseStructure["Titkos"] = {
         icon: "assets/images/sidesecret.svg",
         items: [
-          { title: "Szózat", link: "secret/szozat/" },
           { title: "Infosharer", link: "secret/infosharer/" }
         ]
       };

@@ -209,65 +209,10 @@ main > h3 {
   z-index: -1;
 }
 
-#index div.kartya-item:nth-child(even) {
-  background-color: #9318f8;
-  border: #460a77 solid 12px;
-}
-
-#index div.kartya-item:nth-child(odd) {
-  background-color: #0066ff;
-  border: #2f00ff solid 12px;
-}
-
-div.kartya-item {
-  text-align: left;
-  border-radius: 20px 0 20px 0;
-  width: 100%;
-  margin: 20px auto;
-  background-color: #0066ff;
-  border: #2f00ff solid 12px;
-}
-
-div.kartya-item h3 {
-  font-size: 150%;
-}
-
-div.kartya-item div:not(.row):not(.col) {
-  display: block;
-  margin: auto;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-}
-
-div.kartya-item p,
-div.kartya-item pre {
-  margin: 4%;
-}
-
 button {
   padding: 15px 18px;
   color: aliceblue;
   margin: 30px 8px 30px 8px;
-}
-
-div.kartya div.kartya-item button {
-  margin: 20px auto;
-  display: block;
-  padding: 15px 18px;
-  color: aliceblue;
-}
-
-div.kartya div.kartya-item:nth-child(odd) button {
-  border: 3px #4c0bce solid;
-  background-color: #9318f8;
-  border-radius: 25px;
-}
-
-div.kartya div.kartya-item:nth-child(even) button {
-  border: 3px #2f00ff solid;
-  background-color: #0066ff;
-  border-radius: 25px;
 }
 
 main {
@@ -736,20 +681,20 @@ a.download {
 .search-suggestions {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
+  left: 28px; /* wrapper padding miatt (0 + 12) */
+  right: calc(var(--search-button-width) + 11px); /* gomb bal széléig (gomb szélessége + right pozíciója = 56px + 11px = 67px) */
   background: linear-gradient(135deg, #1e1033 0%, #2d1b4e 100%);
   border: 1px solid rgba(138, 43, 226, 0.4);
   border-top: none;
   border-radius: 0 0 8px 8px;
-  max-height: 200px;
+  max-height: 160px;
   overflow-y: auto;
   z-index: 999;
   box-shadow: 0 8px 24px rgba(76, 11, 206, 0.3);
 }
 
 .search-suggestions::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 
 .search-suggestions::-webkit-scrollbar-track {

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Tanulj meg mindent a CSS Flexbox elrendezésről." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - CSS Flexbox</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="css/position" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Pozicionálás</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="css/grid" class="nav-btn next-btn">
+          <span class="nav-text">Következő: CSS Grid</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">CSS Flexbox</h1>
+      <section>
+        <div>
+          <h3>Mi az a Flexbox?</h3>
+          <p>
+            A Flexbox (Flexible Box Layout) egy modern CSS elrendezési módszer, amely megkönnyíti 
+            az elemek igazítását, elosztását és sorrendjének megváltoztatását egy konténerben. 
+            Ideális egydimenziós elrendezésekhez (egy sor vagy egy oszlop).
+          </p>
+        </div>
+
+        <div>
+          <h3>Flexbox aktiválása</h3>
+          <p>
+            Egy elem flex konténerré alakításához egyszerűen adjuk meg a <code>display: flex</code> tulajdonságot:
+          </p>
+          <div class="code-container">
+            <pre><code>.kontener {
+    display: flex;
+}
+
+/* vagy inline-flex */
+.inline-kontener {
+    display: inline-flex;
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Flex-direction - Irány meghatározása</h3>
+          <p>
+            A <code>flex-direction</code> meghatározza, hogy a flex elemek vízszintesen vagy függőlegesen helyezkedjenek el:
+          </p>
+          <div class="code-container">
+            <pre><code>.kontener {
+    display: flex;
+    flex-direction: row;          /* balról jobbra (alapértelmezett) */
+    flex-direction: row-reverse;  /* jobbról balra */
+    flex-direction: column;       /* fentről le */
+    flex-direction: column-reverse; /* lentről fel */
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Justify-content - Főtengely igazítás</h3>
+          <p>
+            A <code>justify-content</code> szabályozza az elemek eloszlását a főtengely mentén (row esetén vízszintesen):
+          </p>
+          <div class="code-container">
+            <pre><code>.kontener {
+    display: flex;
+    justify-content: flex-start;    /* balra igazítás (alapértelmezett) */
+    justify-content: flex-end;      /* jobbra igazítás */
+    justify-content: center;        /* középre igazítás */
+    justify-content: space-between; /* egyenlő távolság közöttük */
+    justify-content: space-around;  /* egyenlő távolság körülöttük */
+    justify-content: space-evenly;  /* teljesen egyenlő távolságok */
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Align-items - Kereszttengely igazítás</h3>
+          <p>
+            Az <code>align-items</code> az elemek igazítását vezérli a kereszttengelyen (row esetén függőlegesen):
+          </p>
+          <div class="code-container">
+            <pre><code>.kontener {
+    display: flex;
+    align-items: stretch;     /* nyújtás teljes magasságra (alapért.) */
+    align-items: flex-start;  /* felső igazítás */
+    align-items: flex-end;    /* alsó igazítás */
+    align-items: center;      /* függőleges középre */
+    align-items: baseline;    /* szöveg alapvonalra */
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Flex-wrap - Sortörés</h3>
+          <p>
+            Alapértelmezetten a flex elemek egy sorban maradnak. A <code>flex-wrap</code> engedélyezi a sortörést:
+          </p>
+          <div class="code-container">
+            <pre><code>.kontener {
+    display: flex;
+    flex-wrap: nowrap;        /* egy sorban (alapértelmezett) */
+    flex-wrap: wrap;          /* több sorba tördelés */
+    flex-wrap: wrap-reverse;  /* több sorba, fordított sorrendben */
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gap - Elemek közötti távolság</h3>
+          <p>
+            A <code>gap</code> tulajdonság egyszerűen beállítja az elemek közötti távolságot:
+          </p>
+          <div class="code-container">
+            <pre><code>.kontener {
+    display: flex;
+    gap: 20px;           /* mindkét irányban */
+    gap: 10px 20px;      /* függőleges vízszintes */
+    row-gap: 10px;       /* csak sorok között */
+    column-gap: 20px;    /* csak oszlopok között */
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Flex elem tulajdonságok</h3>
+          <p>
+            Az egyes flex elemekre alkalmazható tulajdonságok:
+          </p>
+          
+          <h4>Flex-grow - Növekedés</h4>
+          <div class="code-container">
+            <pre><code>.elem {
+    flex-grow: 0;  /* nem nő (alapértelmezett) */
+    flex-grow: 1;  /* arányosan nő */
+    flex-grow: 2;  /* kétszer gyorsabban nő */
+}</code></pre>
+          </div>
+
+          <h4>Flex-shrink - Zsugorodás</h4>
+          <div class="code-container">
+            <pre><code>.elem {
+    flex-shrink: 1;  /* arányosan zsugorodik (alapértelmezett) */
+    flex-shrink: 0;  /* nem zsugorodik */
+}</code></pre>
+          </div>
+
+          <h4>Flex-basis - Alapméret</h4>
+          <div class="code-container">
+            <pre><code>.elem {
+    flex-basis: auto;    /* elem tartalmától függ (alapértelmezett) */
+    flex-basis: 200px;   /* fix méret */
+    flex-basis: 30%;     /* százalékos méret */
+}</code></pre>
+          </div>
+
+          <h4>Flex - Rövidített forma</h4>
+          <div class="code-container">
+            <pre><code>/* flex: grow shrink basis */
+.elem {
+    flex: 0 1 auto;  /* alapértelmezett */
+    flex: 1;         /* flex: 1 1 0 (gyakori) */
+    flex: 2;         /* kétszer nagyobb lesz */
+    flex: none;      /* nem rugalmas */
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa - Kártya elrendezés</h3>
+          <p>
+            Egy reszponzív kártya elrendezés Flexbox-szal:
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Flexbox Példa&lt;/title&gt;
+    &lt;style&gt;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .kontener {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .kartya {
+            flex: 1 1 300px;  /* min 300px, nő és zsugorodik */
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .kartya h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .kartya p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+        
+        /* Középre igazított fejléc */
+        .fejlec {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            background-color: #3498db;
+            color: white;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        /* Navigációs menü */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2c3e50;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+        }
+        
+        .nav a:hover {
+            background-color: #34495e;
+            border-radius: 4px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class="fejlec"&gt;
+        &lt;h1&gt;Flexbox Példa Oldal&lt;/h1&gt;
+    &lt;/div&gt;
+    
+    &lt;div class="nav"&gt;
+        &lt;div&gt;&lt;a href="#"&gt;Kezdőlap&lt;/a&gt;&lt;/div&gt;
+        &lt;div&gt;
+            &lt;a href="#"&gt;Rólunk&lt;/a&gt;
+            &lt;a href="#"&gt;Szolgáltatások&lt;/a&gt;
+            &lt;a href="#"&gt;Kapcsolat&lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;div class="kontener"&gt;
+        &lt;div class="kartya"&gt;
+            &lt;h3&gt;Első kártya&lt;/h3&gt;
+            &lt;p&gt;Ez egy rugalmas kártya, amely alkalmazkodik a rendelkezésre álló helyhez.&lt;/p&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="kartya"&gt;
+            &lt;h3&gt;Második kártya&lt;/h3&gt;
+            &lt;p&gt;A Flexbox segítségével könnyen készíthetsz reszponzív elrendezést.&lt;/p&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="kartya"&gt;
+            &lt;h3&gt;Harmadik kártya&lt;/h3&gt;
+            &lt;p&gt;Változtasd meg az ablak méretét és figyeld a kártyák viselkedését!&lt;/p&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="kartya"&gt;
+            &lt;h3&gt;Negyedik kártya&lt;/h3&gt;
+            &lt;p&gt;A gap tulajdonság egyszerűen kezeli az elemek közötti távolságot.&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="html/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('htmlRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek és minták</h3>
+          
+          <h4>Tökéletes középre igazítás</h4>
+          <div class="code-container">
+            <pre><code>.kontener {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;  /* teljes viewport magasság */
+}</code></pre>
+          </div>
+
+          <h4>Footer alulra ragasztása</h4>
+          <div class="code-container">
+            <pre><code>body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;  /* kitölti a szabad helyet */
+}
+
+footer {
+    /* mindig alul lesz */
+}</code></pre>
+          </div>
+
+          <h4>Egyenlő magasságú oszlopok</h4>
+          <div class="code-container">
+            <pre><code>.kontener {
+    display: flex;
+}
+
+.oszlop {
+    flex: 1;  /* egyenlő szélesség */
+    /* align-items: stretch alapértelmezett, így egyenlő magasságúak */
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Mikor használj Flexbox-ot?</h3>
+          <ul>
+            <li>Navigációs menükhöz</li>
+            <li>Kártya elrendezésekhez</li>
+            <li>Gombok és ikonok igazításához</li>
+            <li>Egydimenziós elrendezésekhez (egy sor vagy oszlop)</li>
+            <li>Elemek középre igazításához</li>
+            <li>Reszponzív komponensekhez</li>
+            <li>Űrlapok elrendezéséhez</li>
+          </ul>
+          <p><strong>Megjegyzés:</strong> Kétdimenziós elrendezésekhez (sorok ÉS oszlopok egyszerre) használd a CSS Grid-et!</p>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="css/position" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Pozicionálás</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="css/grid" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: CSS Grid</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

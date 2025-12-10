@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Cisco IOS parancsok: router és switch konfigurációk, alapvető és haladó parancsok." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Cisco parancsok</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="network/subnet" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Alhálózatok</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="network/vlan" class="nav-btn next-btn">
+          <span class="nav-text">Következő: VLAN-ok</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Cisco alapok</h1>
+      <section>
+        <div>
+          <h3>Cisco IOS áttekintése</h3>
+<p>
+            A <strong>Cisco IOS (Internetwork Operating System)</strong> a Cisco routerek és switchek operációs rendszere. 
+            Parancssori interfészen (CLI) keresztül konfiguráljuk az eszközöket.
+          </p>
+
+          <p><strong>IOS módok hierarchiája:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Mód</th>
+                <th>Prompt</th>
+                <th>Belépés</th>
+                <th>Funkció</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>User EXEC</td>
+                <td>Router></td>
+                <td>Alapértelmezett</td>
+                <td>Alapvető monitoring parancsok</td>
+              </tr>
+              <tr>
+                <td>Privileged EXEC</td>
+                <td>Router#</td>
+                <td>enable</td>
+                <td>Részletes információk, debug</td>
+              </tr>
+              <tr>
+                <td>Global Configuration</td>
+                <td>Router(config)#</td>
+                <td>configure terminal</td>
+                <td>Eszköz szintű beállítások</td>
+              </tr>
+              <tr>
+                <td>Interface Configuration</td>
+                <td>Router(config-if)#</td>
+                <td>interface fa0/0</td>
+                <td>Interfész specifikus beállítások</td>
+              </tr>
+              <tr>
+                <td>Line Configuration</td>
+                <td>Router(config-line)#</td>
+                <td>line vty 0 4</td>
+                <td>Telnet/SSH beállítások</td>
+              </tr>
+              <tr>
+                <td>Router Configuration</td>
+                <td>Router(config-router)#</td>
+                <td>router ospf 1</td>
+                <td>Routing protokoll beállítások</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>Módok közötti navigálás:
+Router> enable                    (User → Privileged)
+Router# configure terminal        (Privileged → Global Config)
+Router(config)# interface fa0/0   (Global → Interface)
+Router(config-if)# exit           (Vissza egy szinttel)
+Router(config)# end               (Vissza Privileged-be)
+Router# disable                   (Vissza User-be)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Alapvető router parancsok</h3>
+<p><strong>1. Hostname és banner beállítása:</strong></p>
+          <div class="code-container">
+            <pre><code>Router> enable
+Router# configure terminal
+Router(config)# hostname R1
+R1(config)# banner motd #
+Unauthorized access is prohibited!
+#
+R1(config)# end</code></pre>
+          </div>
+
+          <p><strong>2. IP cím beállítása interfészen:</strong></p>
+          <div class="code-container">
+            <pre><code>R1# configure terminal
+R1(config)# interface gigabitEthernet 0/0
+R1(config-if)# ip address 192.168.1.1 255.255.255.0
+R1(config-if)# description LAN Connection
+R1(config-if)# no shutdown
+R1(config-if)# exit
+
+! Ellenőrzés
+R1# show ip interface brief</code></pre>
+          </div>
+
+          <p><strong>3. Jelszavak beállítása:</strong></p>
+          <div class="code-container">
+            <pre><code>! Enable jelszó (titkosított)
+R1(config)# enable secret cisco123
+
+! Console jelszó
+R1(config)# line console 0
+R1(config-line)# password console123
+R1(config-line)# login
+R1(config-line)# exit
+
+! VTY jelszó (Telnet/SSH)
+R1(config)# line vty 0 4
+R1(config-line)# password telnet123
+R1(config-line)# login
+R1(config-line)# exit
+
+! Jelszavak titkosítása
+R1(config)# service password-encryption</code></pre>
+          </div>
+
+          <p><strong>4. Konfiguráció mentése:</strong></p>
+          <div class="code-container">
+            <pre><code>! Mentés running-config → startup-config
+R1# copy running-config startup-config
+! vagy röviden:
+R1# write
+R1# wr
+
+! Konfiguráció megtekintése
+R1# show running-config
+R1# show startup-config</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Alapvető switch parancsok</h3>
+<p><strong>1. VLAN létrehozása és interfész hozzárendelése:</strong></p>
+          <div class="code-container">
+            <pre><code>Switch# configure terminal
+Switch(config)# vlan 10
+Switch(config-vlan)# name IT_Department
+Switch(config-vlan)# exit
+
+Switch(config)# vlan 20
+Switch(config-vlan)# name Sales_Department
+Switch(config-vlan)# exit
+
+! Interfész hozzárendelése VLAN-hoz
+Switch(config)# interface fastEthernet 0/1
+Switch(config-if)# switchport mode access
+Switch(config-if)# switchport access vlan 10
+Switch(config-if)# exit
+
+! Több interfész egyszerre
+Switch(config)# interface range fa0/2-10
+Switch(config-if-range)# switchport mode access
+Switch(config-if-range)# switchport access vlan 20
+Switch(config-if-range)# exit</code></pre>
+          </div>
+
+          <p><strong>2. Trunk konfiguráció:</strong></p>
+          <div class="code-container">
+            <pre><code>! Trunk port beállítása (switch-switch vagy switch-router)
+Switch(config)# interface gigabitEthernet 0/1
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport trunk allowed vlan 10,20,30
+Switch(config-if)# switchport trunk native vlan 99
+Switch(config-if)# exit
+
+! Ellenőrzés
+Switch# show interfaces trunk
+Switch# show vlan brief</code></pre>
+          </div>
+
+          <p><strong>3. Management IP beállítása (SVI):</strong></p>
+          <div class="code-container">
+            <pre><code>Switch(config)# interface vlan 1
+Switch(config-if)# ip address 192.168.1.10 255.255.255.0
+Switch(config-if)# no shutdown
+Switch(config-if)# exit
+
+Switch(config)# ip default-gateway 192.168.1.1
+
+! Ellenőrzés
+Switch# show ip interface brief</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>DHCP konfiguráció routeren</h3>
+<div class="code-container">
+            <pre><code>! DHCP pool létrehozása
+R1(config)# ip dhcp pool LAN_POOL
+R1(dhcp-config)# network 192.168.1.0 255.255.255.0
+R1(dhcp-config)# default-router 192.168.1.1
+R1(dhcp-config)# dns-server 8.8.8.8 8.8.4.4
+R1(dhcp-config)# domain-name example.com
+R1(dhcp-config)# lease 7
+R1(dhcp-config)# exit
+
+! Kizárt címek (pl. szervereknek, gatewaynak)
+R1(config)# ip dhcp excluded-address 192.168.1.1 192.168.1.10
+
+! DHCP relay (ha a DHCP szerver másik hálózaton van)
+R1(config)# interface g0/0
+R1(config-if)# ip helper-address 10.1.1.100
+R1(config-if)# exit
+
+! Ellenőrzés
+R1# show ip dhcp binding
+R1# show ip dhcp pool
+R1# show ip dhcp conflict</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>SSH konfiguráció</h3>
+<div class="code-container">
+            <pre><code>! 1. Hostname és domain name beállítása
+R1(config)# hostname R1
+R1(config)# ip domain-name company.local
+
+! 2. RSA kulcs generálása
+R1(config)# crypto key generate rsa
+How many bits in the modulus [512]: 2048
+
+! 3. Felhasználó létrehozása
+R1(config)# username admin privilege 15 secret Admin123!
+
+! 4. SSH verzió és timeout beállítása
+R1(config)# ip ssh version 2
+R1(config)# ip ssh time-out 60
+R1(config)# ip ssh authentication-retries 3
+
+! 5. VTY vonalak konfigurálása
+R1(config)# line vty 0 4
+R1(config-line)# transport input ssh
+R1(config-line)# login local
+R1(config-line)# exit
+
+! 6. Konzol timeout (opcionális)
+R1(config)# line console 0
+R1(config-line)# exec-timeout 5 0
+R1(config-line)# exit
+
+! Ellenőrzés
+R1# show ip ssh
+R1# show ssh
+
+! SSH kapcsolat másik eszközről:
+PC> ssh -l admin 192.168.1.1</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Statikus routing</h3>
+<div class="code-container">
+            <pre><code>! Statikus útvonal hozzáadása
+R1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2
+! Formátum: ip route [cél_hálózat] [maszk] [next-hop_IP]
+
+! Alapértelmezett útvonal (default route)
+R1(config)# ip route 0.0.0.0 0.0.0.0 203.0.113.1
+! vagy interfész megadással:
+R1(config)# ip route 0.0.0.0 0.0.0.0 serial0/0/0
+
+! Floating static route (backup route magasabb AD-vel)
+R1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.3 10
+
+! Statikus útvonal törlése
+R1(config)# no ip route 192.168.2.0 255.255.255.0 10.0.0.2
+
+! Ellenőrzés
+R1# show ip route
+R1# show ip route static</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Router-on-a-Stick (Inter-VLAN Routing)</h3>
+<div class="code-container">
+            <pre><code>! Router konfiguráció (subinterface minden VLAN-hoz)
+R1(config)# interface gigabitEthernet 0/0
+R1(config-if)# no shutdown
+R1(config-if)# exit
+
+! VLAN 10 subinterface
+R1(config)# interface gigabitEthernet 0/0.10
+R1(config-subif)# encapsulation dot1Q 10
+R1(config-subif)# ip address 192.168.10.1 255.255.255.0
+R1(config-subif)# exit
+
+! VLAN 20 subinterface
+R1(config)# interface gigabitEthernet 0/0.20
+R1(config-subif)# encapsulation dot1Q 20
+R1(config-subif)# ip address 192.168.20.1 255.255.255.0
+R1(config-subif)# exit
+
+! Switch trunk konfiguráció (router felé)
+Switch(config)# interface gigabitEthernet 0/1
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport trunk allowed vlan 10,20
+Switch(config-if)# exit
+
+! Ellenőrzés
+R1# show ip interface brief
+R1# show vlans
+Switch# show interfaces trunk</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>NAT (Network Address Translation)</h3>
+<p><strong>1. Static NAT (egy-az-egyben):</strong></p>
+          <div class="code-container">
+            <pre><code>! Belső cím leképezése külső címre
+R1(config)# ip nat inside source static 192.168.1.10 203.0.113.10
+
+! Interfészek megjelölése
+R1(config)# interface g0/0
+R1(config-if)# ip nat inside
+R1(config-if)# exit
+
+R1(config)# interface g0/1
+R1(config-if)# ip nat outside
+R1(config-if)# exit</code></pre>
+          </div>
+
+          <p><strong>2. Dynamic NAT (pool használatával):</strong></p>
+          <div class="code-container">
+            <pre><code>! NAT pool létrehozása
+R1(config)# ip nat pool PUBLIC_POOL 203.0.113.10 203.0.113.20 netmask 255.255.255.0
+
+! Access list a belső címekhez
+R1(config)# access-list 1 permit 192.168.1.0 0.0.0.255
+
+! NAT pool és ACL összekapcsolása
+R1(config)# ip nat inside source list 1 pool PUBLIC_POOL
+
+! Interfészek
+R1(config)# interface g0/0
+R1(config-if)# ip nat inside
+R1(config-if)# exit
+R1(config)# interface g0/1
+R1(config-if)# ip nat outside
+R1(config-if)# exit</code></pre>
+          </div>
+
+          <p><strong>3. PAT/NAT Overload (legelterjedtebb):</strong></p>
+          <div class="code-container">
+            <pre><code>! Sok belső cím → egy publikus cím (portokkal megkülönböztetve)
+R1(config)# access-list 1 permit 192.168.1.0 0.0.0.255
+R1(config)# ip nat inside source list 1 interface g0/1 overload
+
+! Interfészek
+R1(config)# interface g0/0
+R1(config-if)# ip nat inside
+R1(config-if)# exit
+R1(config)# interface g0/1
+R1(config-if)# ip nat outside
+R1(config-if)# exit
+
+! Ellenőrzés
+R1# show ip nat translations
+R1# show ip nat statistics
+R1# clear ip nat translation *</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Access Control Lists (ACL)</h3>
+<p><strong>1. Standard ACL (csak forrás IP alapján):</strong></p>
+          <div class="code-container">
+            <pre><code>! Standard ACL (1-99, 1300-1999)
+R1(config)# access-list 10 permit 192.168.1.0 0.0.0.255
+R1(config)# access-list 10 deny any
+
+! Alkalmazás interfészre
+R1(config)# interface g0/1
+R1(config-if)# ip access-group 10 out
+R1(config-if)# exit
+
+! Ellenőrzés
+R1# show access-lists
+R1# show ip interface g0/1</code></pre>
+          </div>
+
+          <p><strong>2. Extended ACL (forrás, cél, protokoll, port):</strong></p>
+          <div class="code-container">
+            <pre><code>! Extended ACL (100-199, 2000-2699)
+R1(config)# access-list 100 permit tcp 192.168.1.0 0.0.0.255 any eq 80
+R1(config)# access-list 100 permit tcp 192.168.1.0 0.0.0.255 any eq 443
+R1(config)# access-list 100 deny ip any any
+
+! Interfészre alkalmazás
+R1(config)# interface g0/0
+R1(config-if)# ip access-group 100 in
+R1(config-if)# exit</code></pre>
+          </div>
+
+          <p><strong>3. Named ACL (ajánlott, szerkeszthető):</strong></p>
+          <div class="code-container">
+            <pre><code>! Named Standard ACL
+R1(config)# ip access-list standard ALLOWED_HOSTS
+R1(config-std-nacl)# permit host 192.168.1.10
+R1(config-std-nacl)# permit host 192.168.1.20
+R1(config-std-nacl)# deny any
+R1(config-std-nacl)# exit
+
+! Named Extended ACL
+R1(config)# ip access-list extended WEB_FILTER
+R1(config-ext-nacl)# 10 permit tcp any any eq 80
+R1(config-ext-nacl)# 20 permit tcp any any eq 443
+R1(config-ext-nacl)# 30 deny ip any any
+R1(config-ext-nacl)# exit
+
+! Sorszám szerinti szerkesztés
+R1(config-ext-nacl)# no 20
+R1(config-ext-nacl)# 25 permit tcp any any eq 8080
+
+! Alkalmazás
+R1(config)# interface g0/1
+R1(config-if)# ip access-group WEB_FILTER in
+R1(config-if)# exit</code></pre>
+          </div>
+
+          <p><strong>ACL tippek:</strong></p>
+          <ul>
+            <li>Standard ACL-t a <strong>célhoz közel</strong> helyezd el</li>
+            <li>Extended ACL-t a <strong>forráshoz közel</strong> helyezd el</li>
+            <li>Implicit deny van az ACL végén (nem kell külön írni, de átláthatóság miatt jó)</li>
+            <li>Named ACL használata ajánlott (szerkeszthető, átlátható)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Diagnosztikai és troubleshooting parancsok</h3>
+<div class="code-container">
+            <pre><code>! Interfészek állapota
+R1# show ip interface brief
+R1# show interfaces
+R1# show interfaces g0/0
+R1# show ip interface g0/0
+
+! Routing információk
+R1# show ip route
+R1# show ip protocols
+R1# show ip route summary
+
+! VLAN információk (switch)
+Switch# show vlan brief
+Switch# show vlan id 10
+Switch# show interfaces switchport
+
+! MAC address table
+Switch# show mac address-table
+Switch# show mac address-table dynamic
+
+! ARP tábla
+R1# show arp
+R1# show ip arp
+
+! CDP (Cisco Discovery Protocol)
+R1# show cdp neighbors
+R1# show cdp neighbors detail
+R1# show cdp entry *
+
+! Konfiguráció
+R1# show running-config
+R1# show startup-config
+R1# show running-config interface g0/0
+
+! Verzió és hardver információ
+R1# show version
+R1# show flash
+R1# show processes cpu
+R1# show memory
+
+! Ping és traceroute
+R1# ping 8.8.8.8
+R1# ping 192.168.1.1 repeat 100
+R1# traceroute 8.8.8.8
+
+! Debug (óvatosan használd!)
+R1# debug ip routing
+R1# debug ip packet
+R1# undebug all  (vagy: no debug all)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Konfiguráció visszaállítás és mentés</h3>
+<div class="code-container">
+            <pre><code>! Konfiguráció törlése (factory reset)
+R1# write erase
+R1# erase startup-config
+R1# reload
+Proceed with reload? [confirm]
+
+! Konfiguráció másolása
+R1# copy running-config startup-config
+R1# copy startup-config running-config
+R1# copy running-config tftp:
+R1# copy tftp: running-config
+
+! Konfiguráció exportálása TFTP-re
+R1# copy running-config tftp:
+Address or name of remote host []? 192.168.1.100
+Destination filename [R1-confg]? R1-backup.cfg
+
+! Konfiguráció importálása TFTP-ről
+R1# copy tftp: running-config
+Address or name of remote host []? 192.168.1.100
+Source filename []? R1-backup.cfg
+
+! IOS frissítés
+R1# copy tftp: flash:
+Address or name of remote host []? 192.168.1.100
+Source filename []? c2900-universalk9-mz.SPA.157-3.M5.bin
+Destination filename []? [enter]</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Hasznos shortcut-ok és trükkök</h3>
+<table>
+            <thead>
+              <tr>
+                <th>Billentyű</th>
+                <th>Funkció</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Tab</td><td>Parancs automatikus kiegészítése</td></tr>
+              <tr><td>?</td><td>Elérhető parancsok listája</td></tr>
+              <tr><td>Ctrl+A</td><td>Kurzor a sor elejére</td></tr>
+              <tr><td>Ctrl+E</td><td>Kurzor a sor végére</td></tr>
+              <tr><td>Ctrl+C</td><td>Kilépés az aktuális módból</td></tr>
+              <tr><td>Ctrl+Z</td><td>Kilépés global config módból</td></tr>
+              <tr><td>Ctrl+Shift+6</td><td>Ping/Traceroute megszakítása</td></tr>
+              <tr><td>Fel/Le nyíl</td><td>Parancs history</td></tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>! Parancsok rövidítése (csak egyértelmű esetben)
+R1# conf t              (configure terminal)
+R1# sh ip int br        (show ip interface brief)
+R1# sh run              (show running-config)
+R1# sh ip ro            (show ip route)
+
+! Output szűrése
+R1# show running-config | include interface
+R1# show running-config | begin line vty
+R1# show running-config | section interface
+
+! History
+R1# show history
+R1# terminal history size 50
+
+! Do parancs (exec parancs config módból)
+R1(config)# do show ip interface brief
+R1(config-if)# do ping 192.168.1.1</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <div class="navigation-buttons bottom">
+        <a href="network/subnet" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Alhálózatok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="network/vlan" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: VLAN-ok</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

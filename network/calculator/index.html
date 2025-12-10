@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Cím / Subnet Kalkulátor</title>
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <style>
+        .calculator-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-color-dark);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .result-card h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-value {
+            font-family: monospace;
+            font-size: 0.95rem;
+            word-break: break-all;
+            color: var(--text-primary);
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 1rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-button.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .tab-button:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .error {
+            color: #ef4444;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .info-box {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--info-color);
+        }
+
+        .info-box p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        .task-container {
+            background: var(--bg-primary);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 2px solid var(--accent-color);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .task-difficulty {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .difficulty-easy {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .difficulty-medium {
+            background-color: #fef08a;
+            color: #713f12;
+        }
+
+        .difficulty-hard {
+            background-color: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .task-question {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .task-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .answer-feedback {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .feedback-correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+            display: block;
+        }
+
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #7f1d1d;
+            border-left: 4px solid #ef4444;
+            display: block;
+        }
+
+        .feedback-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feedback-details {
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+            font-family: monospace;
+        }
+
+        .button-group-task {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        .vlsm-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <h1>🌐 IP Cím / Subnet Kalkulátor</h1>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="calculator">Kalkulátor</button>
+            <button class="tab-button" data-tab="vlsm">VLSM</button>
+            <button class="tab-button" data-tab="subnets">ELSM</button>
+            <button class="tab-button" data-tab="tasks">Gyakorló Feladatok</button>
+        </div>
+
+        <!-- Kalkulátor Tab -->
+        <div id="calculator" class="tab-content active">
+            <div class="info-box">
+                <p>Adja meg az IP címet és a subnet maszkot (vagy CIDR jelölést) az alhálózat adatainak kiszámításához.</p>
+            </div>
+
+            <div class="input-group">
+                <div class="form-group">
+                    <label for="ip-address">IP Cím:</label>
+                    <input type="text" id="ip-address" placeholder="pl. 206.210.210.162">
+                    <div class="error" id="ip-error"></div>
+                </div>
+                <div class="form-group">
+                    <label for="subnet-mask">Subnet Maszk / CIDR:</label>
+                    <input type="text" id="subnet-mask" placeholder="pl. 255.255.255.248 vagy /29">
+                    <div class="error" id="subnet-error"></div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="calculateSubnet()">Számítás</button>
+                <button onclick="clearSubnet()">Törlés</button>
+            </div>
+
+            <div id="subnet-results" class="results-grid hidden"></div>
+        </div>
+
+        <!-- VLSM Tab -->
+        <div id="vlsm" class="tab-content">
+            <div class="info-box">
+                <p>VLSM (Variable Length Subnet Mask) segítségével több alhálózatot hozhat létre egy nagyobb hálózatból.</p>
+            </div>
+
+            <div class="input-group">
+                <div class="form-group">
+                    <label for="vlsm-network">Hálózat (IP / CIDR):</label>
+                    <input type="text" id="vlsm-network" placeholder="pl. 192.168.0.0/22">
+                    <div class="error" id="vlsm-network-error"></div>
+                </div>
+                <div class="form-group">
+                    <label for="vlsm-subnets">Alhálózatok száma:</label>
+                    <input type="number" id="vlsm-subnets" min="1" max="10" value="2">
+                    <div class="error" id="vlsm-subnets-error"></div>
+                </div>
+            </div>
+
+            <div id="vlsm-subnet-inputs" class="vlsm-inputs"></div>
+
+            <div class="button-group">
+                <button onclick="generateVLSMInputs()">Mezők Létrehozása</button>
+                <button onclick="calculateVLSM()">Számítás</button>
+                <button onclick="clearVLSM()">Törlés</button>
+            </div>
+
+            <div id="vlsm-results" class="results-grid hidden"></div>
+        </div>
+
+        <!-- ELSM Tab - Alhálózatok Felosztása -->
+        <div id="subnets" class="tab-content">
+            <div class="info-box">
+                <p>Alhálózatok generálása: adjon meg egy alapvető IP-t, az eredeti CIDR-t és az új CIDR-t, majd hányat akar generálni.</p>
+            </div>
+
+            <div class="input-group">
+                <div class="form-group">
+                    <label for="elsm-ip">Alap IP Cím:</label>
+                    <input type="text" id="elsm-ip" placeholder="pl. 192.168.1.0">
+                    <div class="error" id="elsm-ip-error"></div>
+                </div>
+                <div class="form-group">
+                    <label for="elsm-original-cidr">Eredeti CIDR:</label>
+                    <input type="text" id="elsm-original-cidr" placeholder="pl. /29">
+                    <div class="error" id="elsm-original-cidr-error"></div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-group">
+                    <label for="elsm-new-cidr">Új CIDR:</label>
+                    <input type="text" id="elsm-new-cidr" placeholder="pl. /30">
+                    <div class="error" id="elsm-new-cidr-error"></div>
+                </div>
+                <div class="form-group">
+                    <label for="elsm-count">Alhálózatok száma:</label>
+                    <input type="number" id="elsm-count" min="1" max="256" value="4" placeholder="pl. 4">
+                    <div class="error" id="elsm-count-error"></div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="calculateELSM()">Alhálózatok Generálása</button>
+                <button onclick="clearELSM()">Törlés</button>
+            </div>
+
+            <div id="elsm-results" class="results-grid hidden"></div>
+        </div>
+
+        <!-- Gyakorló Feladatok Tab -->
+        <div id="tasks" class="tab-content">
+            <div class="info-box">
+                <p>Oldja meg a generált feladatokat! A rendszer megmutatja a helyes és helytelen válaszokat.</p>
+            </div>
+
+            <div class="task-container">
+                <div class="task-header">
+                    <span id="task-number">Feladat 1</span>
+                    <span id="task-type" class="task-difficulty difficulty-easy">Könnyű</span>
+                </div>
+
+                <div class="task-question" id="task-text"></div>
+
+                <div class="task-inputs" id="task-answers"></div>
+
+                <div id="answer-feedback" class="answer-feedback">
+                    <div class="feedback-title" id="feedback-title"></div>
+                    <div class="feedback-details" id="feedback-details"></div>
+                </div>
+
+                <div class="button-group-task">
+                    <button onclick="checkAnswer()">Ellenőrzés</button>
+                    <button onclick="generateNewTask()">Új Feladat</button>
+                </div>
+            </div>
+
+            <div id="task-stats" class="info-box">
+                <p><strong>Helyes:</strong> <span id="correct-count">0</span> / <strong>Hibás:</strong> <span id="wrong-count">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== ALAPVETŐ FÜGGVÉNYEK =====
+        
+        function isValidIP(ip) {
+            const parts = ip.split('.');
+            if (parts.length !== 4) return false;
+            return parts.every(part => {
+                const num = parseInt(part);
+                return num >= 0 && num <= 255;
+            });
+        }
+
+        function ipToBinary(ip) {
+            return ip.split('.')
+                .map(part => parseInt(part).toString(2).padStart(8, '0'))
+                .join('');
+        }
+
+        function binaryToIP(binary) {
+            const parts = [];
+            for (let i = 0; i < 32; i += 8) {
+                parts.push(parseInt(binary.substr(i, 8), 2));
+            }
+            return parts.join('.');
+        }
+
+        function cidrToSubnetMask(cidr) {
+            const num = parseInt(cidr);
+            if (num < 0 || num > 32) return null;
+            const binary = '1'.repeat(num) + '0'.repeat(32 - num);
+            return binaryToIP(binary);
+        }
+
+        function subnetMaskToCIDR(mask) {
+            const binary = ipToBinary(mask);
+            const ones = binary.match(/^1+/);
+            return ones ? ones[0].length : 0;
+        }
+
+        function getNetworkAddress(ip, cidr) {
+            const ipBinary = ipToBinary(ip);
+            const networkBinary = ipBinary.substr(0, cidr) + '0'.repeat(32 - cidr);
+            return binaryToIP(networkBinary);
+        }
+
+        function getBroadcastAddress(ip, cidr) {
+            const ipBinary = ipToBinary(ip);
+            const broadcastBinary = ipBinary.substr(0, cidr) + '1'.repeat(32 - cidr);
+            return binaryToIP(broadcastBinary);
+        }
+
+        function getNextIP(ip) {
+            const parts = ip.split('.').map(Number);
+            parts[3]++;
+            if (parts[3] > 255) {
+                parts[3] = 0;
+                parts[2]++;
+                if (parts[2] > 255) {
+                    parts[2] = 0;
+                    parts[1]++;
+                }
+            }
+            return parts.join('.');
+        }
+
+        // ===== SUBNET KALKULÁTOR =====
+
+        function calculateSubnet() {
+            const ipInput = document.getElementById('ip-address').value.trim();
+            const maskInput = document.getElementById('subnet-mask').value.trim();
+            const ipError = document.getElementById('ip-error');
+            const subnetError = document.getElementById('subnet-error');
+            
+            ipError.textContent = '';
+            subnetError.textContent = '';
+
+            if (!ipInput || !maskInput) {
+                if (!ipInput) ipError.textContent = 'IP cím megadása kötelező!';
+                if (!maskInput) subnetError.textContent = 'Subnet maszk vagy CIDR megadása kötelező!';
+                return;
+            }
+
+            if (!isValidIP(ipInput)) {
+                ipError.textContent = 'Érvénytelen IP cím!';
+                return;
+            }
+
+            let cidr;
+            if (maskInput.startsWith('/')) {
+                cidr = parseInt(maskInput.substr(1));
+                if (cidr < 0 || cidr > 32) {
+                    subnetError.textContent = 'A CIDR értéknek 0 és 32 között kell lennie!';
+                    return;
+                }
+            } else {
+                if (!isValidIP(maskInput)) {
+                    subnetError.textContent = 'Érvénytelen subnet maszk!';
+                    return;
+                }
+                cidr = subnetMaskToCIDR(maskInput);
+            }
+
+            const subnet = cidrToSubnetMask(cidr);
+            const network = getNetworkAddress(ipInput, cidr);
+            const broadcast = getBroadcastAddress(ipInput, cidr);
+            const hostCount = Math.pow(2, 32 - cidr) - 2;
+            const firstHost = binaryToIP(ipToBinary(network).substr(0, 31) + '1');
+            const lastHost = binaryToIP(ipToBinary(broadcast).substr(0, 31) + '0');
+
+            const resultsDiv = document.getElementById('subnet-results');
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>IP Cím</h3>
+                    <div class="result-value">${ipInput}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Subnet Maszk</h3>
+                    <div class="result-value">${subnet}</div>
+                </div>
+                <div class="result-card">
+                    <h3>CIDR Jelölés</h3>
+                    <div class="result-value">/${cidr}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Hálózati Cím</h3>
+                    <div class="result-value">${network}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Broadcast Cím</h3>
+                    <div class="result-value">${broadcast}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Első Host</h3>
+                    <div class="result-value">${firstHost}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Utolsó Host</h3>
+                    <div class="result-value">${lastHost}</div>
+                </div>
+                <div class="result-card">
+                    <h3>Elérhető Hostok</h3>
+                    <div class="result-value">${hostCount}</div>
+                </div>
+            `;
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function clearSubnet() {
+            document.getElementById('ip-address').value = '';
+            document.getElementById('subnet-mask').value = '';
+            document.getElementById('ip-error').textContent = '';
+            document.getElementById('subnet-error').textContent = '';
+            document.getElementById('subnet-results').classList.add('hidden');
+        }
+
+        // ===== VLSM =====
+
+        function generateVLSMInputs() {
+            const numSubnets = parseInt(document.getElementById('vlsm-subnets').value);
+            const container = document.getElementById('vlsm-subnet-inputs');
+            
+            if (numSubnets < 1 || numSubnets > 10) {
+                alert('Az alhálózatok száma 1 és 10 között kell legyen!');
+                return;
+            }
+
+            container.innerHTML = '';
+            for (let i = 1; i <= numSubnets; i++) {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.innerHTML = `
+                    <label for="vlsm-hosts-${i}">Alhálózat ${i} (hostok):</label>
+                    <input type="number" id="vlsm-hosts-${i}" min="1" placeholder="pl. 50">
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function calculateVLSM() {
+            const networkInput = document.getElementById('vlsm-network').value.trim();
+            const numSubnets = parseInt(document.getElementById('vlsm-subnets').value);
+            const error = document.getElementById('vlsm-network-error');
+            error.textContent = '';
+
+            if (!networkInput) {
+                error.textContent = 'Hálózat megadása kötelező!';
+                return;
+            }
+
+            let baseIP, baseCIDR;
+            if (networkInput.includes('/')) {
+                const parts = networkInput.split('/');
+                baseIP = parts[0];
+                baseCIDR = parseInt(parts[1]);
+            } else {
+                error.textContent = 'CIDR jelöléssel adja meg (pl. 192.168.0.0/22)!';
+                return;
+            }
+
+            if (!isValidIP(baseIP)) {
+                error.textContent = 'Érvénytelen IP cím!';
+                return;
+            }
+
+            const subnets = [];
+            for (let i = 1; i <= numSubnets; i++) {
+                const hosts = parseInt(document.getElementById(`vlsm-hosts-${i}`).value) || 0;
+                if (hosts > 0) {
+                    subnets.push({ index: i, hosts: hosts });
+                }
+            }
+
+            subnets.sort((a, b) => b.hosts - a.hosts);
+
+            let currentIP = baseIP;
+            const results = [];
+
+            for (const subnet of subnets) {
+                const neededBits = Math.ceil(Math.log2(subnet.hosts + 2));
+                const newCIDR = 32 - neededBits;
+                const network = getNetworkAddress(currentIP, newCIDR);
+                const broadcast = getBroadcastAddress(currentIP, newCIDR);
+                const firstHost = binaryToIP(ipToBinary(network).substr(0, 31) + '1');
+                const lastHost = binaryToIP(ipToBinary(broadcast).substr(0, 31) + '0');
+                const mask = cidrToSubnetMask(newCIDR);
+
+                results.push({
+                    index: subnet.index,
+                    hosts: subnet.hosts,
+                    network: network,
+                    mask: mask,
+                    cidr: newCIDR,
+                    broadcast: broadcast,
+                    firstHost: firstHost,
+                    lastHost: lastHost
+                });
+
+                currentIP = getNextIP(broadcast);
+            }
+
+            const resultsDiv = document.getElementById('vlsm-results');
+            resultsDiv.innerHTML = results.map(r => `
+                <div class="result-card">
+                    <h3>Alhálózat ${r.index}</h3>
+                    <div class="result-value"><strong>Hostok:</strong> ${r.hosts}</div>
+                    <div class="result-value"><strong>Hálózat:</strong> ${r.network}/${r.cidr}</div>
+                    <div class="result-value"><strong>Maszk:</strong> ${r.mask}</div>
+                    <div class="result-value"><strong>First:</strong> ${r.firstHost} | <strong>Last:</strong> ${r.lastHost}</div>
+                </div>
+            `).join('');
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function clearVLSM() {
+            document.getElementById('vlsm-network').value = '';
+            document.getElementById('vlsm-subnets').value = '2';
+            document.getElementById('vlsm-network-error').textContent = '';
+            document.getElementById('vlsm-subnet-inputs').innerHTML = '';
+            document.getElementById('vlsm-results').classList.add('hidden');
+        }
+
+        // ===== ELSM - Alhálózatok Felosztása =====
+
+        function calculateELSM() {
+            const ipInput = document.getElementById('elsm-ip').value.trim();
+            const originalCIDRInput = document.getElementById('elsm-original-cidr').value.trim();
+            const newCIDRInput = document.getElementById('elsm-new-cidr').value.trim();
+            const countInput = parseInt(document.getElementById('elsm-count').value);
+
+            const ipError = document.getElementById('elsm-ip-error');
+            const origError = document.getElementById('elsm-original-cidr-error');
+            const newError = document.getElementById('elsm-new-cidr-error');
+            const countError = document.getElementById('elsm-count-error');
+
+            // Hibatörlés
+            [ipError, origError, newError, countError].forEach(e => e.textContent = '');
+
+            // Validálás
+            if (!ipInput) {
+                ipError.textContent = 'IP cím megadása kötelező!';
+                return;
+            }
+            if (!isValidIP(ipInput)) {
+                ipError.textContent = 'Érvénytelen IP cím!';
+                return;
+            }
+            if (!originalCIDRInput) {
+                origError.textContent = 'Eredeti CIDR megadása kötelező!';
+                return;
+            }
+            if (!newCIDRInput) {
+                newError.textContent = 'Új CIDR megadása kötelező!';
+                return;
+            }
+
+            let originalCIDR = parseInt(originalCIDRInput.replace('/', ''));
+            let newCIDR = parseInt(newCIDRInput.replace('/', ''));
+
+            if (originalCIDR < 0 || originalCIDR > 32) {
+                origError.textContent = 'Az eredeti CIDR 0-32 között legyen!';
+                return;
+            }
+            if (newCIDR < 0 || newCIDR > 32) {
+                newError.textContent = 'Az új CIDR 0-32 között legyen!';
+                return;
+            }
+            if (newCIDR <= originalCIDR) {
+                newError.textContent = 'Az új CIDR nagyobb kell legyen az eredeti CIDR-nél!';
+                return;
+            }
+            if (countInput < 1 || countInput > 256) {
+                countError.textContent = 'Az alhálózatok száma 1-256 között legyen!';
+                return;
+            }
+
+            // Alhálózatok generálása
+            const results = [];
+            let currentIP = ipInput;
+            const maxSubnets = Math.pow(2, newCIDR - originalCIDR);
+
+            if (countInput > maxSubnets) {
+                countError.textContent = `Maximum ${maxSubnets} alhálózat lehetséges ezzel a CIDR beállítással!`;
+                return;
+            }
+
+            for (let i = 0; i < countInput; i++) {
+                const network = getNetworkAddress(currentIP, newCIDR);
+                const broadcast = getBroadcastAddress(currentIP, newCIDR);
+                const mask = cidrToSubnetMask(newCIDR);
+                const firstHost = binaryToIP(ipToBinary(network).substr(0, 31) + '1');
+                const lastHost = binaryToIP(ipToBinary(broadcast).substr(0, 31) + '0');
+                const hostCount = Math.pow(2, 32 - newCIDR) - 2;
+
+                results.push({
+                    index: i + 1,
+                    network: network,
+                    cidr: newCIDR,
+                    mask: mask,
+                    broadcast: broadcast,
+                    firstHost: firstHost,
+                    lastHost: lastHost,
+                    hostCount: hostCount
+                });
+
+                // Következő alhálózathoz
+                currentIP = getNextIP(broadcast);
+            }
+
+            // Megjelenítés
+            const resultsDiv = document.getElementById('elsm-results');
+            resultsDiv.innerHTML = results.map(r => `
+                <div class="result-card">
+                    <h3>Alhálózat ${r.index}</h3>
+                    <div class="result-value"><strong>Hálózat:</strong> ${r.network}/${r.cidr}</div>
+                    <div class="result-value"><strong>Maszk:</strong> ${r.mask}</div>
+                    <div class="result-value"><strong>First Host:</strong> ${r.firstHost}</div>
+                    <div class="result-value"><strong>Last Host:</strong> ${r.lastHost}</div>
+                    <div class="result-value"><strong>Broadcast:</strong> ${r.broadcast}</div>
+                    <div class="result-value"><strong>Elérhető Hostok:</strong> ${r.hostCount}</div>
+                </div>
+            `).join('');
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function clearELSM() {
+            document.getElementById('elsm-ip').value = '';
+            document.getElementById('elsm-original-cidr').value = '';
+            document.getElementById('elsm-new-cidr').value = '';
+            document.getElementById('elsm-count').value = '4';
+            ['ip', 'original-cidr', 'new-cidr', 'count'].forEach(field => {
+                const el = document.getElementById(`elsm-${field}-error`);
+                if (el) el.textContent = '';
+            });
+            document.getElementById('elsm-results').classList.add('hidden');
+        }
+
+        // ===== GYAKORLÓ FELADATOK =====
+
+        let currentTask = null;
+        let correctCount = 0;
+        let wrongCount = 0;
+
+        const taskTypes = [
+            {
+                difficulty: 'easy',
+                generator: function() {
+                    const cidr = Math.floor(Math.random() * 20) + 8;
+                    const parts = [Math.floor(Math.random() * 223) + 1, Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), 0];
+                    const ip = parts.join('.');
+                    const network = getNetworkAddress(ip, cidr);
+                    const subnet = cidrToSubnetMask(cidr);
+                    
+                    return {
+                        question: `Adott az ${ip} cím és a ${subnet} maszk. Hálózati cím?`,
+                        answers: { network: network, subnet: subnet, cidr: `/${cidr}` },
+                        correctField: 'network'
+                    };
+                }
+            },
+            {
+                difficulty: 'easy',
+                generator: function() {
+                    const cidr = Math.floor(Math.random() * 20) + 8;
+                    const parts = [Math.floor(Math.random() * 223) + 1, Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)];
+                    const ip = parts.join('.');
+                    const broadcast = getBroadcastAddress(ip, cidr);
+                    const subnet = cidrToSubnetMask(cidr);
+                    
+                    return {
+                        question: `Adott az ${ip} cím és a /${cidr} CIDR. Broadcast cím?`,
+                        answers: { broadcast: broadcast, subnet: subnet, cidr: `/${cidr}` },
+                        correctField: 'broadcast'
+                    };
+                }
+            },
+            {
+                difficulty: 'medium',
+                generator: function() {
+                    const cidr = Math.floor(Math.random() * 15) + 10;
+                    const hostCount = Math.pow(2, 32 - cidr) - 2;
+                    const subnet = cidrToSubnetMask(cidr);
+                    
+                    return {
+                        question: `Hány elérhető host van a /${cidr} alhálózatban?`,
+                        answers: { hosts: hostCount.toString(), subnet: subnet, cidr: `/${cidr}` },
+                        correctField: 'hosts'
+                    };
+                }
+            },
+            {
+                difficulty: 'medium',
+                generator: function() {
+                    const cidr = Math.floor(Math.random() * 20) + 8;
+                    const subnet = cidrToSubnetMask(cidr);
+                    
+                    return {
+                        question: `CIDR jelölés, ha a subnet maszk: ${subnet}?`,
+                        answers: { cidr: `/${cidr}`, subnet: subnet },
+                        correctField: 'cidr'
+                    };
+                }
+            }
+        ];
+
+        function generateNewTask() {
+            const randomType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
+            currentTask = randomType.generator();
+            
+            document.getElementById('task-text').textContent = currentTask.question;
+            const diffClass = `difficulty-${randomType.difficulty}`;
+            document.getElementById('task-type').textContent = randomType.difficulty === 'easy' ? 'Könnyű' : 'Közepes';
+            document.getElementById('task-type').className = `task-difficulty ${diffClass}`;
+
+            const answersDiv = document.getElementById('task-answers');
+            answersDiv.innerHTML = '';
+
+            Object.keys(currentTask.answers).forEach(key => {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                const labelText = key === 'network' ? 'Hálózat' : key === 'broadcast' ? 'Broadcast' : key === 'hosts' ? 'Hostok' : 'CIDR';
+                div.innerHTML = `<label for="answer-${key}">${labelText}:</label><input type="text" id="answer-${key}" placeholder="Válasz">`;
+                answersDiv.appendChild(div);
+            });
+
+            document.getElementById('answer-feedback').classList.remove('feedback-correct', 'feedback-incorrect');
+            document.getElementById('answer-feedback').style.display = 'none';
+        }
+
+        function checkAnswer() {
+            if (!currentTask) {
+                alert('Generáljon feladatot!');
+                return;
+            }
+
+            const userAnswer = document.getElementById(`answer-${currentTask.correctField}`).value.trim();
+            const correctAnswer = currentTask.answers[currentTask.correctField];
+            const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+
+            const feedback = document.getElementById('answer-feedback');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackDetails = document.getElementById('feedback-details');
+
+            if (isCorrect) {
+                correctCount++;
+                feedback.classList.remove('feedback-incorrect');
+                feedback.classList.add('feedback-correct');
+                feedbackTitle.textContent = '✅ Helyes!';
+                feedbackDetails.innerHTML = `<strong>Válasz:</strong> ${userAnswer}<br><strong>Helyes:</strong> ${correctAnswer}`;
+            } else {
+                wrongCount++;
+                feedback.classList.remove('feedback-correct');
+                feedback.classList.add('feedback-incorrect');
+                feedbackTitle.textContent = '❌ Hibás!';
+                feedbackDetails.innerHTML = `<strong>Válasz:</strong> ${userAnswer}<br><strong>Helyes:</strong> ${correctAnswer}`;
+            }
+
+            feedback.style.display = 'block';
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('wrong-count').textContent = wrongCount;
+        }
+
+        // ===== TAB SWITCH =====
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+
+                if (tabId === 'tasks' && !currentTask) {
+                    generateNewTask();
+                }
+            });
+        });
+
+        // Enter support
+        document.getElementById('ip-address')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculateSubnet();
+        });
+        document.getElementById('subnet-mask')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculateSubnet();
+        });
+    </script>
+</body>
+</html>

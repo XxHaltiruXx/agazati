@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="VLAN-ok: Virtual LAN fogalma, konfigurációja, trunk portok és inter-VLAN routing." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - VLAN-ok</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="network/cisco" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Cisco alapok</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="network/routing" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Routing</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">VLAN-ok</h1>
+      <section>
+        <div>
+          <h3>Mi az a VLAN?</h3>
+<p>
+            A <strong>VLAN (Virtual Local Area Network)</strong> egy logikai hálózat szegmentálási technológia, 
+            amely lehetővé teszi, hogy egy fizikai switch több, egymástól elszigetelt virtuális hálózatot hozzon létre.
+          </p>
+
+          <p><strong>VLAN előnyei:</strong></p>
+          <ul>
+            <li><strong>Biztonság:</strong> Elkülönített broadcast domain-ek, forgalom szegmentálás</li>
+            <li><strong>Csökkentett broadcast forgalom:</strong> Kisebb broadcast domain-ek</li>
+            <li><strong>Jobb teljesítmény:</strong> Optimalizált hálózati forgalom</li>
+            <li><strong>Rugalmasság:</strong> Logikai csoportosítás fizikai elhelyezkedéstől függetlenül</li>
+            <li><strong>Költséghatékonyság:</strong> Kevesebb fizikai switch szükséges</li>
+            <li><strong>Egyszerűbb menedzsment:</strong> Logikus szervezés (osztályok, projektcsapatok, stb.)</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>Példa eset:
+Fizikai helyzet: Egy iroda, 3 osztály ugyanazon az emeleten
+Hagyományos: 3 külön switch kellene (drága, bonyolult)
+VLAN-nal: 1 switch, 3 logikai hálózat (VLAN 10, 20, 30)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>VLAN típusok</h3>
+<table>
+            <thead>
+              <tr>
+                <th>VLAN típus</th>
+                <th>VLAN ID tartomány</th>
+                <th>Használat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Default VLAN</td>
+                <td>1</td>
+                <td>Alapértelmezett VLAN, minden port kezdetben itt van</td>
+              </tr>
+              <tr>
+                <td>Data VLAN (User VLAN)</td>
+                <td>2-1001</td>
+                <td>Felhasználói forgalom, normál adatok</td>
+              </tr>
+              <tr>
+                <td>Voice VLAN</td>
+                <td>2-1001</td>
+                <td>VoIP telefonok forgalma (QoS prioritás)</td>
+              </tr>
+              <tr>
+                <td>Management VLAN</td>
+                <td>2-1001</td>
+                <td>Switch menedzsment, távoli hozzáférés</td>
+              </tr>
+              <tr>
+                <td>Native VLAN</td>
+                <td>Általában 1 vagy 99</td>
+                <td>Trunk portokon címkézetlen forgalom</td>
+              </tr>
+              <tr>
+                <td>Extended VLAN</td>
+                <td>1006-4094</td>
+                <td>Speciális alkalmazások, nagy hálózatok</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p><strong>Fontos VLAN-ok:</strong></p>
+          <ul>
+            <li><strong>VLAN 1:</strong> Alapértelmezett VLAN, nem törölhető, nem ajánlott használni</li>
+            <li><strong>VLAN 1002-1005:</strong> Token Ring és FDDI VLAN-ok (legacy)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>VLAN létrehozása és konfiguráció</h3>
+<p><strong>1. VLAN létrehozása:</strong></p>
+          <div class="code-container">
+            <pre><code>Switch> enable
+Switch# configure terminal
+Switch(config)# vlan 10
+Switch(config-vlan)# name IT_Department
+Switch(config-vlan)# exit
+
+Switch(config)# vlan 20
+Switch(config-vlan)# name Sales_Department
+Switch(config-vlan)# exit
+
+Switch(config)# vlan 30
+Switch(config-vlan)# name Management
+Switch(config-vlan)# exit
+
+! Ellenőrzés
+Switch# show vlan brief</code></pre>
+          </div>
+
+          <p><strong>2. Portok hozzárendelése VLAN-hoz (Access mode):</strong></p>
+          <div class="code-container">
+            <pre><code>! Egy port konfigurálása
+Switch(config)# interface fastEthernet 0/1
+Switch(config-if)# switchport mode access
+Switch(config-if)# switchport access vlan 10
+Switch(config-if)# description PC1_IT_Department
+Switch(config-if)# exit
+
+! Több port egyszerre
+Switch(config)# interface range fa0/2-10
+Switch(config-if-range)# switchport mode access
+Switch(config-if-range)# switchport access vlan 20
+Switch(config-if-range)# exit
+
+! Ellenőrzés
+Switch# show vlan brief
+Switch# show interfaces fa0/1 switchport</code></pre>
+          </div>
+
+          <p><strong>3. VLAN törlése:</strong></p>
+          <div class="code-container">
+            <pre><code>! Egy VLAN törlése
+Switch(config)# no vlan 30
+
+! Port eltávolítása VLAN-ból (vissza VLAN 1-be)
+Switch(config)# interface fa0/5
+Switch(config-if)# no switchport access vlan
+Switch(config-if)# exit
+
+! Összes VLAN törlése (vlan.dat fájl)
+Switch# delete vlan.dat
+Switch# reload</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Trunk portok és 802.1Q</h3>
+<p>
+            A <strong>trunk port</strong> egy olyan kapcsolat, amely több VLAN forgalmát továbbítja egyetlen fizikai linken keresztül. 
+            Az <strong>IEEE 802.1Q</strong> protokoll címkékkel (tag) látja el a kereteket.
+          </p>
+
+          <p><strong>802.1Q keret formátum:</strong></p>
+          <div class="code-container">
+            <pre><code>Ethernet keret + 4 byte-os VLAN tag:
+[ Destination MAC | Source MAC | 802.1Q Tag | Type | Data | FCS ]
+
+802.1Q Tag:
+- TPID (Tag Protocol ID): 0x8100
+- Priority (3 bit): CoS (Class of Service)
+- CFI (1 bit): Canonical Format Indicator
+- VLAN ID (12 bit): 0-4095 (0 és 4095 fenntartott)</code></pre>
+          </div>
+
+          <p><strong>Trunk konfiguráció:</strong></p>
+          <div class="code-container">
+            <pre><code>! Trunk port beállítása
+Switch(config)# interface gigabitEthernet 0/1
+Switch(config-if)# switchport mode trunk
+
+! Engedélyezett VLAN-ok meghatározása
+Switch(config-if)# switchport trunk allowed vlan 10,20,30
+
+! Native VLAN beállítása
+Switch(config-if)# switchport trunk native vlan 99
+
+! Trunk encapsulation (régebbi switcheken)
+Switch(config-if)# switchport trunk encapsulation dot1q
+
+Switch(config-if)# exit
+
+! Ellenőrzés
+Switch# show interfaces trunk
+Switch# show interfaces g0/1 switchport
+Switch# show interfaces g0/1 trunk</code></pre>
+          </div>
+
+          <p><strong>Native VLAN:</strong></p>
+          <ul>
+            <li>Trunk porton a <strong>címkézetlen</strong> (untagged) forgalom VLAN-ja</li>
+            <li>Alapértelmezetten VLAN 1, de ajánlott megváltoztatni (biztonsági okokból)</li>
+            <li>Mindkét végén azonosnak kell lennie</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>! Native VLAN mismatch ellenőrzése
+Switch# show interfaces trunk
+
+! CDP figyelmeztetés native VLAN eltérésnél:
+%CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Dynamic Trunking Protocol (DTP)</h3>
+<p>
+            A <strong>DTP</strong> egy Cisco saját protokoll, amely automatikusan egyezteti a trunk kapcsolatokat két switch között.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Switchport mód</th>
+                <th>Leírás</th>
+                <th>DTP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>access</td>
+                <td>Mindig access port</td>
+                <td>Küld DTP kereteket, de nem lesz trunk</td>
+              </tr>
+              <tr>
+                <td>trunk</td>
+                <td>Mindig trunk port</td>
+                <td>Küld DTP kereteket, trunkolni fog</td>
+              </tr>
+              <tr>
+                <td>dynamic auto</td>
+                <td>Passzív, vár a másik félre</td>
+                <td>Trunk lesz, ha a másik oldal dynamic desirable vagy trunk</td>
+              </tr>
+              <tr>
+                <td>dynamic desirable</td>
+                <td>Aktívan próbál trunk-ot létrehozni</td>
+                <td>Trunk lesz, ha lehet</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>! DTP mód beállítása
+Switch(config)# interface g0/1
+Switch(config-if)# switchport mode dynamic desirable
+Switch(config-if)# exit
+
+! DTP kikapcsolása (ajánlott biztonsági okokból)
+Switch(config)# interface g0/1
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport nonegotiate
+Switch(config-if)# exit
+
+! Ellenőrzés
+Switch# show dtp interface g0/1</code></pre>
+          </div>
+
+          <p><strong>Biztonsági ajánlás:</strong> Kapcsold ki a DTP-t (<code>switchport nonegotiate</code>) és használj explicit trunk vagy access módot.</p>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Inter-VLAN Routing</h3>
+<p>
+            Alapértelmezetten a különböző VLAN-ok nem tudnak egymással kommunikálni. Az <strong>inter-VLAN routing</strong> 
+            lehetővé teszi a forgalmat a VLAN-ok között.
+          </p>
+
+          <p><strong>Három módszer:</strong></p>
+          <ul>
+            <li><strong>Legacy:</strong> Külön router interfész minden VLAN-hoz (nem praktikus)</li>
+            <li><strong>Router-on-a-Stick:</strong> Egy fizikai interfész, több subinterface</li>
+            <li><strong>Layer 3 Switch (SVI):</strong> Switch végzi az útválasztást</li>
+          </ul>
+
+          <p><strong>1. Router-on-a-Stick konfiguráció:</strong></p>
+          <div class="code-container">
+            <pre><code>! Router konfiguráció
+R1(config)# interface gigabitEthernet 0/0
+R1(config-if)# no shutdown
+R1(config-if)# exit
+
+! VLAN 10 subinterface
+R1(config)# interface gigabitEthernet 0/0.10
+R1(config-subif)# encapsulation dot1Q 10
+R1(config-subif)# ip address 192.168.10.1 255.255.255.0
+R1(config-subif)# exit
+
+! VLAN 20 subinterface
+R1(config)# interface gigabitEthernet 0/0.20
+R1(config-subif)# encapsulation dot1Q 20
+R1(config-subif)# ip address 192.168.20.1 255.255.255.0
+R1(config-subif)# exit
+
+! Switch trunk konfiguráció (router felé)
+Switch(config)# interface gigabitEthernet 0/1
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport trunk allowed vlan 10,20
+Switch(config-if)# exit</code></pre>
+          </div>
+
+          <p><strong>2. Layer 3 Switch (SVI - Switched Virtual Interface):</strong></p>
+          <div class="code-container">
+            <pre><code>! IP routing engedélyezése
+Switch(config)# ip routing
+
+! VLAN interfészek létrehozása
+Switch(config)# interface vlan 10
+Switch(config-if)# ip address 192.168.10.1 255.255.255.0
+Switch(config-if)# no shutdown
+Switch(config-if)# exit
+
+Switch(config)# interface vlan 20
+Switch(config-if)# ip address 192.168.20.1 255.255.255.0
+Switch(config-if)# no shutdown
+Switch(config-if)# exit
+
+! Ellenőrzés
+Switch# show ip route
+Switch# show ip interface brief</code></pre>
+          </div>
+
+          <p><strong>Előnyök/Hátrányok:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Módszer</th>
+                <th>Előny</th>
+                <th>Hátrány</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Router-on-a-Stick</td>
+                <td>Olcsó, csak 1 fizikai link</td>
+                <td>Szűk keresztmetszet lehet</td>
+              </tr>
+              <tr>
+                <td>Layer 3 Switch</td>
+                <td>Gyors, nincs bottleneck</td>
+                <td>Drágább hardver</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>VTP (VLAN Trunking Protocol)</h3>
+<p>
+            A <strong>VTP</strong> egy Cisco saját protokoll, amely automatikusan szinkronizálja a VLAN információkat több switch között. 
+            <strong>Vigyázat:</strong> Helytelen konfiguráció esetén az egész hálózat VLAN-jait törölheti!
+          </p>
+
+          <p><strong>VTP módok:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Mód</th>
+                <th>Leírás</th>
+                <th>VLAN létrehozás</th>
+                <th>Hirdetés</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Server</td>
+                <td>VLAN-ok létrehozása, módosítása, törlése</td>
+                <td>Igen</td>
+                <td>Küld és fogad</td>
+              </tr>
+              <tr>
+                <td>Client</td>
+                <td>Csak fogadja a VLAN információkat</td>
+                <td>Nem</td>
+                <td>Fogad és továbbít</td>
+              </tr>
+              <tr>
+                <td>Transparent</td>
+                <td>Nem vesz részt VTP-ben, továbbítja</td>
+                <td>Igen (lokálisan)</td>
+                <td>Továbbít, de nem dolgozza fel</td>
+              </tr>
+              <tr>
+                <td>Off</td>
+                <td>VTP ki van kapcsolva</td>
+                <td>Igen</td>
+                <td>Nem küld</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>! VTP konfiguráció
+Switch(config)# vtp domain COMPANY
+Switch(config)# vtp mode server
+Switch(config)# vtp password SecurePass123
+Switch(config)# vtp version 2
+
+! VTP ellenőrzése
+Switch# show vtp status
+Switch# show vtp counters
+
+! VTP kikapcsolása (AJÁNLOTT)
+Switch(config)# vtp mode transparent
+! vagy
+Switch(config)# vtp mode off</code></pre>
+          </div>
+
+          <p><strong>VTP veszélyek:</strong></p>
+          <ul>
+            <li>Egy magasabb revision number-ű switch csatlakoztatásakor felülírhatja az összes többi switch VLAN-jait</li>
+            <li>Javasolt: <strong>VTP transparent vagy off mód</strong> használata</li>
+            <li>Ha használod: VLAN adatbázis backup-olása kötelező</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>! VTP revision number nullázása
+Switch# delete vlan.dat
+Switch# reload
+! vagy
+Switch(config)# vtp mode transparent
+Switch(config)# vtp mode server</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Voice VLAN konfiguráció</h3>
+<p>
+            A <strong>Voice VLAN</strong> külön VLAN-t biztosít VoIP telefonok számára, lehetővé téve a QoS (Quality of Service) prioritást.
+          </p>
+
+          <div class="code-container">
+            <pre><code>! Voice VLAN konfiguráció
+Switch(config)# vlan 100
+Switch(config-vlan)# name Voice
+Switch(config-vlan)# exit
+
+Switch(config)# interface fastEthernet 0/5
+Switch(config-if)# switchport mode access
+Switch(config-if)# switchport access vlan 10        ! Data VLAN
+Switch(config-if)# switchport voice vlan 100        ! Voice VLAN
+Switch(config-if)# mls qos trust cos                ! QoS trust
+Switch(config-if)# exit
+
+! Ellenőrzés
+Switch# show interfaces fa0/5 switchport</code></pre>
+          </div>
+
+          <p><strong>Működés:</strong></p>
+          <ul>
+            <li>PC csatlakozik a VoIP telefonhoz</li>
+            <li>VoIP telefon csatlakozik a switch porthoz</li>
+            <li>PC forgalma → Data VLAN (címkézetlen vagy VLAN 10)</li>
+            <li>Telefon forgalma → Voice VLAN 100 (802.1Q címkézett)</li>
+            <li>QoS prioritás biztosítja a hang forgalom elsőbbségét</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>VLAN troubleshooting</h3>
+<p><strong>Gyakori problémák és megoldások:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Probléma</th>
+                <th>Ellenőrzés</th>
+                <th>Megoldás</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Nincs kapcsolat VLAN-on belül</td>
+                <td>VLAN létezik? Port jó VLAN-ban van?</td>
+                <td><code>show vlan brief</code>, port újrakonfigurálás</td>
+              </tr>
+              <tr>
+                <td>Trunk nem működik</td>
+                <td>Trunk mód? Engedélyezett VLAN-ok?</td>
+                <td><code>show interfaces trunk</code>, trunk allowed vlan</td>
+              </tr>
+              <tr>
+                <td>Native VLAN mismatch</td>
+                <td>Native VLAN mindkét oldalon azonos?</td>
+                <td>Native VLAN egységesítése</td>
+              </tr>
+              <tr>
+                <td>VTP felülírta a VLAN-okat</td>
+                <td>VTP revision number</td>
+                <td>VTP mode transparent/off, VLAN visszaállítás</td>
+              </tr>
+              <tr>
+                <td>Inter-VLAN routing nem működik</td>
+                <td>Gateway beállítva? Subinterface encapsulation?</td>
+                <td>IP routing ellenőrzése, gateway config</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>! Diagnosztikai parancsok
+Switch# show vlan brief
+Switch# show vlan id 10
+Switch# show interfaces fa0/1 switchport
+Switch# show interfaces trunk
+Switch# show vtp status
+Switch# show mac address-table vlan 10
+Switch# show spanning-tree vlan 10
+
+! Port státusz ellenőrzése
+Switch# show interfaces status
+Switch# show interfaces fa0/1 status
+
+! CDP használata (szomszéd eszközök)
+Switch# show cdp neighbors detail</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>VLAN Best Practices</h3>
+<ul>
+            <li><strong>Ne használd a VLAN 1-et</strong> adatforgalomhoz (biztonsági kockázat)</li>
+            <li><strong>Változtasd meg a native VLAN-t</strong> trunk portokon (VLAN 99 vagy 999)</li>
+            <li><strong>VTP transparent vagy off mód</strong> javasolt kis/közepes hálózatokban</li>
+            <li><strong>Dokumentáld a VLAN kiosztást</strong> (VLAN 10 = IT, VLAN 20 = Sales, stb.)</li>
+            <li><strong>Voice VLAN külön tartományban</strong> (pl. VLAN 100-199)</li>
+            <li><strong>Management VLAN elkülönítése</strong> a felhasználói VLAN-októl</li>
+            <li><strong>Trunk portok biztonsága:</strong> csak szükséges VLAN-ok engedélyezése</li>
+            <li><strong>Disable unused ports</strong> és tedd őket dummy VLAN-ba</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>! Használaton kívüli portok biztosítása
+Switch(config)# vlan 999
+Switch(config-vlan)# name Unused_Ports
+Switch(config-vlan)# exit
+
+Switch(config)# interface range fa0/20-24
+Switch(config-if-range)# switchport mode access
+Switch(config-if-range)# switchport access vlan 999
+Switch(config-if-range)# shutdown
+Switch(config-if-range)# exit</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <div class="navigation-buttons bottom">
+        <a href="network/cisco" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Cisco alapok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="network/routing" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Routing</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

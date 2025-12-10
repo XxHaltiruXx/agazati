@@ -2,242 +2,441 @@
 <html lang="hu">
   <head>
     <meta charset="utf-8" />
-    <meta name="description" content="Itt tanulhatsz hálózatot." />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>(function(){var basePath="/";if(location.pathname.indexOf("/agazati/")===0){basePath="/agazati/";}var base=document.createElement("base");base.href=basePath;document.head.appendChild(base);})();</script><link  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"  rel="stylesheet"  integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"  crossorigin="anonymous"/>
-    <script  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"  crossorigin="anonymous"></script>
-    <link  rel="shortcut icon"  href="assets/images/agazati.ico"  type="image/x-icon"/>
+    <meta name="description" content="Hálózati alapok, OSI és TCP/IP modellek, hálózati topológiák és alapfogalmak." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/main.css" />
     <link rel="stylesheet" href="assets/css/nav.css" />
     <link rel="stylesheet" href="assets/css/utilities.css" />
     <link rel="stylesheet" href="assets/css/footer.css" />
-    <title>Agazati - Hálózat</title>
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Hálózat alapok</title>
   </head>
-  <script src="assets/js/nav.js"></script>
   <body>
     <div id="mySidenav" class="sidenav"></div>
     <main>
-      <h1 class="cim">Hálózat</h1>
-      <section id="szamrendszer" class="container py-3">
-        <div class="text-center mb-5">
-          <h2 class="display-4 fw-bold">Számrendszerek</h2>
-          <hr
-            class="mx-auto"
-            style="width: 120px; height: 3px; background: #2f00ff"
-          />
+      <div class="navigation-buttons">
+        <a href="" class="nav-btn prev-btn">
+          <span class="nav-text">Főoldal</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="network/szamrendszer" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Számrendszerek</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Hálózat alapok</h1>
+      <section>
+        <div>
+          <h3>Mi az a számítógépes hálózat?</h3>
+          <p>
+            A <strong>számítógépes hálózat</strong> két vagy több számítógép összekapcsolása, amely lehetővé teszi az adatok, 
+            erőforrások és információk megosztását. A hálózatok alapvető szerepet játszanak a modern kommunikációban és adatátvitelben.
+          </p>
         </div>
 
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-          <div class="col">
-            <div class="card h-100 border-0 shadow-lg card-custom">
-              <div class="card-header py-3" style="background: #2f00ff">
-                <h5 class="mb-0 text-white">2-es</h5>
-              </div>
-              <div class="card-body">
-                <p class="card-text">
-                  A bináris rendszer 0 és 1 számjegyeket használ. Alapvető
-                  szerepet játszik a számítástechnikában.
-                </p>
-                <code class="d-block mt-3 text-info">01000101 01111000</code>
-              </div>
-            </div>
-          </div>
+        <div>
+          <h3>Hálózatok előnyei</h3>
+          <ul>
+            <li><strong>Erőforrás megosztás</strong> - Nyomtatók, tárolók, szoftverek közös használata</li>
+            <li><strong>Adatátvitel</strong> - Gyors és hatékony kommunikáció eszközök között</li>
+            <li><strong>Központi kezelés</strong> - Egyszerűbb adminisztráció és biztonsági irányítás</li>
+            <li><strong>Költséghatékonyság</strong> - Eszközök és licencek megosztása csökkenti a kiadásokat</li>
+          </ul>
+        </div>
 
-          <div class="col">
-            <div class="card h-100 border-0 shadow-lg card-custom">
-              <div class="card-header py-3" style="background: #2f00ff">
-                <h5 class="mb-0 text-white">10-es</h5>
-              </div>
-              <div class="card-body">
-                <p class="card-text">
-                  A hétköznapi életben használt decimális rendszer 0-tól 9-ig
-                  terjedő számjegyekkel.
-                </p>
-                <code class="d-block mt-3 text-info">1234567890</code>
-              </div>
-            </div>
-          </div>
+        <div>
+          <h3>OSI modell (7 réteg)</h3>
+          <p>
+            Az <strong>OSI (Open Systems Interconnection)</strong> modell egy hétrétegű referenciamodell, amely szabványosítja a 
+            hálózati kommunikációt. Minden réteg specifikus feladatokat lát el.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Réteg</th>
+                <th>Név</th>
+                <th>Funkció</th>
+                <th>Protokollok/Eszközök</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>7</td>
+                <td>Alkalmazási réteg (Application)</td>
+                <td>Végfelhasználói alkalmazások támogatása</td>
+                <td>HTTP, FTP, SMTP, DNS</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Megjelenítési réteg (Presentation)</td>
+                <td>Adatok formázása, titkosítás, tömörítés</td>
+                <td>SSL/TLS, JPEG, MPEG</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Viszonyréteg (Session)</td>
+                <td>Kapcsolatok kezelése és szinkronizálás</td>
+                <td>NetBIOS, RPC</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Szállítási réteg (Transport)</td>
+                <td>Végpontok közötti kommunikáció</td>
+                <td>TCP, UDP</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Hálózati réteg (Network)</td>
+                <td>Útválasztás, címzés</td>
+                <td>IP, ICMP, Router</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Adatkapcsolati réteg (Data Link)</td>
+                <td>Fizikai címzés, keretek kezelése</td>
+                <td>Ethernet, MAC, Switch</td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td>Fizikai réteg (Physical)</td>
+                <td>Bitek továbbítása fizikai közegen</td>
+                <td>Kábelek, Hub, Jelek</td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="col">
-            <div class="card h-100 border-0 shadow-lg card-custom">
-              <div class="card-header py-3" style="background: #2f00ff">
-                <h5 class="mb-0 text-white">16-os</h5>
-              </div>
-              <div class="card-body">
-                <p class="card-text">
-                  Hexadecimális rendszer A-F betűkkel kiegészítve. Széleskörűen
-                  használják programozásban.
-                </p>
-                <code class="d-block mt-3 text-info">#FF5733</code>
-              </div>
-            </div>
+          <div class="code-container">
+            <pre><code>Memória szabály (alulról felfelé):
+P - Please (Physical)
+D - Do (Data Link)
+N - Not (Network)
+T - Throw (Transport)
+S - Sausage (Session)
+P - Pizza (Presentation)
+A - Away (Application)</code></pre>
           </div>
+        </div>
 
-          <div class="col">
-            <div class="card h-100 border-0 shadow-lg card-custom">
-              <div class="card-header py-3" style="background: #2f00ff">
-                <h5 class="mb-0 text-white">256-os</h5>
-              </div>
-              <div class="card-body">
-                <p class="card-text">
-                  8 bites ábrázolás, 256 különböző értékkel. Fontos digitális
-                  képeknél és színkódoknál.
-                </p>
-                <code class="d-block mt-3 text-info">RGB(255, 87, 51)</code>
-              </div>
-            </div>
+        <div>
+          <h3>TCP/IP modell (4 réteg)</h3>
+          <p>
+            A <strong>TCP/IP modell</strong> az interneten használt gyakorlati modell, amely egyszerűbb és kevesebb réteget tartalmaz, 
+            mint az OSI modell. Ez a ma használt hálózatok alapja.
+          </p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>TCP/IP réteg</th>
+                <th>OSI megfelelője</th>
+                <th>Funkció</th>
+                <th>Protokollok</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>4. Alkalmazási réteg</td>
+                <td>5-7 (Session, Presentation, Application)</td>
+                <td>Hálózati szolgáltatások és alkalmazások</td>
+                <td>HTTP, FTP, DNS, SMTP, SSH</td>
+              </tr>
+              <tr>
+                <td>3. Szállítási réteg</td>
+                <td>4 (Transport)</td>
+                <td>Végpontok közötti adatátvitel</td>
+                <td>TCP, UDP</td>
+              </tr>
+              <tr>
+                <td>2. Internet réteg</td>
+                <td>3 (Network)</td>
+                <td>Csomagok útvonalválasztása</td>
+                <td>IP, ICMP, ARP</td>
+              </tr>
+              <tr>
+                <td>1. Hálózati hozzáférési réteg</td>
+                <td>1-2 (Physical, Data Link)</td>
+                <td>Fizikai adattovábbítás</td>
+                <td>Ethernet, Wi-Fi, PPP</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>TCP vs UDP különbségek</h4>
+          <ul>
+            <li><strong>TCP (Transmission Control Protocol)</strong> - Megbízható, kapcsolat-orientált, nyugtázott adatátvitel. Használat: weboldalak, email, fájlátvitel.</li>
+            <li><strong>UDP (User Datagram Protocol)</strong> - Gyors, kapcsolat nélküli, nem nyugtázott. Használat: videóhívás, streamelés, online játékok.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Hálózati topológiák</h3>
+          <p>
+            A <strong>hálózati topológia</strong> a hálózat fizikai vagy logikai elrendezését jelenti. 
+            Meghatározza, hogyan kapcsolódnak egymáshoz az eszközök.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Topológia</th>
+                <th>Leírás</th>
+                <th>Előnyök</th>
+                <th>Hátrányok</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>🔴 Busz</td>
+                <td>Minden eszköz egy központi kábelhez csatlakozik</td>
+                <td>Egyszerű, olcsó, könnyen bővíthető</td>
+                <td>Kábel hiba az egész hálózatot leállítja</td>
+              </tr>
+              <tr>
+                <td>⭐ Csillag</td>
+                <td>Minden eszköz központi hubhoz/switchhez kapcsolódik</td>
+                <td>Egy eszköz hibája nem érinti a többit</td>
+                <td>Hub meghibásodása leállítja a hálózatot</td>
+              </tr>
+              <tr>
+                <td>🔁 Gyűrű</td>
+                <td>Eszközök körben kapcsolódnak, adat egy irányba halad</td>
+                <td>Egyenletes teljesítmény, nincs ütközés</td>
+                <td>Egy eszköz hibája megszakítja a kört</td>
+              </tr>
+              <tr>
+                <td>🕸️ Háló (Mesh)</td>
+                <td>Minden eszköz több másikhoz is kapcsolódik</td>
+                <td>Nagy megbízhatóság, redundancia</td>
+                <td>Drága, bonyolult telepítés</td>
+              </tr>
+              <tr>
+                <td>🌳 Fa (Tree)</td>
+                <td>Hierarchikus struktúra (csillag+busz kombináció)</td>
+                <td>Skálázható, könnyen bővíthető</td>
+                <td>Központi gerincvezeték hibája kritikus</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3>Hálózati eszközök</h3>
+          <p>
+            A hálózati eszközök különböző OSI rétegeken működnek és különböző funkciókat látnak el.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Eszköz</th>
+                <th>OSI réteg</th>
+                <th>Funkció</th>
+                <th>Használat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Hub</td>
+                <td>1 (Fizikai)</td>
+                <td>Jelet erősít és továbbít minden portra</td>
+                <td>Egyszerű hálózatok (elavult)</td>
+              </tr>
+              <tr>
+                <td>Switch</td>
+                <td>2 (Adatkapcsolati)</td>
+                <td>MAC cím alapján továbbít, collision domain szétválasztás</td>
+                <td>LAN hálózatok, VLAN kezelés</td>
+              </tr>
+              <tr>
+                <td>Router</td>
+                <td>3 (Hálózati)</td>
+                <td>IP cím alapú útválasztás hálózatok között</td>
+                <td>WAN kapcsolat, internetelérés</td>
+              </tr>
+              <tr>
+                <td>Firewall</td>
+                <td>3-7</td>
+                <td>Biztonsági szűrés, hozzáférés-szabályozás</td>
+                <td>Hálózati védelem</td>
+              </tr>
+              <tr>
+                <td>Access Point</td>
+                <td>2</td>
+                <td>Vezeték nélküli hálózati hozzáférés</td>
+                <td>Wi-Fi hálózatok</td>
+              </tr>
+              <tr>
+                <td>Modem</td>
+                <td>1-2</td>
+                <td>Digitális jel átalakítás analógra és fordítva</td>
+                <td>Internetszolgáltató kapcsolat</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>Hub vs Switch vs Router:
+• Hub: "Mindenki megkapja az üzenetet" (broadcast)
+• Switch: "Csak a címzett kapja meg" (MAC cím alapján)
+• Router: "Hálózatok között irányít" (IP cím alapján)</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hálózati típusok méret szerint</h3>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Típus</th>
+                <th>Név</th>
+                <th>Kiterjedés</th>
+                <th>Példa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PAN</td>
+                <td>Personal Area Network</td>
+                <td>1-10 méter</td>
+                <td>Bluetooth eszközök, okostelefon és laptop</td>
+              </tr>
+              <tr>
+                <td>LAN</td>
+                <td>Local Area Network</td>
+                <td>Épület, campus</td>
+                <td>Iskolai, irodai hálózat</td>
+              </tr>
+              <tr>
+                <td>MAN</td>
+                <td>Metropolitan Area Network</td>
+                <td>Város</td>
+                <td>Városi közintézmények hálózata</td>
+              </tr>
+              <tr>
+                <td>WAN</td>
+                <td>Wide Area Network</td>
+                <td>Ország, kontinens</td>
+                <td>Internet, nagyvállalati hálózatok</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3>Gyakori hálózati protokollok</h3>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Protokoll</th>
+                <th>Port</th>
+                <th>Réteg</th>
+                <th>Funkció</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>HTTP</td>
+                <td>80</td>
+                <td>Alkalmazási</td>
+                <td>Weboldalak letöltése</td>
+              </tr>
+              <tr>
+                <td>HTTPS</td>
+                <td>443</td>
+                <td>Alkalmazási</td>
+                <td>Titkosított webes kommunikáció</td>
+              </tr>
+              <tr>
+                <td>FTP</td>
+                <td>20, 21</td>
+                <td>Alkalmazási</td>
+                <td>Fájlátvitel</td>
+              </tr>
+              <tr>
+                <td>SSH</td>
+                <td>22</td>
+                <td>Alkalmazási</td>
+                <td>Biztonságos távoli hozzáférés</td>
+              </tr>
+              <tr>
+                <td>DNS</td>
+                <td>53</td>
+                <td>Alkalmazási</td>
+                <td>Domain név feloldás</td>
+              </tr>
+              <tr>
+                <td>DHCP</td>
+                <td>67, 68</td>
+                <td>Alkalmazási</td>
+                <td>Automatikus IP cím kiosztás</td>
+              </tr>
+              <tr>
+                <td>SMTP</td>
+                <td>25</td>
+                <td>Alkalmazási</td>
+                <td>Email küldés</td>
+              </tr>
+              <tr>
+                <td>POP3</td>
+                <td>110</td>
+                <td>Alkalmazási</td>
+                <td>Email letöltés</td>
+              </tr>
+              <tr>
+                <td>IMAP</td>
+                <td>143</td>
+                <td>Alkalmazási</td>
+                <td>Email szerver hozzáférés</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>Portok kategóriái:
+• 0-1023: Jól ismert portok (Well-known ports)
+• 1024-49151: Regisztrált portok
+• 49152-65535: Dinamikus/privát portok</code></pre>
           </div>
         </div>
       </section>
-      <section id="halozat" class="kartya">
-        <div class="kartya-item">
-          <h3>Cisco Parancsok</h3>
-          <hr />
-          <div class="container-fluid">
-            <div class="row">
-              <div class="col-12 col-md-6">
-                <h5>VLAN Beállítások</h5>
-                <div class="code-block">
-                  <button class="copy-btn" onclick="copyText(this)">📋</button>
-                  <pre><code>vlan [vlan száma]
-name [név]</code></pre>
-                </div>
-              </div>
-
-              <div class="col-12 col-md-6">
-                <h5>Portok hozzárendelése</h5>
-                <div class="code-block">
-                  <button class="copy-btn" onclick="copyText(this)">📋</button>
-                  <pre><code>interface range fa0/1-4
-switchport mode [access-trunk]
-switchport access vlan [vlan száma]
-</code></pre>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-12 col-md-6">
-                <h5>DHCP & Ip adás routerben</h5>
-                <div class="code-block">
-                  <button class="copy-btn" onclick="copyText(this)">📋</button>
-                  <pre><code>!ip adás
-interface [interface száma]
-ip add [lip] [snm]
-ip helper[lip-1]
-no shut
-
-!routerben dhcp létrehozás
-ip dhcp pool [név]
-network [nid] [snm]
-default-router [lip]
-dns-server [dns[
-ip dhcp excluded-address FIP KIOSZTANDÓ_CÍM-1</code></pre>
-                </div>
-              </div>
-
-              <div class="col-12 col-md-6">
-                <h5>Switch/Router Alapok</h5>
-                <div class="code-block">
-                  <button class="copy-btn" onclick="copyText(this)">📋</button>
-                  <pre><code>!Switch
-int vlan [vlan száma]
-ip address [ip] [snm]
-no shut
-
-!Router
-interface [interface száma]
-ip address [ip] [snm]
-no shut</code></pre>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-12 col-md-6">
-                <h5>SSH Beállítások</h5>
-                <div class="code-block">
-                  <button class="copy-btn" onclick="copyText(this)">📋</button>
-                  <pre><code>!SSH beallítás
-ip domain-name [domain név]
-hostname [host név]
-crypto key generate rsa general-keys modulus 1024
-username [felhasználónév] privilege [1-től 15-ig] password [jelszó]
-line vty 0 4
-transport input ssh
-login local
-ip ssh version 2</code></pre>
-                </div>
-              </div>
-
-              <div class="col-12 col-md-6">
-                <h5>Jelszóvédelem</h5>
-                <div class="code-block">
-                  <button class="copy-btn" onclick="copyText(this)">📋</button>
-                  <pre><code>! console jelszó
-line con 0
-password [jelszó]
-login
-
-!aux jelszó
-line aux 0
-password [jelszó]
-login
-
-!enable jelszó
-enable password [jelszó]
-   
-!titkosított jelszó
-enable secret [jelszó]
-
-line vty 0
-password [jelszó]
-login</code></pre>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-12 col-md-12">
-                <h5>FTP Műveletek</h5>
-                <div class="code-block">
-                  <button class="copy-btn" onclick="copyText(this)">📋</button>
-                  <pre><code>ftp [ftp szerver név]
-put [fájl]
-get [fájl]
-dir
-quit</code></pre>
-                </div>
-              </div>
-            </div>
-
-            <div id="megjegyzes" class="alert alert-dark mt-4">
-              <h5>⚠️ Fontos megjegyzések</h5>
-              <ul>
-                <li>
-                  Cseréld le a <mark>[zárójeles]</mark> helyőrzőket valós
-                  értékekre
-                </li>
-                <li>
-                  <code>enable secret</code> mindig elsőbbséget élvez az
-                  <code>enable password</code>-hoz képest
-                </li>
-                <li>
-                  Egyéb segítség a
-                  <a
-                    href="https://users.iit.uni-miskolc.hu/~szkovacs/OpNet/Cisco_osszefoglalo.pdf"
-                    target="_blank"
-                    >Packet Tracer</a
-                  >-hez
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Főoldal</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="network/szamrendszer" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Számrendszerek</span>
+        </a>
+      </div>
     </main>
-    <script src="assets/js/main.js"></script>
+    <script src="assets/js/nav.js"></script>
     <script src="assets/js/footer.js"></script>
   </body>
 </html>

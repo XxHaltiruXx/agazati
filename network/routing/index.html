@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Routing: statikus és dinamikus routing, RIP, OSPF, EIGRP és routing protokollok." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Routing</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="network/vlan" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: VLAN-ok</span>
+          <span class="arrow">←</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Routing (Útválasztás)</h1>
+      <section>
+        <div>
+          <h3>Mi az a routing?</h3>
+<p>
+            A <strong>routing</strong> az a folyamat, amellyel a hálózati eszközök (routerek) meghatározzák a legjobb útvonalat 
+            az adatcsomagok számára a forrás és a cél között. A router döntéseit a <strong>routing táblázat</strong> alapján hozza meg.
+          </p>
+
+          <p><strong>Routing alapfogalmak:</strong></p>
+          <ul>
+            <li><strong>Router:</strong> Hálózati réteg (Layer 3) eszköz, IP címek alapján továbbít</li>
+            <li><strong>Routing Table:</strong> Az elérhető hálózatok és útvonalak adatbázisa</li>
+            <li><strong>Next Hop:</strong> A következő router IP címe az útvonalon</li>
+            <li><strong>Metric:</strong> Az útvonal "költsége" (hop count, bandwidth, delay, stb.)</li>
+            <li><strong>Administrative Distance (AD):</strong> Útvonal forrás megbízhatósága (0-255)</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>Routing táblázat megtekintése:
+R1# show ip route
+
+Kódok:
+C - Connected (közvetlenül csatlakozó)
+S - Static (statikus útvonal)
+R - RIP
+O - OSPF
+D - EIGRP
+* - Default route (alapértelmezett útvonal)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Administrative Distance (AD)</h3>
+<p>
+            Az <strong>Administrative Distance</strong> meghatározza, hogy a router melyik routing forrásnak hisz jobban, 
+            ha ugyanahhoz a célhálózathoz több útvonal is létezik különböző forrásokból.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Routing forrás</th>
+                <th>AD érték</th>
+                <th>Megbízhatóság</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Connected interface</td>
+                <td>0</td>
+                <td>Legmegbízhatóbb</td>
+              </tr>
+              <tr>
+                <td>Static route</td>
+                <td>1</td>
+                <td>Nagyon megbízható</td>
+              </tr>
+              <tr>
+                <td>EIGRP summary route</td>
+                <td>5</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>eBGP</td>
+                <td>20</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>EIGRP (internal)</td>
+                <td>90</td>
+                <td>Jó</td>
+              </tr>
+              <tr>
+                <td>OSPF</td>
+                <td>110</td>
+                <td>Jó</td>
+              </tr>
+              <tr>
+                <td>RIP</td>
+                <td>120</td>
+                <td>Kevésbé megbízható</td>
+              </tr>
+              <tr>
+                <td>EIGRP (external)</td>
+                <td>170</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>iBGP</td>
+                <td>200</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>Unknown/Unreachable</td>
+                <td>255</td>
+                <td>Nem használt</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>Példa:
+Ha OSPF (AD=110) és RIP (AD=120) is hirdet egy hálózatot,
+a router az OSPF útvonalat választja (alacsonyabb AD = jobb).
+
+Floating static route (backup):
+R1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.3 150
+(AD 150 > OSPF 110, csak akkor aktiválódik, ha OSPF meghal)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Statikus routing</h3>
+<p>
+            A <strong>statikus routing</strong> esetén a rendszergazda manuálisan konfigurálja az útvonalakat. 
+            Egyszerű, de nem skálázható nagy hálózatokban.
+          </p>
+
+          <p><strong>Statikus routing előnyei:</strong></p>
+          <ul>
+            <li>Nincs routing protokoll overhead (CPU, RAM, bandwidth)</li>
+            <li>Biztonságosabb (nincs routing hirdetés)</li>
+            <li>Előre látható útvonalak</li>
+          </ul>
+
+          <p><strong>Statikus routing hátrányai:</strong></p>
+          <ul>
+            <li>Nem automatikus, manuális konfiguráció szükséges</li>
+            <li>Nem alkalmazkodik hálózati változásokhoz</li>
+            <li>Nem skálázható nagy hálózatokban</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>! Statikus útvonal szintaxis
+R1(config)# ip route [cél_hálózat] [maszk] [next-hop_IP vagy exit_interface]
+
+! Példák
+R1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2
+R1(config)# ip route 172.16.0.0 255.255.0.0 serial0/0/0
+
+! Default route (alapértelmezett útvonal)
+R1(config)# ip route 0.0.0.0 0.0.0.0 203.0.113.1
+
+! Floating static route (backup, magasabb AD)
+R1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.3 150
+
+! Statikus útvonal törlése
+R1(config)# no ip route 192.168.2.0 255.255.255.0 10.0.0.2
+
+! Ellenőrzés
+R1# show ip route static
+R1# show ip route 192.168.2.0</code></pre>
+          </div>
+
+          <p><strong>Kétirányú statikus routing példa:</strong></p>
+          <div class="code-container">
+            <pre><code>Topológia:
+[R1] 192.168.1.0/24 --- 10.0.0.0/30 --- [R2] 192.168.2.0/24
+
+R1 konfiguráció:
+R1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2
+
+R2 konfiguráció:
+R2(config)# ip route 192.168.1.0 255.255.255.0 10.0.0.1
+
+Így mindkét oldal eléri a másik hálózatát.</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Dinamikus routing protokollok</h3>
+<p>
+            A <strong>dinamikus routing protokollok</strong> automatikusan felépítik és karbantartják a routing táblázatot. 
+            A routerek információt cserélnek egymással a hálózati topológiáról.
+          </p>
+
+          <p><strong>Routing protokollok osztályozása:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Típus</th>
+                <th>Protokollok</th>
+                <th>Működés</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Interior Gateway Protocol (IGP)</td>
+                <td>RIP, OSPF, EIGRP</td>
+                <td>Autonomous System-en belül</td>
+              </tr>
+              <tr>
+                <td>Exterior Gateway Protocol (EGP)</td>
+                <td>BGP</td>
+                <td>Autonomous System-ek között</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p><strong>Algoritmus típusok:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Algoritmus</th>
+                <th>Protokollok</th>
+                <th>Működés</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Distance Vector</td>
+                <td>RIP, EIGRP (hybrid)</td>
+                <td>Távolság + irány alapján</td>
+              </tr>
+              <tr>
+                <td>Link-State</td>
+                <td>OSPF, IS-IS</td>
+                <td>Teljes topológia térkép alapján</td>
+              </tr>
+              <tr>
+                <td>Path Vector</td>
+                <td>BGP</td>
+                <td>AS útvonal alapján</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>RIP (Routing Information Protocol)</h3>
+<p>
+            A <strong>RIP</strong> az egyik legrégebbi distance-vector routing protokoll. Egyszerű, de limitált.
+          </p>
+
+          <p><strong>RIP jellemzők:</strong></p>
+          <ul>
+            <li><strong>Metric:</strong> Hop count (maximum 15, 16 = unreachable)</li>
+            <li><strong>Frissítés:</strong> 30 másodpercenként broadcast/multicast</li>
+            <li><strong>AD:</strong> 120</li>
+            <li><strong>Classful:</strong> RIPv1, <strong>Classless:</strong> RIPv2</li>
+            <li><strong>Multicast cím:</strong> 224.0.0.9 (RIPv2)</li>
+          </ul>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Jellemző</th>
+                <th>RIPv1</th>
+                <th>RIPv2</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Classful/Classless</td>
+                <td>Classful</td>
+                <td>Classless (CIDR támogatás)</td>
+              </tr>
+              <tr>
+                <td>Küldés módja</td>
+                <td>Broadcast (255.255.255.255)</td>
+                <td>Multicast (224.0.0.9)</td>
+              </tr>
+              <tr>
+                <td>Subnet maszk</td>
+                <td>Nem küldi</td>
+                <td>Küldi</td>
+              </tr>
+              <tr>
+                <td>Hitelesítés</td>
+                <td>Nincs</td>
+                <td>Van (MD5, plaintext)</td>
+              </tr>
+              <tr>
+                <td>VLSM támogatás</td>
+                <td>Nem</td>
+                <td>Igen</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>! RIPv2 konfiguráció
+R1(config)# router rip
+R1(config-router)# version 2
+R1(config-router)# network 192.168.1.0
+R1(config-router)# network 10.0.0.0
+R1(config-router)# no auto-summary
+R1(config-router)# exit
+
+! Passzív interfész (nem küld RIP frissítéseket)
+R1(config-router)# passive-interface gigabitEthernet 0/0
+
+! Default route hirdetése
+R1(config-router)# default-information originate
+
+! Ellenőrzés
+R1# show ip protocols
+R1# show ip rip database
+R1# show ip route rip
+R1# debug ip rip</code></pre>
+          </div>
+
+          <p><strong>RIP problémák és megoldások:</strong></p>
+          <ul>
+            <li><strong>Routing loops:</strong> Split horizon, route poisoning</li>
+            <li><strong>Count to infinity:</strong> Maximum 15 hop limit</li>
+            <li><strong>Lassú konvergencia:</strong> Holddown timer (180s)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>OSPF (Open Shortest Path First)</h3>
+<p>
+            Az <strong>OSPF</strong> egy link-state routing protokoll, amely gyors konvergenciát és skálázhatóságot nyújt. 
+            Az egyik legnépszerűbb IGP protokoll.
+          </p>
+
+          <p><strong>OSPF jellemzők:</strong></p>
+          <ul>
+            <li><strong>Metric:</strong> Cost (bandwidth alapján: 10⁸ / bandwidth)</li>
+            <li><strong>Algoritmus:</strong> Dijkstra SPF (Shortest Path First)</li>
+            <li><strong>AD:</strong> 110</li>
+            <li><strong>Protokoll:</strong> IP protokoll 89</li>
+            <li><strong>Multicast címek:</strong> 224.0.0.5 (All OSPF routers), 224.0.0.6 (DR/BDR)</li>
+            <li><strong>Hierarchikus:</strong> Area rendszer (Area 0 = backbone)</li>
+          </ul>
+
+          <p><strong>OSPF packet típusok:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Típus</th>
+                <th>Név</th>
+                <th>Funkció</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Hello</td>
+                <td>Szomszédok felfedezése, keep-alive</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>DBD (Database Description)</td>
+                <td>Link-state adatbázis összefoglalója</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>LSR (Link-State Request)</td>
+                <td>Hiányzó LSA-k kérése</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>LSU (Link-State Update)</td>
+                <td>LSA-k küldése</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>LSAck</td>
+                <td>LSU nyugtázása</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>! OSPF alapkonfiguráció
+R1(config)# router ospf 1
+R1(config-router)# router-id 1.1.1.1
+R1(config-router)# network 192.168.1.0 0.0.0.255 area 0
+R1(config-router)# network 10.0.0.0 0.0.0.3 area 0
+R1(config-router)# exit
+
+! Passzív interfész
+R1(config-router)# passive-interface gigabitEthernet 0/0
+
+! Default route hirdetése
+R1(config-router)# default-information originate
+
+! Cost módosítása
+R1(config)# interface serial 0/0/0
+R1(config-if)# ip ospf cost 64
+R1(config-if)# exit
+
+! Bandwidth módosítása (hatással van a cost-ra)
+R1(config-if)# bandwidth 1544
+
+! Ellenőrzés
+R1# show ip ospf
+R1# show ip ospf neighbor
+R1# show ip ospf interface
+R1# show ip ospf database
+R1# show ip route ospf</code></pre>
+          </div>
+
+          <p><strong>OSPF szomszéd állapotok:</strong></p>
+          <div class="code-container">
+            <pre><code>1. Down       - Nincs Hello csomag
+2. Init       - Hello csomag érkezett
+3. 2-Way      - Kétirányú kommunikáció, DR/BDR választás
+4. ExStart    - Master/Slave meghatározás
+5. Exchange   - DBD csomagok cseréje
+6. Loading    - LSA-k lekérése
+7. Full       - Teljes szomszédság (routing információ csere)</code></pre>
+          </div>
+
+          <p><strong>DR és BDR (Designated Router, Backup DR):</strong></p>
+          <ul>
+            <li>Broadcast és non-broadcast multi-access hálózatokon használt</li>
+            <li>Csökkenti az LSA árasztást</li>
+            <li>Választás prioritás (0-255) és router ID alapján</li>
+            <li>DR/BDR nem preemptív (újraválasztás csak ha valamelyik leáll)</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>! DR/BDR prioritás beállítása
+R1(config)# interface gigabitEthernet 0/0
+R1(config-if)# ip ospf priority 100
+! (Alapértelmezett: 1, 0 = soha nem lesz DR/BDR)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>EIGRP (Enhanced Interior Gateway Routing Protocol)</h3>
+<p>
+            Az <strong>EIGRP</strong> egy Cisco saját protokoll (később nyílt szabvánnyá vált). 
+            Advanced distance-vector vagy "hybrid" protokoll.
+          </p>
+
+          <p><strong>EIGRP jellemzők:</strong></p>
+          <ul>
+            <li><strong>Metric:</strong> Composite (bandwidth, delay, reliability, load, MTU)</li>
+            <li><strong>Algoritmus:</strong> DUAL (Diffusing Update Algorithm)</li>
+            <li><strong>AD:</strong> 90 (internal), 170 (external)</li>
+            <li><strong>Protokoll:</strong> IP protokoll 88</li>
+            <li><strong>Multicast cím:</strong> 224.0.0.10</li>
+            <li><strong>Classless:</strong> VLSM támogatás</li>
+            <li><strong>Load balancing:</strong> Unequal cost load balancing</li>
+          </ul>
+
+          <p><strong>EIGRP metric számítás:</strong></p>
+          <div class="code-container">
+            <pre><code>Metric = 256 × [(K1 × Bandwidth + (K2 × Bandwidth) / (256 - Load) + K3 × Delay) × K5 / (Reliability + K4)]
+
+Alapértelmezett (K1=1, K2=0, K3=1, K4=0, K5=0):
+Metric = 256 × (Bandwidth + Delay)
+
+Bandwidth = 10^7 / bandwidth_legkisebb (Kbps)
+Delay = összeg (delay in tens of microseconds)</code></pre>
+          </div>
+
+          <div class="code-container">
+            <pre><code>! EIGRP konfiguráció
+R1(config)# router eigrp 100
+R1(config-router)# eigrp router-id 1.1.1.1
+R1(config-router)# network 192.168.1.0 0.0.0.255
+R1(config-router)# network 10.0.0.0 0.0.0.3
+R1(config-router)# no auto-summary
+R1(config-router)# exit
+
+! Passzív interfész
+R1(config-router)# passive-interface gigabitEthernet 0/0
+
+! Hello és Hold timer módosítása
+R1(config)# interface serial 0/0/0
+R1(config-if)# ip hello-interval eigrp 100 5
+R1(config-if)# ip hold-time eigrp 100 15
+R1(config-if)# exit
+
+! Unequal cost load balancing
+R1(config-router)# variance 2
+! (2x-es metrikájú útvonalakat is használ)
+
+! Ellenőrzés
+R1# show ip eigrp neighbors
+R1# show ip eigrp topology
+R1# show ip eigrp interfaces
+R1# show ip route eigrp
+R1# show ip protocols</code></pre>
+          </div>
+
+          <p><strong>EIGRP fogalmak:</strong></p>
+          <ul>
+            <li><strong>Successor:</strong> Legjobb útvonal a célhoz</li>
+            <li><strong>Feasible Successor (FS):</strong> Backup útvonal (loop-free)</li>
+            <li><strong>Feasible Distance (FD):</strong> A legjobb útvonal metrikája</li>
+            <li><strong>Reported Distance (RD):</strong> Szomszéd által jelentett távolság</li>
+            <li><strong>Feasibility Condition:</strong> RD < FD (loop-free garancia)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Routing protokollok összehasonlítása</h3>
+<table>
+            <thead>
+              <tr>
+                <th>Jellemző</th>
+                <th>RIP</th>
+                <th>OSPF</th>
+                <th>EIGRP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Típus</td>
+                <td>Distance Vector</td>
+                <td>Link-State</td>
+                <td>Advanced Distance Vector</td>
+              </tr>
+              <tr>
+                <td>Metric</td>
+                <td>Hop count</td>
+                <td>Cost (bandwidth)</td>
+                <td>Composite (BW, delay)</td>
+              </tr>
+              <tr>
+                <td>AD</td>
+                <td>120</td>
+                <td>110</td>
+                <td>90 (internal)</td>
+              </tr>
+              <tr>
+                <td>Max hop/skálázhatóság</td>
+                <td>15 hop (kicsi)</td>
+                <td>Nincs limit (nagy)</td>
+                <td>255 hop (nagy)</td>
+              </tr>
+              <tr>
+                <td>Konvergencia</td>
+                <td>Lassú</td>
+                <td>Gyors</td>
+                <td>Nagyon gyors</td>
+              </tr>
+              <tr>
+                <td>VLSM/CIDR</td>
+                <td>RIPv2: Igen</td>
+                <td>Igen</td>
+                <td>Igen</td>
+              </tr>
+              <tr>
+                <td>Load balancing</td>
+                <td>Equal cost</td>
+                <td>Equal cost</td>
+                <td>Equal és unequal cost</td>
+              </tr>
+              <tr>
+                <td>CPU/RAM használat</td>
+                <td>Alacsony</td>
+                <td>Közepes-magas</td>
+                <td>Közepes</td>
+              </tr>
+              <tr>
+                <td>Szabványosítás</td>
+                <td>Nyílt (RFC 2453)</td>
+                <td>Nyílt (RFC 2328)</td>
+                <td>Cisco (RFC 7868)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p><strong>Mikor melyiket használjuk:</strong></p>
+          <ul>
+            <li><strong>RIP:</strong> Kis hálózatok, egyszerű topológiák, tanulási célok</li>
+            <li><strong>OSPF:</strong> Nagy vállalati hálózatok, multi-vendor környezet, hierarchikus tervezés</li>
+            <li><strong>EIGRP:</strong> Cisco hálózatok, gyors konvergencia szükséges, unequal cost load balancing</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Routing táblázat értelmezése</h3>
+<div class="code-container">
+            <pre><code>R1# show ip route
+
+Codes: 
+  C - connected, S - static, R - RIP, O - OSPF, D - EIGRP
+  * - candidate default route
+
+Gateway of last resort is 203.0.113.1 to network 0.0.0.0
+
+S*   0.0.0.0/0 [1/0] via 203.0.113.1
+C    10.0.0.0/30 is directly connected, Serial0/0/0
+L    10.0.0.1/32 is directly connected, Serial0/0/0
+O    172.16.0.0/16 [110/65] via 10.0.0.2, 00:05:23, Serial0/0/0
+C    192.168.1.0/24 is directly connected, GigabitEthernet0/0
+L    192.168.1.1/32 is directly connected, GigabitEthernet0/0
+D    192.168.2.0/24 [90/2170112] via 10.0.0.2, 00:02:15, Serial0/0/0
+
+Értelmezés:
+S* - Statikus default route
+   0.0.0.0/0 - Minden cél (default)
+   [1/0] - [AD/Metric]
+   via 203.0.113.1 - Next hop IP
+
+O  - OSPF tanult
+   172.16.0.0/16 - Cél hálózat
+   [110/65] - AD 110, Cost 65
+   via 10.0.0.2 - Next hop
+   00:05:23 - 5 perc 23 másodperce a táblában
+   Serial0/0/0 - Kilépő interfész</code></pre>
+          </div>
+
+          <p><strong>Útvonal kiválasztási sorrend:</strong></p>
+          <ol>
+            <li><strong>Longest prefix match</strong> - Leghosszabb prefix illeszkedés (pl. /30 jobb mint /24)</li>
+            <li><strong>Administrative Distance</strong> - Alacsonyabb AD győz</li>
+            <li><strong>Metric</strong> - Alacsonyabb metric győz (azonos AD esetén)</li>
+          </ol>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Routing troubleshooting</h3>
+<p><strong>Gyakori routing problémák:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Probléma</th>
+                <th>Ellenőrzés</th>
+                <th>Megoldás</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Nincs útvonal a célhoz</td>
+                <td><code>show ip route</code></td>
+                <td>Statikus útvonal vagy routing protokoll konfig</td>
+              </tr>
+              <tr>
+                <td>OSPF szomszédság nem jön létre</td>
+                <td><code>show ip ospf neighbor</code></td>
+                <td>Hello/Dead timer, area, subnet maszk ellenőrzés</td>
+              </tr>
+              <tr>
+                <td>Routing loop</td>
+                <td><code>traceroute</code></td>
+                <td>Split horizon, route summarization</td>
+              </tr>
+              <tr>
+                <td>Szuboptimális routing</td>
+                <td><code>show ip route</code>, metric</td>
+                <td>Metric, AD optimalizálás</td>
+              </tr>
+              <tr>
+                <td>Lassú konvergencia</td>
+                <td>Routing protokoll timerek</td>
+                <td>Hello/Dead/Hold timerek csökkentése</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>! Diagnosztikai parancsok
+R1# show ip route
+R1# show ip route summary
+R1# show ip protocols
+R1# show ip interface brief
+
+! Protokoll specifikus
+R1# show ip rip database
+R1# show ip ospf neighbor
+R1# show ip ospf database
+R1# show ip eigrp neighbors
+R1# show ip eigrp topology
+
+! Kapcsolatok tesztelése
+R1# ping 192.168.2.1
+R1# traceroute 192.168.2.1
+R1# show cdp neighbors
+
+! Debug (óvatosan!)
+R1# debug ip routing
+R1# debug ip ospf adj
+R1# debug eigrp packets
+R1# undebug all</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Route summarization (Route aggregation)</h3>
+<p>
+            A <strong>route summarization</strong> több kisebb hálózat összevonása egy nagyobb hálózattá, 
+            csökkentve a routing táblázatok méretét és javítva a hatékonyságot.
+          </p>
+
+          <div class="code-container">
+            <pre><code>Példa: Összevonás
+Eredeti hálózatok:
+192.168.0.0/24
+192.168.1.0/24
+192.168.2.0/24
+192.168.3.0/24
+
+Bináris elemzés:
+192.168.00000000.0
+192.168.00000001.0
+192.168.00000010.0
+192.168.00000011.0
+
+Első 22 bit közös → Összevont: 192.168.0.0/22
+
+! OSPF summarization
+R1(config)# router ospf 1
+R1(config-router)# area 1 range 192.168.0.0 255.255.252.0
+
+! EIGRP summarization (interfészen)
+R1(config)# interface serial 0/0/0
+R1(config-if)# ip summary-address eigrp 100 192.168.0.0 255.255.252.0</code></pre>
+          </div>
+
+          <p><strong>Summarization előnyei:</strong></p>
+          <ul>
+            <li>Kisebb routing táblázatok</li>
+            <li>Gyorsabb SPF számítás (OSPF)</li>
+            <li>Kevesebb frissítés</li>
+            <li>Lokalizált hibák (egy hálózat leállása nem érinti a többi hirdetését)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Routing best practices</h3>
+<ul>
+            <li><strong>Használj dinamikus routing protokollt</strong> redundáns hálózatokban</li>
+            <li><strong>Válassz egy routing protokollt</strong> és maradj annál (ne keverj többet szükségtelenül)</li>
+            <li><strong>OSPF area 0 (backbone)</strong> kötelező hierarchikus tervezésnél</li>
+            <li><strong>Passzív interfészek</strong> LAN interfészeken (nincs szükség routing hirdetésre)</li>
+            <li><strong>Route summarization</strong> nagy hálózatokban</li>
+            <li><strong>Default route</strong> használata peremroutereken (internet felé)</li>
+            <li><strong>Floating static routes</strong> backup útvonalaknak</li>
+            <li><strong>Router ID manuális beállítása</strong> (ne hagyd automatikusra)</li>
+            <li><strong>Hitelesítés</strong> routing protokollokban (MD5)</li>
+            <li><strong>Dokumentálás</strong> - hálózati diagram, IP címzési terv</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>! OSPF hitelesítés
+R1(config)# interface serial 0/0/0
+R1(config-if)# ip ospf message-digest-key 1 md5 SecurePassword
+R1(config-if)# ip ospf authentication message-digest
+R1(config-if)# exit
+
+! EIGRP hitelesítés
+R1(config)# key chain EIGRP_KEY
+R1(config-keychain)# key 1
+R1(config-keychain-key)# key-string SecurePassword
+R1(config-keychain-key)# exit
+R1(config-keychain)# exit
+
+R1(config)# interface serial 0/0/0
+R1(config-if)# ip authentication mode eigrp 100 md5
+R1(config-if)# ip authentication key-chain eigrp 100 EIGRP_KEY
+R1(config-if)# exit</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <div class="navigation-buttons bottom">
+        <a href="network/vlan" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: VLAN-ok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

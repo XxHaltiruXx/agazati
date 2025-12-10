@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Számrendszerek: bináris, decimális, hexadecimális és oktális számrendszerek és átváltások." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Számrendszerek</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="network/alapok" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Hálózat alapok</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="network/ip" class="nav-btn next-btn">
+          <span class="nav-text">Következő: IP címzés</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Számrendszerek</h1>
+      <section>
+        <div>
+          <h3>Mi az a számrendszer?</h3>
+          <p>
+            A <strong>számrendszer</strong> egy matematikai rendszer, amely meghatározza, hogyan írjunk le számokat. 
+            A hálózati technológiában különböző számrendszereket használunk a címzéshez, konfigurációhoz és számításokhoz.
+          </p>
+          <p>
+            Minden számrendszernek van egy <strong>alapja (radix)</strong>, amely meghatározza, hány különböző számjegyet használ:
+          </p>
+          <ul>
+            <li><strong>Bináris (2-es alapú):</strong> 0, 1</li>
+            <li><strong>Oktális (8-as alapú):</strong> 0-7</li>
+            <li><strong>Decimális (10-es alapú):</strong> 0-9</li>
+            <li><strong>Hexadecimális (16-os alapú):</strong> 0-9, A-F</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Bináris számrendszer (2-es alapú)</h3>
+
+          <p>
+            A <strong>bináris</strong> számrendszer csak két számjegyet használ: <code>0</code> és <code>1</code>. 
+            Ez a számítógépek alapnyelve, mert az elektronikus áramkörök két állapotot ismernek: be/ki, van áram/nincs áram.
+          </p>
+
+          <p><strong>Helyiértékek:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>2⁷</th>
+                <th>2⁶</th>
+                <th>2⁵</th>
+                <th>2⁴</th>
+                <th>2³</th>
+                <th>2²</th>
+                <th>2¹</th>
+                <th>2⁰</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>128</td>
+                <td>64</td>
+                <td>32</td>
+                <td>16</td>
+                <td>8</td>
+                <td>4</td>
+                <td>2</td>
+                <td>1</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p><strong>Példa: 192 decimális szám átváltása binárissá</strong></p>
+          <div class="code-container">
+            <pre><code>192 = 128 + 64 = 2⁷ + 2⁶
+    = 11000000₂
+
+Lépések:
+128 | 64 | 32 | 16 | 8 | 4 | 2 | 1
+ 1  |  1 |  0 |  0 | 0 | 0 | 0 | 0  = 11000000</code></pre>
+          </div>
+
+          <p><strong>Bináris számok hálózatokban:</strong></p>
+          <ul>
+            <li><strong>IP cím:</strong> 192.168.1.1 = 11000000.10101000.00000001.00000001</li>
+            <li><strong>Subnet maszk:</strong> 255.255.255.0 = 11111111.11111111.11111111.00000000</li>
+            <li><strong>MAC cím:</strong> Hexadecimális, de bináris alapon működik</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Decimális számrendszer (10-es alapú)</h3>
+
+          <p>
+            A <strong>decimális</strong> számrendszer a hétköznapi életben használt rendszer, amely 10 számjegyet használ (0-9). 
+            A hálózati címzésben is gyakran használjuk az IP címek emberi olvasható formájában.
+          </p>
+
+          <p><strong>Helyiértékek:</strong></p>
+          <div class="code-container">
+            <pre><code>4815 = 4×10³ + 8×10² + 1×10¹ + 5×10⁰
+     = 4×1000 + 8×100 + 1×10 + 5×1
+     = 4000 + 800 + 10 + 5</code></pre>
+          </div>
+
+          <p><strong>Binárisból decimálisba átváltás:</strong></p>
+          <div class="code-container">
+            <pre><code>11010110₂ → decimális
+
+128 | 64 | 32 | 16 | 8 | 4 | 2 | 1
+ 1  |  1 |  0 |  1 | 0 | 1 | 1 | 0
+
+= 128 + 64 + 16 + 4 + 2
+= 214₁₀</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Hexadecimális számrendszer (16-os alapú)</h3>
+
+          <p>
+            A <strong>hexadecimális</strong> számrendszer 16 szimbólumot használ: 0-9 és A-F (ahol A=10, B=11, ..., F=15). 
+            Nagyon hasznos, mert tömören ábrázol bináris adatokat.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Decimális</th>
+                <th>Hexadecimális</th>
+                <th>Bináris</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>0000</td></tr>
+              <tr><td>1</td><td>1</td><td>0001</td></tr>
+              <tr><td>2</td><td>2</td><td>0010</td></tr>
+              <tr><td>3</td><td>3</td><td>0011</td></tr>
+              <tr><td>4</td><td>4</td><td>0100</td></tr>
+              <tr><td>5</td><td>5</td><td>0101</td></tr>
+              <tr><td>6</td><td>6</td><td>0110</td></tr>
+              <tr><td>7</td><td>7</td><td>0111</td></tr>
+              <tr><td>8</td><td>8</td><td>1000</td></tr>
+              <tr><td>9</td><td>9</td><td>1001</td></tr>
+              <tr><td>10</td><td>A</td><td>1010</td></tr>
+              <tr><td>11</td><td>B</td><td>1011</td></tr>
+              <tr><td>12</td><td>C</td><td>1100</td></tr>
+              <tr><td>13</td><td>D</td><td>1101</td></tr>
+              <tr><td>14</td><td>E</td><td>1110</td></tr>
+              <tr><td>15</td><td>F</td><td>1111</td></tr>
+            </tbody>
+          </table>
+
+          <p><strong>Hexadecimális használata hálózatokban:</strong></p>
+          <ul>
+            <li><strong>MAC címek:</strong> 00:1A:2B:3C:4D:5E</li>
+            <li><strong>IPv6 címek:</strong> 2001:0db8:85a3:0000:0000:8a2e:0370:7334</li>
+            <li><strong>Színkódok:</strong> #FF5733 (webdesign)</li>
+          </ul>
+
+          <div class="code-container">
+            <pre><code>Hexadecimális → Decimális:
+2F₁₆ = 2×16¹ + F×16⁰
+    = 2×16 + 15×1
+    = 32 + 15
+    = 47₁₀
+
+Bináris → Hexadecimális:
+11010110₂
+Csoportosítás 4-esével: 1101 | 0110
+                         D    |  6
+= D6₁₆</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Oktális számrendszer (8-as alapú)</h3>
+
+          <p>
+            Az <strong>oktális</strong> számrendszer 8 számjegyet használ (0-7). Régen gyakrabban használták programozásban, 
+            ma ritkább, de megjelenik Unix fájljogosultságokban.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Decimális</th>
+                <th>Oktális</th>
+                <th>Bináris</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>000</td></tr>
+              <tr><td>1</td><td>1</td><td>001</td></tr>
+              <tr><td>2</td><td>2</td><td>010</td></tr>
+              <tr><td>3</td><td>3</td><td>011</td></tr>
+              <tr><td>4</td><td>4</td><td>100</td></tr>
+              <tr><td>5</td><td>5</td><td>101</td></tr>
+              <tr><td>6</td><td>6</td><td>110</td></tr>
+              <tr><td>7</td><td>7</td><td>111</td></tr>
+            </tbody>
+          </table>
+
+          <div class="code-container">
+            <pre><code>Oktális → Decimális:
+157₈ = 1×8² + 5×8¹ + 7×8⁰
+    = 1×64 + 5×8 + 7×1
+    = 64 + 40 + 7
+    = 111₁₀
+
+Unix fájljogosultságok:
+chmod 755 file.txt
+7 = 111₂ = rwx (olvasás, írás, futtatás)
+5 = 101₂ = r-x (olvasás, futtatás)
+5 = 101₂ = r-x (olvasás, futtatás)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Gyors átváltási táblázat</h3>
+
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Decimális</th>
+                <th>Bináris</th>
+                <th>Oktális</th>
+                <th>Hexadecimális</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>0</td><td>0000</td><td>0</td><td>0</td></tr>
+              <tr><td>1</td><td>0001</td><td>1</td><td>1</td></tr>
+              <tr><td>2</td><td>0010</td><td>2</td><td>2</td></tr>
+              <tr><td>8</td><td>1000</td><td>10</td><td>8</td></tr>
+              <tr><td>10</td><td>1010</td><td>12</td><td>A</td></tr>
+              <tr><td>15</td><td>1111</td><td>17</td><td>F</td></tr>
+              <tr><td>16</td><td>10000</td><td>20</td><td>10</td></tr>
+              <tr><td>32</td><td>100000</td><td>40</td><td>20</td></tr>
+              <tr><td>64</td><td>1000000</td><td>100</td><td>40</td></tr>
+              <tr><td>128</td><td>10000000</td><td>200</td><td>80</td></tr>
+              <tr><td>255</td><td>11111111</td><td>377</td><td>FF</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Számrendszer átváltási módszerek</h3>
+
+          
+          <p><strong>1. Decimálisból binárisba - Folyamatos osztás 2-vel:</strong></p>
+          <div class="code-container">
+            <pre><code>156₁₀ → Bináris
+
+156 ÷ 2 = 78  maradék: 0  ↑
+ 78 ÷ 2 = 39  maradék: 0  |
+ 39 ÷ 2 = 19  maradék: 1  |
+ 19 ÷ 2 = 9   maradék: 1  |
+  9 ÷ 2 = 4   maradék: 1  |
+  4 ÷ 2 = 2   maradék: 0  |
+  2 ÷ 2 = 1   maradék: 0  |
+  1 ÷ 2 = 0   maradék: 1  | (alulról felfelé olvasva)
+
+Eredmény: 10011100₂</code></pre>
+          </div>
+
+          <p><strong>2. Binárisból hexadecimálisba - 4 bit csoportok:</strong></p>
+          <div class="code-container">
+            <pre><code>11010110₂ → Hexadecimális
+
+Csoportosítás 4-esével jobbról balra:
+1101 | 0110
+ D   |  6
+
+Eredmény: D6₁₆</code></pre>
+          </div>
+
+          <p><strong>3. Hexadecimálisból decimálisba - Helyiérték szorzás:</strong></p>
+          <div class="code-container">
+            <pre><code>1A3₁₆ → Decimális
+
+1×16² + A×16¹ + 3×16⁰
+= 1×256 + 10×16 + 3×1
+= 256 + 160 + 3
+= 419₁₀</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Gyakorlati példák hálózatokban</h3>
+
+          
+          <p><strong>IP cím átváltása:</strong></p>
+          <div class="code-container">
+            <pre><code>192.168.1.100
+
+Decimális → Bináris (minden oktettet külön):
+192 = 11000000
+168 = 10101000
+  1 = 00000001
+100 = 01100100
+
+Teljes IP binárisban:
+11000000.10101000.00000001.01100100</code></pre>
+          </div>
+
+          <p><strong>Subnet maszk átváltása:</strong></p>
+          <div class="code-container">
+            <pre><code>255.255.255.0 = 11111111.11111111.11111111.00000000
+
+/24 jelölés jelentése:
+24 darab 1-es bit a maszkban (balról jobbra)</code></pre>
+          </div>
+
+          <p><strong>MAC cím átváltása:</strong></p>
+          <div class="code-container">
+            <pre><code>MAC: 00:1A:2B:3C:4D:5E
+
+Hexadecimális → Bináris:
+00 = 00000000
+1A = 00011010
+2B = 00101011
+3C = 00111100
+4D = 01001101
+5E = 01011110</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <h3>Hasznos tippek és trükkök</h3>
+
+          
+          <p><strong>Gyors bináris hatványok (memorizálandó):</strong></p>
+          <div class="code-container">
+            <pre><code>2⁰ = 1
+2¹ = 2
+2² = 4
+2³ = 8
+2⁴ = 16
+2⁵ = 32
+2⁶ = 64
+2⁷ = 128
+2⁸ = 256
+2⁹ = 512
+2¹⁰ = 1024 (≈ 1KB)
+2¹⁶ = 65536 (portok maximuma)</code></pre>
+          </div>
+
+          <p><strong>Hexadecimális gyorsbetűk:</strong></p>
+          <ul>
+            <li><strong>0xFF</strong> = 255 (maximális bájt érték)</li>
+            <li><strong>0x00</strong> = 0 (minimális érték)</li>
+            <li><strong>0xFF FF FF FF</strong> = 255.255.255.255 (broadcast cím)</li>
+          </ul>
+
+          <p><strong>Számrendszer jelölések programozásban:</strong></p>
+          <div class="code-container">
+            <pre><code>• Bináris:       0b vagy 0B prefix (pl. 0b1101)
+• Oktális:      0 prefix (pl. 0755)
+• Hexadecimális: 0x vagy 0X prefix (pl. 0xFF)
+• Decimális:    Nincs prefix (pl. 255)</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <div class="navigation-buttons bottom">
+        <a href="network/alapok" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: Hálózat alapok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="network/ip" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: IP címzés</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

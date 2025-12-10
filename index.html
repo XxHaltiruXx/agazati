@@ -23,7 +23,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
     crossorigin="anonymous"></script>
-</head>
+
 <link rel="shortcut icon" href="assets/images/agazati.ico" type="image/x-icon" />
 <link rel="stylesheet" href="assets/css/base.css" />
 <link rel="stylesheet" href="assets/css/main.css" />
@@ -32,7 +32,7 @@
 <link rel="stylesheet" href="assets/css/footer.css" />
 <link rel="sitemap" type="application/xml" title="Sitemap" href="https://xxhaltiruxx.github.io/agazati/sitemap.xml" />
 <title>Agazati - Főoldal</title>
-
+</head>
 <body>
   <div id="mySidenav" class="sidenav"></div>
   <main>
@@ -53,55 +53,79 @@
     </form> 
 
 <section class="web" id="web-section">
-<h2 class="subsite">Webfejlesztés</h2>
+<h2 style="z-index: 1;" class="subsite">Webfejlesztés</h2>
 
 <div class="row">
 
   <div class="col-md-4" data-search="html" data-link="html/alapok">
     <h3>HTML</h3>
     <p>Itt tanulhatod meg a weboldalak struktúráját.</p>
-    <a href="html/alapok"><button>Tovább ></button></a>
+    <button onclick="document.location='html/alapok'">Tovább ></button>
   </div>
 
   <div class="col-md-4" data-search="css" data-link="css/alapok">
     <h3>CSS</h3>
     <p>Itt tanulhatod meg a weboldalak kinézetének szerkesztését.</p>
-    <a href="css/alapok"><button>Tovább ></button></a>
+    <button onclick="document.location='css/alapok'">Tovább ></button>
+    
   </div>
 
   <div class="col-md-4" data-search="javascript" data-link="">
     <h3>JavaScript</h3>
     <p>Itt adhatsz a weboldalaknak interaktivitást.</p>
-    <a href=""><button>Tovább ></button></a>
+    <button onclick="document.location='js/alapok'">Tovább ></button>
   </div>
 
 </div>
 
 </section>
 <section class="web" id="app-section">
-<h2 class="subsite">Appfejlesztés</h2>
+<h2 style="z-index: 1;" class="subsite">Appfejlesztés</h2>
 
 <div class="row">
 
   <div class="col-md-4" data-search="python" data-link="python/alapok">
     <h3>Python</h3>
     <p>Pythonnal tanulhatod meg legegyszerűbben a programozás alapjait.</p>
-    <a href="python/alapok"><button>Tovább ></button></a>
+    <button onclick="document.location='python/alapok'">Tovább ></button>
   </div>
 
   <div class="col-md-4" data-search="csharp c#" data-link="">
     <h3>C#</h3>
     <p>C#-al tanulhatod meg az appfejleszés alapjait.</p>
-    <a href=""><button>Tovább ></button></a>
+    <button onclick="document.location='csharp/alapok'">Tovább ></button>
   </div>
 
   <div class="col-md-4" data-search="hálózat network" data-link="network/alapok">
     <h3>Hálózat</h3>
     <p>Megértheted a hálózatok alapjait, felépítését és működését.</p>
-    <a href="network/alapok"><button>Tovább ></button></a>
+    <button onclick="document.location='network/alapok'">Tovább ></button>
   </div>
 
 </div>
+
+</section>
+
+<section class="web" id="subject-section">
+<h2 style="z-index: 1;" class="subsite">Egyéb tantárgyak</h2>
+
+<div class="row">
+
+  <div class="col-md-4" data-search="python" data-link="math/alapok">
+    <h3>Matematika</h3>
+    <p>Különféle Matematikai képleteket és hasznos tudnivalókat tanulhatsz.</p>
+    <button onclick="document.location='math/'">Tovább ></button>
+  </div>
+  
+  <!-- <div class="col-md-4" data-search="python" data-link="python/alapok">
+    <h3>Matematika</h3>
+    <p>Különféle Matematikai képleteket és hasznos tudnivalókat tanulhatsz.</p>
+    <button onclick="document.location='python/alapok'">Tovább ></button>
+  </div> -->
+
+</div>
+
+</section>
 
 </section>
 

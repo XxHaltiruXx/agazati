@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Tanulj meg mindent a CSS Box modellről." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="shortcut icon"
+      href="assets/images/agazati.ico"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - CSS Box Modell</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="css/alapok" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: CSS alapok</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="css/position" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Pozicionálás</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">CSS Box Modell</h1>
+      <section>
+        <div>
+          <h3>Mi az a Box Modell?</h3>
+          <p>
+            A CSS Box Modell egy alapvető koncepció, amely leírja, hogyan épülnek fel a HTML elemek. 
+            Minden elem egy téglalap alakú "dobozként" viselkedik, amely több rétegből áll.
+          </p>
+        </div>
+
+        <div>
+          <h3>A Box Modell részei</h3>
+          <p>Egy elem négyrétegű szerkezetből áll (kívülről befelé):</p>
+          <ol>
+            <li><strong>Margin</strong> (külső margó) - Az elem körüli üres terület, átlátszó</li>
+            <li><strong>Border</strong> (keret) - Az elem kerete, látható vonal</li>
+            <li><strong>Padding</strong> (belső margó) - A keret és a tartalom közötti terület</li>
+            <li><strong>Content</strong> (tartalom) - Az elem tényleges tartalma (szöveg, kép, stb.)</li>
+          </ol>
+        </div>
+
+        <div>
+          <h3>Margin - Külső margó</h3>
+          <p>
+            A margin az elem körüli átlátszó terület. Használható az elemek közötti távolság beállítására.
+          </p>
+          <div class="code-container">
+            <pre><code>/* Minden oldalra ugyanakkora */
+margin: 20px;
+
+/* Külön-külön megadva */
+margin-top: 10px;
+margin-right: 20px;
+margin-bottom: 15px;
+margin-left: 25px;
+
+/* Rövidített formában (top, right, bottom, left) */
+margin: 10px 20px 15px 25px;
+
+/* Függőleges és vízszintes (top/bottom, right/left) */
+margin: 10px 20px;
+
+/* Automatikus központosítás */
+margin: 0 auto;</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Padding - Belső margó</h3>
+          <p>
+            A padding a tartalom és a keret közötti terület. A padding területe az elem háttérszínével jelenik meg.
+          </p>
+          <div class="code-container">
+            <pre><code>/* Minden oldalra ugyanakkora */
+padding: 15px;
+
+/* Külön-külön megadva */
+padding-top: 10px;
+padding-right: 20px;
+padding-bottom: 10px;
+padding-left: 20px;
+
+/* Rövidített formában */
+padding: 10px 20px;  /* függőleges, vízszintes */
+padding: 10px 15px 20px 25px;  /* top, right, bottom, left */</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Border - Keret</h3>
+          <p>
+            A border egy látható vonal az elem körül. Megadhatjuk a vastagságát, stílusát és színét.
+          </p>
+          <div class="code-container">
+            <pre><code>/* Rövidített formában */
+border: 2px solid black;
+
+/* Külön-külön beállítva */
+border-width: 2px;
+border-style: solid;  /* solid, dashed, dotted, double, none */
+border-color: #333;
+
+/* Egy oldal kerete */
+border-top: 3px dashed red;
+border-bottom: 1px solid gray;
+
+/* Lekerekített sarkok */
+border-radius: 10px;
+border-radius: 50%;  /* teljesen kerek */</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Width és Height - Szélesség és magasság</h3>
+          <p>
+            Alapértelmezetten a width és height csak a <strong>tartalom</strong> méretét állítja be, 
+            a padding, border és margin hozzáadódik ehhez.
+          </p>
+          <div class="code-container">
+            <pre><code>/* Tartalom mérete */
+width: 300px;
+height: 200px;
+
+/* Százalékos méret */
+width: 100%;
+width: 50%;
+
+/* Maximális/minimális méretek */
+max-width: 1200px;
+min-width: 300px;
+max-height: 500px;
+min-height: 100px;</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Box-sizing tulajdonság</h3>
+          <p>
+            A <code>box-sizing</code> meghatározza, hogyan számítódik ki az elem teljes mérete.
+          </p>
+          <div class="code-container">
+            <pre><code>/* Alapértelmezett - width csak a tartalom */
+box-sizing: content-box;
+
+/* Ajánlott - width tartalmazza a padding-et és border-t is */
+box-sizing: border-box;
+
+/* Globális beállítás minden elemre */
+* {
+    box-sizing: border-box;
+}</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati példa</h3>
+          <p>
+            Nézzünk egy komplett példát, amely bemutatja a Box Modell működését:
+          </p>
+          <div class="code-container">
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="hu"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Box Modell Példa&lt;/title&gt;
+    &lt;style&gt;
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .doboz {
+            width: 300px;
+            padding: 20px;
+            border: 5px solid #3498db;
+            margin: 20px auto;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+        }
+        
+        .kiemel {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #c0392b;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class="container"&gt;
+        &lt;h1&gt;Box Modell Demonstráció&lt;/h1&gt;
+        
+        &lt;div class="doboz"&gt;
+            Ez egy doboz 20px padding-gel, 5px border-rel és 20px margin-nel.
+        &lt;/div&gt;
+        
+        &lt;div class="kiemel"&gt;
+            Ez egy kiemelt szöveg 10px padding-gel és bal oldali border-rel.
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+          <div class="btn-container">
+            <a href="html/run/" class="btn btn-primary" target="_blank"
+               onclick="localStorage.setItem('htmlRunnerCode', this.parentElement.previousElementSibling.querySelector('code').textContent); return true;">
+              🚀 Próbáld ki magad!
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3>Display tulajdonság</h3>
+          <p>
+            A display tulajdonság meghatározza, hogyan viselkedik az elem a dokumentumban.
+          </p>
+          <div class="code-container">
+            <pre><code>/* Blokk elem - új sorban kezdődik, teljes szélesség */
+display: block;
+
+/* Inline elem - sorban marad, csak a tartalom szélességét foglalja */
+display: inline;
+
+/* Inline-block - inline, de méretezhet és van padding/margin */
+display: inline-block;
+
+/* Elem elrejtése */
+display: none;
+
+/* Flex container (modern elrendezés) */
+display: flex;
+
+/* Grid container (modern elrendezés) */
+display: grid;</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Hasznos tippek</h3>
+          <ul>
+            <li>Használd a <code>box-sizing: border-box;</code>-ot minden elemre a könnyebb méretezés érdekében</li>
+            <li>A <code>margin: 0 auto;</code> segít horizontálisan központosítani egy blokk elemet</li>
+            <li>Negatív margin értékekkel átfedő elemeket hozhatsz létre</li>
+            <li>A <code>padding</code> növeli az elem méretét, a <code>margin</code> nem</li>
+            <li>Használd a böngésző DevTools-át (F12) a Box Modell vizuális megtekintéséhez</li>
+            <li>A függőleges margin-ek összecsukódhatnak (margin collapse)</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="css/alapok" class="nav-btn prev-btn">
+          <span class="arrow">←</span>
+          <span class="nav-text">Előző: CSS alapok</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="arrow">↑</span>
+          <span class="nav-text">Vissza a tetejére</span>
+        </a>
+        <a href="css/position" class="nav-btn next-btn">
+          <span class="arrow">→</span>
+          <span class="nav-text">Következő: Pozicionálás</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>
+
