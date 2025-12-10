@@ -287,7 +287,12 @@
     
     // Dinamikusan beállítjuk az aria-current="page"-et az aktuális oldalon
     try {
-      const currentPath = location.pathname.toLowerCase().replace(/\/+$/, '');
+      let currentPath = location.pathname.toLowerCase().replace(/\/+$/, '');
+      
+      // GitHub Pages esetén eltávolítjuk a repository prefix-et (pl. /agazati/)
+      // hogy ugyanúgy működjön mint lokálisan
+      currentPath = currentPath.replace(/^\/agazati\/?/i, '/');
+      
       const navLinks = header.querySelectorAll('.nav-link');
       
       // Kinyerjük az aktuális oldal kategóriáját (első szegmens az URL-ből)
@@ -528,7 +533,8 @@
       window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: false } }));
       
       // Ha infosharer oldalon vagyunk, frissítsük azt is
-      if (window.location.pathname.includes('infosharer')) {
+      const currentPathname = window.location.pathname.replace(/^\/agazati\/?/i, '/');
+      if (currentPathname.includes('infosharer')) {
         window.location.reload();
       }
     } catch (e) {
@@ -980,7 +986,11 @@ window.toggleNav = function () {
 
         // Aktuális oldal jelölése
         try {
-          const currentPath = location.pathname.replace(/\/+$/, '').toLowerCase();
+          let currentPath = location.pathname.replace(/\/+$/, '').toLowerCase();
+          
+          // GitHub Pages esetén eltávolítjuk a repository prefix-et (pl. /agazati/)
+          currentPath = currentPath.replace(/^\/agazati\/?/i, '/');
+          
           const itemLink = item.link.replace(/\/+$/, '').toLowerCase();
           
           // Ellenőrizzük, hogy az aktuális útvonal tartalmazza-e a link útvonalát
@@ -1079,7 +1089,10 @@ window.toggleNav = function () {
     // Ha az oldal maga tartalmaz már auth gombot (pl. infosharer), akkor ne jelenjen meg a sidebar-ban.
     const hasPageAuth = (function() {
       try {
-        if (window.location && typeof window.location.pathname === 'string' && window.location.pathname.includes('infosharer')) return true;
+        if (window.location && typeof window.location.pathname === 'string') {
+          const currentPathname = window.location.pathname.replace(/^\/agazati\/?/i, '/');
+          if (currentPathname.includes('infosharer')) return true;
+        }
         // alternatív: az oldal jelölheti, hogy saját auth buttonja van, pl. <button id="infosharer-auth"> vagy data attribútum
         if (document.getElementById('infosharer-auth')) return true;
         if (document.querySelector('[data-infosharer-auth]')) return true;
