@@ -61,7 +61,7 @@ div.navbar-nav {
   height: calc(100% - var(--nav-height));
   width: 0;
   position: fixed;
-  z-index: 1;
+  z-index: 99999999999999999;
   top: var(--nav-height);
   left: 0;
   background-color: #111;
