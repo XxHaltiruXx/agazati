@@ -1,11 +1,11 @@
 footer {
-  border-top: 35px #272a30 solid;
+  border-top: 15px #272a30 solid;
   padding: 50px;
   background-color: #3e4551;
   margin: 0;
   font-size: 75%;
   text-align: center;
-  height: fit-content;
+  height: 400px;
 }
 
 footer p {
