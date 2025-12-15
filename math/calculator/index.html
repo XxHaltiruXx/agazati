@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Tudományos számológép - matematikai számítások" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="assets/images/math.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <style>
+      .calculator-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      .calculator {
+        background: #2d3139;
+        border: 1px solid #3d4149;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 20px;
+      }
+
+      .calc-history {
+        background: rgba(199, 125, 255, 0.1);
+        border: 1px solid rgba(199, 125, 255, 0.3);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 15px;
+        max-height: 100px;
+        overflow-y: auto;
+        font-size: 0.9em;
+        color: #e0e0e0;
+        font-family: 'Courier New', monospace;
+      }
+
+      .calc-history:empty {
+        display: none;
+      }
+
+      .calc-display {
+        width: 100%;
+        padding: 20px;
+        font-size: 2rem;
+        text-align: right;
+        background: #1a1d23;
+        border: 2px solid #c77dff;
+        border-radius: 8px;
+        color: #e0e0e0;
+        margin-bottom: 20px;
+        font-family: 'Courier New', monospace;
+      }
+
+      .calc-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .calc-btn {
+        padding: 20px;
+        font-size: 1.2rem;
+        background: #1a1d23;
+        color: #e0e0e0;
+        border: 1px solid #3d4149;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+      }
+
+      .calc-btn:hover {
+        background: #252932;
+        border-color: #c77dff;
+        transform: translateY(-2px);
+      }
+
+      .calc-btn-number {
+        background: #252932;
+      }
+
+      .calc-btn-operator {
+        background: #3d4149;
+        color: #c77dff;
+      }
+
+      .calc-btn-function {
+        background: #2d3139;
+        color: #e0aaff;
+      }
+
+      .calc-btn-equals {
+        background: #4c0bce;
+        color: white;
+        font-weight: bold;
+      }
+
+      .calc-btn-equals:hover {
+        background: #5d1cdf;
+      }
+
+      .calc-btn-clear {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .calc-btn-clear:hover {
+        background: #c0392b;
+      }
+
+      .calc-btn-special {
+        background: rgba(199, 125, 255, 0.2);
+        color: #e0aaff;
+        border: 1px solid rgba(199, 125, 255, 0.5);
+      }
+
+      /* Feature panelek */
+      .feature-panel {
+        background: #2d3139;
+        border: 1px solid #3d4149;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 20px;
+      }
+
+      .feature-panel h4 {
+        color: #c77dff;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+      }
+
+      .feature-panel p {
+        color: #b0b0b0;
+        font-size: 0.95em;
+        margin-bottom: 20px;
+      }
+
+      /* Input csoportok */
+      .input-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .input-group label {
+        min-width: 110px;
+        color: #e0e0e0;
+        font-weight: 500;
+      }
+
+      .input-group input {
+        flex: 1;
+        min-width: 150px;
+        max-width: 100%;
+        background: #1a1d23;
+        border: 1px solid #3d4149;
+        border-radius: 8px;
+        padding: 12px 15px;
+        color: #e0e0e0;
+        font-size: 1em;
+        transition: all 0.3s;
+        box-sizing: border-box;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: #c77dff;
+        box-shadow: 0 0 0 3px rgba(199, 125, 255, 0.1);
+      }
+
+      .input-group input::placeholder {
+        color: #606060;
+      }
+
+      .input-group button {
+        min-width: 100px;
+      }
+
+      /* Quadratic solver grid */
+      .quadratic-solver {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      .quadratic-solver .input-group {
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 0;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .quadratic-solver .input-group label {
+        min-width: auto;
+        margin-bottom: 8px;
+        text-align: center;
+        font-size: 1.2em;
+        color: #c77dff;
+      }
+
+      .quadratic-solver button {
+        grid-column: span 3;
+      }
+
+      /* Result display */
+      .result-display {
+        background: rgba(199, 125, 255, 0.1);
+        border: 1px solid rgba(199, 125, 255, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        min-height: 70px;
+        color: #e0e0e0;
+        line-height: 1.8;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      .result-display:empty::before {
+        content: "Az eredmény itt jelenik meg...";
+        color: #606060;
+        font-style: italic;
+      }
+
+      .result-display.success {
+        border-color: rgba(76, 206, 11, 0.5);
+        background: rgba(76, 206, 11, 0.1);
+      }
+
+      .result-display.error {
+        border-color: rgba(206, 11, 76, 0.5);
+        background: rgba(206, 11, 76, 0.1);
+        color: #ff8899;
+      }
+
+      /* Saved variables and history lists */
+      .saved-items,
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .saved-item,
+      .history-item {
+        background: #1a1d23;
+        border: 1px solid #3d4149;
+        border-radius: 8px;
+        padding: 12px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+      }
+
+      .saved-item:hover,
+      .history-item:hover {
+        background: #252932;
+        border-color: #c77dff;
+      }
+
+      .saved-item .var-name {
+        color: #c77dff;
+        font-weight: bold;
+        margin-right: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 1.1em;
+        word-break: break-word;
+      }
+
+      .saved-item .var-value {
+        color: #e0e0e0;
+        flex: 1;
+        font-family: 'Courier New', monospace;
+        word-break: break-all;
+        min-width: 0;
+      }
+
+      .saved-item button,
+      .history-item button {
+        background: rgba(199, 125, 255, 0.3);
+        border: 1px solid rgba(199, 125, 255, 0.5);
+        color: #e0aaff;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85em;
+        transition: all 0.2s;
+        margin-left: 8px;
+      }
+
+      .saved-item button:hover,
+      .history-item button:hover {
+        background: rgba(199, 125, 255, 0.5);
+        transform: translateY(-1px);
+      }
+
+      .saved-item .delete-btn {
+        background: rgba(206, 11, 76, 0.2);
+        border-color: rgba(206, 11, 76, 0.5);
+        color: #ff5588;
+      }
+
+      .saved-item .delete-btn:hover {
+        background: rgba(206, 11, 76, 0.4);
+      }
+
+      .history-item .expression {
+        color: #b0b0b0;
+        font-family: 'Courier New', monospace;
+        flex: 1;
+        word-break: break-all;
+        min-width: 0;
+      }
+
+      .history-item .result {
+        color: #c77dff;
+        font-weight: bold;
+        margin-left: 10px;
+        font-family: 'Courier New', monospace;
+        word-break: break-all;
+      }
+
+      /* Empty states */
+      .saved-items:empty::before,
+      .history-list:empty::before {
+        content: "Még nincs mentett adat...";
+        color: #606060;
+        font-style: italic;
+        padding: 30px;
+        text-align: center;
+        display: block;
+      }
+
+      .history-list:empty::before {
+        content: "Még nincs számítási előzmény...";
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .calculator-container {
+          max-width: 100%;
+          padding: 0 15px;
+        }
+
+        .calculator {
+          padding: 20px;
+        }
+
+        .calc-display {
+          font-size: 1.5rem;
+          padding: 15px;
+        }
+
+        .calc-btn {
+          padding: 15px 10px;
+          font-size: 1em;
+        }
+
+        .quadratic-solver {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .quadratic-solver button {
+          grid-column: span 1;
+        }
+
+        .input-group {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .input-group label {
+          min-width: auto;
+          margin-bottom: 5px;
+        }
+
+        .input-group input {
+          min-width: auto;
+          width: 100%;
+        }
+
+        .input-group button {
+          width: 100%;
+        }
+
+        .feature-panel {
+          padding: 15px;
+        }
+
+        .feature-panel h4 {
+          font-size: 1.1em;
+        }
+
+        .saved-item,
+        .history-item {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .saved-item button,
+        .history-item button {
+          flex: 1;
+          min-width: 80px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .calculator {
+          padding: 12px;
+        }
+
+        .calc-display {
+          font-size: 1.3rem;
+          padding: 12px;
+        }
+
+        .calc-btn {
+          padding: 12px 8px;
+          font-size: 0.9rem;
+        }
+
+        .calc-btn-special {
+          font-size: 0.8rem;
+        }
+
+        .feature-panel {
+          padding: 12px;
+        }
+
+        .feature-panel p {
+          font-size: 0.85em;
+        }
+      }
+    </style>
+    <title>Agazati - Számológép</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons hidden-nav" id="backNavigation">
+        <a href="math/probability" class="nav-btn prev-btn">
+          <span class="nav-text">Vissza: Valószínűségszámítás</span>
+          <span class="arrow">←</span>
+        </a>
+      </div>
+
+      <h1 class="cim text-center">Tudományos Számológép</h1>
+
+      <div class="calculator-container">
+        <!-- Fő számológép -->
+        <div class="calculator">
+          <div id="historyDisplay" class="calc-history"></div>
+          <input type="text" id="display" class="calc-display" readonly>
+          
+          <div class="calc-buttons">
+            <!-- Első sor: Speciális gombok -->
+            <button onclick="appendToDisplay('(')" class="calc-btn">(</button>
+            <button onclick="appendToDisplay(')')" class="calc-btn">)</button>
+            <button onclick="clearDisplay()" class="calc-btn calc-btn-clear">C</button>
+            <button onclick="deleteLast()" class="calc-btn calc-btn-operator">⌫</button>
+
+            <!-- Második sor: Tudományos függvények -->
+            <button onclick="calculateSin()" class="calc-btn calc-btn-function">sin</button>
+            <button onclick="calculateCos()" class="calc-btn calc-btn-function">cos</button>
+            <button onclick="calculateTan()" class="calc-btn calc-btn-function">tan</button>
+            <button onclick="calculateLog()" class="calc-btn calc-btn-function">log</button>
+
+            <!-- Harmadik sor: További függvények -->
+            <button onclick="calculateSqrt()" class="calc-btn calc-btn-function">√</button>
+            <button onclick="appendToDisplay('**')" class="calc-btn calc-btn-function">x<sup>y</sup></button>
+            <button onclick="appendToDisplay('Math.PI')" class="calc-btn calc-btn-function">π</button>
+            <button onclick="appendToDisplay('Math.E')" class="calc-btn calc-btn-function">e</button>
+
+            <!-- Számok és műveletek -->
+            <button onclick="appendToDisplay('7')" class="calc-btn calc-btn-number">7</button>
+            <button onclick="appendToDisplay('8')" class="calc-btn calc-btn-number">8</button>
+            <button onclick="appendToDisplay('9')" class="calc-btn calc-btn-number">9</button>
+            <button onclick="appendToDisplay('/')" class="calc-btn calc-btn-operator">÷</button>
+
+            <button onclick="appendToDisplay('4')" class="calc-btn calc-btn-number">4</button>
+            <button onclick="appendToDisplay('5')" class="calc-btn calc-btn-number">5</button>
+            <button onclick="appendToDisplay('6')" class="calc-btn calc-btn-number">6</button>
+            <button onclick="appendToDisplay('*')" class="calc-btn calc-btn-operator">×</button>
+
+            <button onclick="appendToDisplay('1')" class="calc-btn calc-btn-number">1</button>
+            <button onclick="appendToDisplay('2')" class="calc-btn calc-btn-number">2</button>
+            <button onclick="appendToDisplay('3')" class="calc-btn calc-btn-number">3</button>
+            <button onclick="appendToDisplay('-')" class="calc-btn calc-btn-operator">−</button>
+
+            <button onclick="appendToDisplay('0')" class="calc-btn calc-btn-number">0</button>
+            <button onclick="appendToDisplay('.')" class="calc-btn calc-btn-number">.</button>
+            <button onclick="calculatePercent()" class="calc-btn calc-btn-function">%</button>
+            <button onclick="appendToDisplay('+')" class="calc-btn calc-btn-operator">+</button>
+
+            <!-- Alsó sor: Egyenlő és speciális funkciók -->
+            <button onclick="calculate()" class="calc-btn calc-btn-equals" style="grid-column: span 2;">=</button>
+            <button onclick="toggleHistoryPanel()" class="calc-btn calc-btn-special">📜 History</button>
+            <button onclick="toggleVariablePanel()" class="calc-btn calc-btn-special">📊 Változók</button>
+          </div>
+        </div>
+
+        <!-- Változó mentés panel -->
+        <div id="variablePanel" class="feature-panel" style="display: none;">
+          <h4>💾 Változó mentése</h4>
+          <p>Mentsd el az aktuális eredményt egy változóba, amit később használhatsz kifejezésekben.</p>
+          <div class="input-group">
+            <label for="varNameInput">Változó neve:</label>
+            <input type="text" id="varNameInput" placeholder="pl: x, a, szam" pattern="[a-zA-Z]\w*">
+            <button onclick="saveVariable()" class="calc-btn calc-btn-special">💾 Mentés</button>
+          </div>
+          <div id="savedVariables" class="saved-items"></div>
+        </div>
+
+        <!-- History panel -->
+        <div id="historyPanel" class="feature-panel" style="display: none;">
+          <h4>📜 Számítási előzmények</h4>
+          <p>Az utolsó 10 számításod megtalálod itt. Kattints a "Használ" gombra az eredmény visszatöltéséhez.</p>
+          <div id="historyList" class="history-list"></div>
+          <button onclick="clearHistory()" class="calc-btn calc-btn-clear" style="width: 100%; margin-top: 15px;">🗑️ Előzmények törlése</button>
+        </div>
+
+        <!-- Másodfokú egyenlet megoldó -->
+        <div class="feature-panel">
+          <h4>🔢 Másodfokú egyenlet megoldó</h4>
+          <p>Add meg az ax² + bx + c = 0 egyenlet együtthatóit:</p>
+          <div class="quadratic-solver">
+            <div class="input-group">
+              <label for="inputA">a =</label>
+              <input type="number" id="inputA" placeholder="pl: 1" step="any">
+            </div>
+            <div class="input-group">
+              <label for="inputB">b =</label>
+              <input type="number" id="inputB" placeholder="pl: -5" step="any">
+            </div>
+            <div class="input-group">
+              <label for="inputC">c =</label>
+              <input type="number" id="inputC" placeholder="pl: 6" step="any">
+            </div>
+            <button onclick="solveQuadratic()" class="calc-btn calc-btn-special">🎯 Megoldás</button>
+          </div>
+          <div id="quadraticResult" class="result-display"></div>
+        </div>
+
+        <!-- Használati útmutató -->
+        <div class="feature-panel">
+          <h4>📖 Használati útmutató</h4>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin-bottom: 12px; color: #b0b0b0;">
+              <strong style="color: #c77dff;">⚡ Alapműveletek:</strong> Használd a számgombokat és műveleteket (+, −, ×, ÷)
+            </li>
+            <li style="margin-bottom: 12px; color: #b0b0b0;">
+              <strong style="color: #c77dff;">📐 Hatványozás:</strong> Írd be: 3 ** 2, majd nyomd meg az = gombot
+            </li>
+            <li style="margin-bottom: 12px; color: #b0b0b0;">
+              <strong style="color: #c77dff;">√ Gyökvonás:</strong> Írd be a számot (pl. 16), aztán nyomd meg a √ gombot
+            </li>
+            <li style="margin-bottom: 12px; color: #b0b0b0;">
+              <strong style="color: #c77dff;">🔢 Trigonometria:</strong> Írd be a szöget fokban (pl. 30), aztán a sin/cos/tan gombot
+            </li>
+            <li style="margin-bottom: 12px; color: #b0b0b0;">
+              <strong style="color: #c77dff;">📊 Változók:</strong> Kattints a "📊 Változók" gombra, add meg a nevet és mentsd el
+            </li>
+            <li style="margin-bottom: 12px; color: #b0b0b0;">
+              <strong style="color: #c77dff;">🔄 Változók használata:</strong> Egyszerűen írd be őket (pl: 2*x+5), majd =
+            </li>
+            <li style="margin-bottom: 12px; color: #b0b0b0;">
+              <strong style="color: #c77dff;">📜 Előzmények:</strong> A "📜 History" gomb megmutatja az előző számításokat
+            </li>
+            <li style="margin-bottom: 12px; color: #b0b0b0;">
+              <strong style="color: #c77dff;">🧮 Másodfokú egyenlet:</strong> Írd be az a, b, c értékeket a megoldóban
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+    <footer id="footer"></footer>
+
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+    <script>
+      let history = [];
+      let variables = {};
+
+      // Navigáció kezelése
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromNext = urlParams.get('from') === 'next';
+      const fromProbability = document.referrer.includes('math/probability');
+      
+      if (fromNext || fromProbability) {
+        document.getElementById('backNavigation').classList.remove('hidden-nav');
+      }
+
+      function appendToDisplay(value) {
+        const display = document.getElementById('display');
+        if (display.value === '0' || display.value === 'Hiba') {
+          display.value = value;
+        } else {
+          display.value += value;
+        }
+      }
+
+      function clearDisplay() {
+        document.getElementById('display').value = '0';
+      }
+
+      function deleteLast() {
+        let display = document.getElementById('display');
+        display.value = display.value.slice(0, -1) || '0';
+      }
+
+      function calculate() {
+        let display = document.getElementById('display');
+        let expression = display.value;
+
+        try {
+          // Változók helyettesítése
+          for (let varName in variables) {
+            const regex = new RegExp('\\b' + varName + '\\b', 'g');
+            expression = expression.replace(regex, variables[varName]);
+          }
+
+          let result = eval(expression);
+          result = Math.round(result * 1000000) / 1000000; // 6 tizedesjegy pontosság
+          
+          // History mentése
+          history.push({
+            expression: display.value,
+            result: result
+          });
+          
+          // Csak az utolsó 10-et tartjuk meg
+          if (history.length > 10) {
+            history.shift();
+          }
+          
+          display.value = result;
+          updateHistoryDisplay();
+          updateHistoryList();
+        } catch (error) {
+          display.value = 'Hiba';
+        }
+      }
+
+      function calculateSin() {
+        let display = document.getElementById('display');
+        let value = parseFloat(display.value);
+        if (!isNaN(value)) {
+          display.value = Math.sin(value * Math.PI / 180);
+        }
+      }
+
+      function calculateCos() {
+        let display = document.getElementById('display');
+        let value = parseFloat(display.value);
+        if (!isNaN(value)) {
+          display.value = Math.cos(value * Math.PI / 180);
+        }
+      }
+
+      function calculateTan() {
+        let display = document.getElementById('display');
+        let value = parseFloat(display.value);
+        if (!isNaN(value)) {
+          display.value = Math.tan(value * Math.PI / 180);
+        }
+      }
+
+      function calculateLog() {
+        let display = document.getElementById('display');
+        let value = parseFloat(display.value);
+        if (!isNaN(value) && value > 0) {
+          display.value = Math.log10(value);
+        }
+      }
+
+      function calculateSqrt() {
+        let display = document.getElementById('display');
+        let value = parseFloat(display.value);
+        if (!isNaN(value) && value >= 0) {
+          display.value = Math.sqrt(value);
+        }
+      }
+
+      function calculatePercent() {
+        let display = document.getElementById('display');
+        display.value += '/100';
+        calculate();
+      }
+
+      function updateHistoryDisplay() {
+        const historyDiv = document.getElementById('historyDisplay');
+        if (history.length === 0) {
+          historyDiv.innerHTML = '';
+          return;
+        }
+        
+        const lastThree = history.slice(-3);
+        historyDiv.innerHTML = lastThree.map(h => 
+          `<div style="padding: 3px 0;">${h.expression} = ${h.result}</div>`
+        ).join('');
+      }
+
+      function toggleHistoryPanel() {
+        const panel = document.getElementById('historyPanel');
+        const isVisible = panel.style.display !== 'none';
+        
+        panel.style.display = isVisible ? 'none' : 'block';
+        
+        if (!isVisible) {
+          document.getElementById('variablePanel').style.display = 'none';
+          updateHistoryList();
+        }
+      }
+
+      function updateHistoryList() {
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = '';
+        
+        if (history.length === 0) return;
+        
+        history.slice().reverse().forEach((h, i) => {
+          const item = document.createElement('div');
+          item.className = 'history-item';
+          item.innerHTML = `
+            <span class="expression">${h.expression}</span>
+            <span class="result">= ${h.result}</span>
+            <button onclick="useHistoryResult('${h.result}')">Használ</button>
+          `;
+          historyList.appendChild(item);
+        });
+      }
+
+      function useHistoryResult(result) {
+        document.getElementById('display').value = result;
+        document.getElementById('historyPanel').style.display = 'none';
+      }
+
+      function clearHistory() {
+        if (history.length === 0) {
+          showResultMessage('quadraticResult', '⚠️ Nincs mit törölni!', 'error');
+          return;
+        }
+        
+        if (confirm('Biztosan törlöd az összes előzményt?')) {
+          history = [];
+          updateHistoryDisplay();
+          updateHistoryList();
+          showResultMessage('quadraticResult', '✓ Előzmények törölve!', 'success');
+        }
+      }
+
+      function toggleVariablePanel() {
+        const panel = document.getElementById('variablePanel');
+        const isVisible = panel.style.display !== 'none';
+        
+        panel.style.display = isVisible ? 'none' : 'block';
+        
+        if (!isVisible) {
+          document.getElementById('historyPanel').style.display = 'none';
+          updateVariablesList();
+        }
+      }
+
+      function saveVariable() {
+        const display = document.getElementById('display');
+        const value = display.value;
+        const varNameInput = document.getElementById('varNameInput');
+        const varName = varNameInput.value.trim();
+        
+        if (!value || value === 'Hiba' || value === '0') {
+          showResultMessage('quadraticResult', '❌ Nincs érvényes érték a mentéshez!', 'error');
+          return;
+        }
+        
+        if (!varName) {
+          showResultMessage('quadraticResult', '❌ Add meg a változó nevét!', 'error');
+          varNameInput.focus();
+          return;
+        }
+        
+        // Ellenőrizzük, hogy érvényes változónév-e
+        if (!/^[a-zA-Z]\w*$/.test(varName)) {
+          showResultMessage('quadraticResult', '❌ Érvénytelen név! A névnek betűvel kell kezdődnie.', 'error');
+          varNameInput.focus();
+          return;
+        }
+        
+        variables[varName] = value;
+        varNameInput.value = '';
+        updateVariablesList();
+        showResultMessage('quadraticResult', `✓ Változó mentve: ${varName} = ${value}`, 'success');
+      }
+
+      function updateVariablesList() {
+        const savedItems = document.getElementById('savedVariables');
+        savedItems.innerHTML = '';
+        
+        for (let varName in variables) {
+          const item = document.createElement('div');
+          item.className = 'saved-item';
+          item.innerHTML = `
+            <span class="var-name">${varName}</span>
+            <span class="var-value">= ${variables[varName]}</span>
+            <button onclick="useVariable('${varName}')">Használ</button>
+            <button class="delete-btn" onclick="deleteVariable('${varName}')">Törlés</button>
+          `;
+          savedItems.appendChild(item);
+        }
+      }
+
+      function useVariable(varName) {
+        const display = document.getElementById('display');
+        if (display.value === '0' || display.value === 'Hiba') {
+          display.value = varName;
+        } else {
+          display.value += varName;
+        }
+      }
+
+      function deleteVariable(varName) {
+        if (confirm(`Biztosan törlöd a "${varName}" változót?`)) {
+          delete variables[varName];
+          updateVariablesList();
+          showResultMessage('quadraticResult', `✓ "${varName}" változó törölve`, 'success');
+        }
+      }
+
+      function solveQuadratic() {
+        const a = parseFloat(document.getElementById('inputA').value);
+        const b = parseFloat(document.getElementById('inputB').value);
+        const c = parseFloat(document.getElementById('inputC').value);
+        
+        if (isNaN(a) || isNaN(b) || isNaN(c)) {
+          showResultMessage('quadraticResult', '❌ Kérlek, töltsd ki mind a három mezőt érvényes számokkal!', 'error');
+          return;
+        }
+        
+        if (a === 0) {
+          showResultMessage('quadraticResult', '❌ Az "a" együttható nem lehet 0! (Ez nem másodfokú egyenlet)', 'error');
+          return;
+        }
+        
+        // Diszkrimináns számítása
+        const D = b * b - 4 * a * c;
+        
+        let result = `<strong>📝 Egyenlet:</strong> ${a}x² + ${b}x + ${c} = 0<br><br>`;
+        result += `<strong>🔍 Diszkrimináns (D):</strong> b² - 4ac = ${D.toFixed(6)}<br><br>`;
+        
+        if (D > 0) {
+          const x1 = (-b + Math.sqrt(D)) / (2 * a);
+          const x2 = (-b - Math.sqrt(D)) / (2 * a);
+          result += `<strong>✅ Két különböző valós gyök:</strong><br>`;
+          result += `x₁ = ${x1.toFixed(6)}<br>`;
+          result += `x₂ = ${x2.toFixed(6)}`;
+        } else if (D === 0) {
+          const x = -b / (2 * a);
+          result += `<strong>✅ Egy valós gyök (kétszeres gyök):</strong><br>`;
+          result += `x = ${x.toFixed(6)}`;
+        } else {
+          const realPart = -b / (2 * a);
+          const imagPart = Math.sqrt(-D) / (2 * a);
+          result += `<strong>✅ Két komplex konjugált gyök:</strong><br>`;
+          result += `x₁ = ${realPart.toFixed(6)} + ${imagPart.toFixed(6)}i<br>`;
+          result += `x₂ = ${realPart.toFixed(6)} - ${imagPart.toFixed(6)}i`;
+        }
+        
+        showResultMessage('quadraticResult', result, 'success');
+      }
+
+      function showResultMessage(elementId, message, type) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = message;
+        element.className = 'result-display ' + type;
+        
+        setTimeout(() => {
+          element.classList.remove(type);
+        }, 5000);
+      }
+
+      // Enter billentyű támogatása
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('varNameInput').addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') saveVariable();
+        });
+        
+        ['inputA', 'inputB', 'inputC'].forEach(id => {
+          document.getElementById(id).addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') solveQuadratic();
+          });
+        });
+
+        // Display alapértelmezett érték
+        document.getElementById('display').value = '0';
+      });
+    </script>
+  </body>
+</html>

@@ -16,50 +16,44 @@ div.row{
 }
 
 .nav-btn {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 14px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white !important;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background-color: #2d3139;
+  color: #e0e0e0;
   text-decoration: none;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #3d4149;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+  min-width: 200px;
+  width: 300px;
 }
 
 .nav-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: white !important;
+  background-color: #3d4149;
+  color: #fff;
+  border-color: #4c0bce;
+  transform: translateY(-2px);
   text-decoration: none;
 }
 
-.nav-btn:active {
-  transform: translateY(-1px);
-}
-
 .nav-btn .arrow {
-  font-size: 1.3em;
+  font-size: 1.2em;
   font-weight: bold;
-  line-height: 1;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 .nav-btn .nav-text {
-  font-size: 1rem;
-  line-height: 1.2;
-}
-
-.nav-btn.prev-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.nav-btn.prev-btn:hover {
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+  font-size: 0.95em;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 /* ==================== KÖZÖS RUNNER STÍLUSOK ==================== */

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Algebra alapjai - egyenletek, változók, kifejezések" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="assets/images/agazati.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Algebra</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="math/" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Matematika alapok</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="math/functions" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Függvények</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Algebra</h1>
+      
+      <section>
+        <div>
+          <h3>Mi az az algebra?</h3>
+          <p>
+            Az algebra a matematika azon ága, amely betűket (változókat) használ az ismeretlen számok 
+            helyettesítésére. Segítségével általános összefüggéseket és mintákat írhatunk le, valamint 
+            egyenleteket oldhatunk meg.
+          </p>
+        </div>
+
+        <div>
+          <h3>Változók</h3>
+          <p>
+            A változók betűk (általában x, y, z, a, b, c), amelyek számokat reprezentálnak. 
+            A változók értéke változhat a feladattól függően.
+          </p>
+          <p><strong>Példák:</strong></p>
+          <ul>
+            <li>Ha x = 5, akkor 2x = 10</li>
+            <li>Ha y = 3, akkor y + 7 = 10</li>
+            <li>Ha a = 4 és b = 6, akkor a + b = 10</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Algebrai kifejezések</h3>
+          <p>Az algebrai kifejezések számok, változók és műveletek kombinációi:</p>
+          <ul>
+            <li><strong>Egytag (monomium):</strong> 3x, 5y², -7ab</li>
+            <li><strong>Kéttag (binom):</strong> x + 5, 2a - 3b</li>
+            <li><strong>Háromtag (trinom):</strong> x² + 3x + 2</li>
+            <li><strong>Többtag (polinom):</strong> 2x³ + 5x² - 3x + 7</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Egyszerű egyenletek megoldása</h3>
+          <p>
+            Az egyenlet két kifejezés egyenlőségét jelenti. Célja az ismeretlen érték megtalálása.
+          </p>
+          <p><strong>Példa 1:</strong> x + 5 = 12</p>
+          <ul>
+            <li>Vonjunk ki 5-öt mindkét oldalból: x + 5 - 5 = 12 - 5</li>
+            <li>Eredmény: x = 7</li>
+          </ul>
+          <p><strong>Példa 2:</strong> 3x = 15</p>
+          <ul>
+            <li>Osszunk el 3-mal mindkét oldalt: 3x / 3 = 15 / 3</li>
+            <li>Eredmény: x = 5</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Összetettebb egyenletek</h3>
+          <p><strong>Példa 3:</strong> 2x + 7 = 19</p>
+          <ul>
+            <li>Vonjunk ki 7-et mindkét oldalból: 2x = 12</li>
+            <li>Osszunk el 2-vel: x = 6</li>
+          </ul>
+          <p><strong>Példa 4:</strong> 5(x - 3) = 20</p>
+          <ul>
+            <li>Bontsuk fel a zárójelet: 5x - 15 = 20</li>
+            <li>Adjunk hozzá 15-öt: 5x = 35</li>
+            <li>Osszunk el 5-tel: x = 7</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Nevezetes azonosságok</h3>
+          <p>Ezek az azonosságok gyorsítják a számításokat:</p>
+          <ul>
+            <li><strong>(a + b)² = a² + 2ab + b²</strong> (Első nevezetes azonosság)</li>
+            <li><strong>(a - b)² = a² - 2ab + b²</strong> (Második nevezetes azonosság)</li>
+            <li><strong>(a + b)(a - b) = a² - b²</strong> (Harmadik nevezetes azonosság)</li>
+          </ul>
+          <p><strong>Példa:</strong> (x + 3)² = x² + 6x + 9</p>
+        </div>
+
+        <div>
+          <h3>Egyenletrendszerek</h3>
+          <p>Több egyenlet egyidejű megoldása, általában több ismeretlennel:</p>
+          <p><strong>Példa:</strong></p>
+          <ul>
+            <li>x + y = 10</li>
+            <li>x - y = 2</li>
+          </ul>
+          <p><strong>Megoldás összeadással:</strong></p>
+          <ul>
+            <li>Adjuk össze a két egyenletet: 2x = 12, tehát x = 6</li>
+            <li>Helyettesítsük vissza: 6 + y = 10, tehát y = 4</li>
+            <li>Ellenőrzés: 6 + 4 = 10 ✓ és 6 - 4 = 2 ✓</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Algebra a programozásban</h3>
+          <p>Az algebra alapvető szerepet játszik a programozásban:</p>
+          <ul>
+            <li><strong>Változók:</strong> Ugyanúgy működnek, mint az algebrában (x = 5, y = x + 3)</li>
+            <li><strong>Kifejezések:</strong> Számítások végzése (result = 2 * x + 7)</li>
+            <li><strong>Feltételek:</strong> if (x > 10) { ... }</li>
+            <li><strong>Ciklusok:</strong> for (i = 0; i < 10; i++) { ... }</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="math/" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Matematika alapok</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="nav-text">Vissza a tetejére</span>
+          <span class="arrow">↑</span>
+        </a>
+        <a href="math/functions" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Függvények</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

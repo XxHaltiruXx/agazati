@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Függvények - lineáris, kvadratikus, exponenciális" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="assets/images/agazati.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Függvények</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="math/algebra" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Algebra</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="math/geometry" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Geometria</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Függvények</h1>
+      
+      <section>
+        <div>
+          <h3>Mi az a függvény?</h3>
+          <p>
+            A függvény egy szabály, amely minden bemeneti értékhez (x) pontosan egy kimeneti értéket (y) rendel.
+            Jelölése: f(x) = ... vagy y = ...
+          </p>
+          <p><strong>Példa:</strong> f(x) = 2x + 3</p>
+          <ul>
+            <li>Ha x = 1, akkor f(1) = 2·1 + 3 = 5</li>
+            <li>Ha x = 5, akkor f(5) = 2·5 + 3 = 13</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Lineáris függvények</h3>
+          <p>
+            A lineáris függvény egy egyenes vonalat ír le a koordináta-rendszerben.
+            Általános alakja: <strong>y = mx + b</strong>
+          </p>
+          <ul>
+            <li><strong>m:</strong> meredekség (slope) - megmutatja, mennyire meredek az egyenes</li>
+            <li><strong>b:</strong> y-tengely metszés (intercept) - ahol az egyenes metszi az y-tengelyt</li>
+          </ul>
+          <p><strong>Példák:</strong></p>
+          <ul>
+            <li>y = 2x + 1 → meredekség: 2, metszéspont: 1</li>
+            <li>y = -x + 5 → meredekség: -1, metszéspont: 5</li>
+            <li>y = 3x → meredekség: 3, metszéspont: 0 (origón keresztül megy)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Kvadratikus függvények</h3>
+          <p>
+            A kvadratikus függvény egy parabolát ír le. Általános alakja: <strong>y = ax² + bx + c</strong>
+          </p>
+          <ul>
+            <li><strong>a > 0:</strong> felfelé nyíló parabola</li>
+            <li><strong>a < 0:</strong> lefelé nyíló parabola</li>
+            <li><strong>c:</strong> y-tengely metszéspont</li>
+          </ul>
+          <p><strong>Példák:</strong></p>
+          <ul>
+            <li>y = x² → alapparabola (felfelé nyílik)</li>
+            <li>y = -x² + 4 → lefelé nyíló parabola, csúcspontja (0, 4)</li>
+            <li>y = 2x² - 4x + 1 → felfelé nyíló, eltolt parabola</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Gyökök és zérushelyek</h3>
+          <p>
+            A függvény zérushelye az a pont, ahol f(x) = 0, vagyis ahol a görbe metszi az x-tengelyt.
+          </p>
+          <p><strong>Példa:</strong> f(x) = x² - 4</p>
+          <ul>
+            <li>Keressük, hol f(x) = 0: x² - 4 = 0</li>
+            <li>x² = 4</li>
+            <li>x = 2 vagy x = -2 (két zérushely)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Exponenciális függvények</h3>
+          <p>
+            Exponenciális függvényben a változó a kitevőben szerepel. Alakja: <strong>y = a·b<sup>x</sup></strong>
+          </p>
+          <ul>
+            <li><strong>b > 1:</strong> növekvő függvény (exponenciális növekedés)</li>
+            <li><strong>0 < b < 1:</strong> csökkenő függvény (exponenciális csökkenés)</li>
+          </ul>
+          <p><strong>Példák:</strong></p>
+          <ul>
+            <li>y = 2<sup>x</sup> → Minden lépésben megduplázódik (1, 2, 4, 8, 16, ...)</li>
+            <li>y = (1/2)<sup>x</sup> → Minden lépésben felezödik (1, 0.5, 0.25, 0.125, ...)</li>
+            <li>y = 100·1.05<sup>x</sup> → 5%-os éves növekedés (pl. kamat)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Logaritmikus függvények</h3>
+          <p>
+            A logaritmikus függvény az exponenciális függvény inverze. Alakja: <strong>y = log<sub>a</sub>(x)</strong>
+          </p>
+          <p><strong>Példák:</strong></p>
+          <ul>
+            <li>log<sub>10</sub>(100) = 2, mert 10² = 100</li>
+            <li>log<sub>2</sub>(8) = 3, mert 2³ = 8</li>
+            <li>ln(x) = természetes logaritmus (alap: e ≈ 2.718)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Függvények a programozásban</h3>
+          <p>A programozásban a függvények kódblokkok, amelyek bemenetet kapnak és kimenetet adnak:</p>
+          <ul>
+            <li><strong>JavaScript példa:</strong></li>
+          </ul>
+          <div class="code-container">
+            <pre><code>function linear(x) {
+  return 2 * x + 3;
+}
+
+function quadratic(x) {
+  return x * x - 4 * x + 3;
+}
+
+console.log(linear(5));      // 13
+console.log(quadratic(2));   // -1</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Függvények alkalmazásai</h3>
+          <ul>
+            <li><strong>Fizika:</strong> Mozgás, sebesség, gyorsulás számítása</li>
+            <li><strong>Gazdaság:</strong> Ár-keresleti függvények, profitszámítás</li>
+            <li><strong>Biológia:</strong> Populációnövekedés modellezése</li>
+            <li><strong>Informatika:</strong> Algoritmusok komplexitása, adatmodellezés</li>
+            <li><strong>Mérnöki:</strong> Pályagörbék, erő-elmozdulás függvények</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="math/algebra" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Algebra</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="nav-text">Vissza a tetejére</span>
+          <span class="arrow">↑</span>
+        </a>
+        <a href="math/geometry" class="nav-btn next-btn">
+          <span class="nav-text">Következő: Geometria</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>

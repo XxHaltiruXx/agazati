@@ -357,8 +357,8 @@
           { title: "HTML űrlapok", link: "html/forms/" },
           { title: "HTML táblázatok", link: "html/tables/" },
           { title: "HTML multimédia", link: "html/media/" },
-          { title: "HTML Futtató", link: "html/run/" },
-          { title: "HTML Bővítmények", link: "html/extension/" }
+          { title: "HTML Bővítmények", link: "html/extension/" },
+          { title: "HTML Futtató", link: "html/run/" }
         ]
       },
       "CSS": {
@@ -406,7 +406,8 @@
           { title: "Algebra", link: "math/algebra/" },
           { title: "Függvények", link: "math/functions/" },
           { title: "Geometria", link: "math/geometry/" },
-          { title: "Valószínűségszámítás", link: "math/probability/" }
+          { title: "Valószínűségszámítás", link: "math/probability/" },
+          { title: "Számológép", link: "math/calculator/" }
         ]
       }
     };

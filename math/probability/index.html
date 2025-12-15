@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Valószínűségszámítás - események, kombinatorika" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="../../" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="assets/images/agazati.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/nav.css" />
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+    <link rel="stylesheet" href="assets/css/footer.css" />
+    <link rel="stylesheet" href="assets/css/subsite.css" />
+    <title>Agazati - Valószínűségszámítás</title>
+  </head>
+  <body>
+    <div id="mySidenav" class="sidenav"></div>
+    <main>
+      <div class="navigation-buttons">
+        <a href="math/geometry" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Geometria</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="math/calculator" class="nav-btn next-btn">
+          <span class="nav-text">Számológép</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      
+      <h1 class="cim text-center">Valószínűségszámítás</h1>
+      
+      <section>
+        <div>
+          <h3>Mi az a valószínűség?</h3>
+          <p>
+            A valószínűség azt méri, hogy egy esemény mennyire várható, hogy bekövetkezzen. 
+            Értéke 0 és 1 között van (vagy 0% és 100% között).
+          </p>
+          <ul>
+            <li><strong>0 (0%):</strong> lehetetlen esemény</li>
+            <li><strong>0.5 (50%):</strong> egyenlő esély</li>
+            <li><strong>1 (100%):</strong> biztos esemény</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Valószínűség számítása</h3>
+          <p><strong>P(A) = kedvező esetek száma / összes lehetséges eset száma</strong></p>
+          <p><strong>Példa 1:</strong> Mekkora a valószínűsége, hogy egy dobókockával 6-ost dobunk?</p>
+          <ul>
+            <li>Kedvező esetek: 1 (csak egy 6-os van)</li>
+            <li>Összes eset: 6 (a kockán 1-6)</li>
+            <li>P(6) = 1/6 ≈ 0.167 ≈ 16.7%</li>
+          </ul>
+          <p><strong>Példa 2:</strong> Mekkora a valószínűsége, hogy páros számot dobunk?</p>
+          <ul>
+            <li>Kedvező esetek: 3 (2, 4, 6)</li>
+            <li>Összes eset: 6</li>
+            <li>P(páros) = 3/6 = 1/2 = 50%</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Kártyák valószínűsége</h3>
+          <p>Egy 52 lapos francia kártyában:</p>
+          <ul>
+            <li>4 szín (kör, káró, treff, pikk)</li>
+            <li>Minden színből 13 lap (ász, 2-10, bubi, dáma, király)</li>
+          </ul>
+          <p><strong>Példák:</strong></p>
+          <ul>
+            <li>P(ász) = 4/52 = 1/13 ≈ 7.7%</li>
+            <li>P(piros lap) = 26/52 = 1/2 = 50% (kör vagy káró)</li>
+            <li>P(király) = 4/52 = 1/13 ≈ 7.7%</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Események összeadása (VAGY)</h3>
+          <p>Ha két esemény nem történhet meg egyszerre (kizáró események):</p>
+          <p><strong>P(A vagy B) = P(A) + P(B)</strong></p>
+          <p><strong>Példa:</strong> Mekkora a valószínűsége, hogy 1-est vagy 2-est dobunk?</p>
+          <ul>
+            <li>P(1) = 1/6</li>
+            <li>P(2) = 1/6</li>
+            <li>P(1 vagy 2) = 1/6 + 1/6 = 2/6 = 1/3 ≈ 33.3%</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Független események szorzása (ÉS)</h3>
+          <p>Ha két esemény független egymástól:</p>
+          <p><strong>P(A és B) = P(A) × P(B)</strong></p>
+          <p><strong>Példa:</strong> Mekkora a valószínűsége, hogy két dobással mindkétszer 6-ost dobunk?</p>
+          <ul>
+            <li>P(első 6) = 1/6</li>
+            <li>P(második 6) = 1/6</li>
+            <li>P(mindkettő 6) = 1/6 × 1/6 = 1/36 ≈ 2.8%</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Kombinatorika - Permutáció</h3>
+          <p>
+            Permutáció: n elem összes lehetséges sorrendje. Jele: n! (n faktoriális)
+          </p>
+          <p><strong>n! = n × (n-1) × (n-2) × ... × 2 × 1</strong></p>
+          <p><strong>Példák:</strong></p>
+          <ul>
+            <li>3! = 3 × 2 × 1 = 6</li>
+            <li>4! = 4 × 3 × 2 × 1 = 24</li>
+            <li>5! = 5 × 4 × 3 × 2 × 1 = 120</li>
+          </ul>
+          <p><strong>Alkalmazás:</strong> 3 ember hányféleképpen állhat sorba? 3! = 6 féleképpen</p>
+        </div>
+
+        <div>
+          <h3>Kombinatorika - Variáció</h3>
+          <p>
+            Variáció: n elemből k elem kiválasztása, ahol a sorrend számít.
+          </p>
+          <p><strong>V(n,k) = n! / (n-k)!</strong></p>
+          <p><strong>Példa:</strong> 5 emberből 3-at kiválasztunk elnöknek, alelnöknek és titkárnak.</p>
+          <ul>
+            <li>V(5,3) = 5! / (5-3)! = 120 / 2 = 60 féleképpen</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Kombinatorika - Kombináció</h3>
+          <p>
+            Kombináció: n elemből k elem kiválasztása, ahol a sorrend NEM számít.
+          </p>
+          <p><strong>C(n,k) = n! / (k! × (n-k)!)</strong></p>
+          <p><strong>Példa:</strong> 10 emberből 3-at választunk ki egy csapatba (sorrend nem számít).</p>
+          <ul>
+            <li>C(10,3) = 10! / (3! × 7!) = 120 féleképpen</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Valószínűség a programozásban</h3>
+          <p>A programozásban gyakran használunk véletlen eseményeket:</p>
+          <div class="code-container">
+            <pre><code>// Kockadobás szimulálása
+function rollDice() {
+  return Math.floor(Math.random() * 6) + 1;
+}
+
+// Esemény valószínűsége (kockadobás 1000x)
+let sixes = 0;
+for (let i = 0; i < 1000; i++) {
+  if (rollDice() === 6) sixes++;
+}
+console.log("6-os esélye:", sixes / 1000);
+
+// Faktoriális számítása
+function factorial(n) {
+  if (n === 0 || n === 1) return 1;
+  return n * factorial(n - 1);
+}
+
+console.log(factorial(5)); // 120</code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Gyakorlati alkalmazások</h3>
+          <ul>
+            <li><strong>Játékfejlesztés:</strong> Véletlen események, loot dobás, kritikus találat esélye</li>
+            <li><strong>Adatelemzés:</strong> Statisztikai modellek, predikciók</li>
+            <li><strong>Biztonság:</strong> Kriptográfia, véletlenszám-generálás</li>
+            <li><strong>Mesterséges intelligencia:</strong> Gépi tanulás, valószínűségi modellek</li>
+            <li><strong>Pénzügy:</strong> Kockázatelemzés, befektetési döntések</li>
+          </ul>
+        </div>
+      </section>
+      
+      <div class="navigation-buttons bottom">
+        <a href="math/geometry" class="nav-btn prev-btn">
+          <span class="nav-text">Előző: Geometria</span>
+          <span class="arrow">←</span>
+        </a>
+        <a href="#" class="nav-btn top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span class="nav-text">Vissza a tetejére</span>
+          <span class="arrow">↑</span>
+        </a>
+        <a href="math/calculator" class="nav-btn next-btn">
+          <span class="nav-text">Számológép</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </main>
+    <script src="assets/js/nav.js"></script>
+    <script src="assets/js/footer.js"></script>
+  </body>
+</html>
