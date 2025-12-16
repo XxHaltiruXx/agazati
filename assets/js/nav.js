@@ -112,7 +112,7 @@
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 99999999999;
 }
 #pwModal[aria-hidden="false"] { display:flex; }
 #pwBox {
