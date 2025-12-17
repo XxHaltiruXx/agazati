@@ -196,11 +196,11 @@
 /* képek a megadott asset útvonalról (user kérésére) - csak sidebar modal */
 #pwBox .toggle-password.show,
 #pwModal .toggle-password.show {
-  background-image: url("assets/images/hide.png") !important;
+  background-image: url("assets/images/hide.webp") !important;
 }
 #pwBox .toggle-password:not(.show),
 #pwModal .toggle-password:not(.show) {
-  background-image: url("assets/images/view.png") !important;
+  background-image: url("assets/images/view.webp") !important;
 }
 
 /* mobil finomítás */
@@ -272,7 +272,9 @@
         <div class="container-fluid">
           <div class="navbar-collapse">
             <div class="navbar-nav">
-              <span style="font-size: 30px; cursor: pointer" onclick="toggleNav()" class="sidebargomb">&#9776;</span>
+              <span onclick="toggleNav()" class="sidebargomb">
+                <img src="assets/images/hamburger.webp" alt="Menu">
+              </span>
               <a class="nav-link" href="">főoldal</a>
               <a class="nav-link" href="html/alapok">html</a>
               <a class="nav-link" href="css/alapok">css</a>

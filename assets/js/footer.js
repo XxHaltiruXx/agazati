@@ -201,7 +201,7 @@ async function performCommitCheck() {
             </div>
             <div>
                 <a href="mailto:agazati.info@gmail.com" target="_blank" rel="noopener">
-                    <img id="mail" data-filename="mail.png" src="${imagePath}mail.png" alt="Email">
+                    <img id="mail" data-filename="mail.webp" src="${imagePath}mail.webp" alt="Email">
                 </a>
             </div>
         </div>

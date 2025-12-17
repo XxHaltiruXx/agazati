@@ -94,6 +94,16 @@ div.navbar-nav {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.sidebargomb img {
+  width: 32.5px;
+  height: 32.5px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
 }
 
 .sidebargomb:hover {
