@@ -404,7 +404,7 @@
       "Matematika": {
         icon: "assets/images/sidemath.webp",
         items: [
-          { title: "Matematika alapok", link: "math/" },
+          { title: "Matematika alapok", link: "math/alapok" },
           { title: "Algebra", link: "math/algebra/" },
           { title: "Függvények", link: "math/functions/" },
           { title: "Geometria", link: "math/geometry/" },
