@@ -451,9 +451,26 @@
   
   // Modal megnyitása a Supabase Auth modal használatával
   window.openLoginModal = async function() {
-    // Ha még nincs auth modal HTML betöltve, várjunk
-    const authModalContainer = document.getElementById('authModalContainer');
-    if (authModalContainer && !authModalContainer.innerHTML.trim()) {
+    // Várjuk meg, hogy a globalAuth elérhető legyen
+    if (!globalAuth) {
+      await loadAndInitAuth();
+    }
+
+    if (!globalAuth) {
+      console.error('Supabase Auth nem inicializálva');
+      alert('Az authentikáció még nem töltődött be. Próbáld újra néhány másodperc múlva.');
+      return;
+    }
+
+    // Ha még nincs auth modal HTML betöltve, hozzunk létre egy containert és töltsük be
+    let authModalContainer = document.getElementById('authModalContainer');
+    if (!authModalContainer) {
+      authModalContainer = document.createElement('div');
+      authModalContainer.id = 'authModalContainer';
+      document.body.appendChild(authModalContainer);
+    }
+
+    if (!authModalContainer.innerHTML.trim()) {
       try {
         const response = await fetch('assets/components/auth-modal.html');
         const html = await response.text();
@@ -463,17 +480,6 @@
         alert('Hiba történt a bejelentkezési ablak betöltésekor.');
         return;
       }
-    }
-
-    // Várjuk meg, hogy a globalAuth elérhető legyen
-    if (!globalAuth && window.getAuth) {
-      globalAuth = window.getAuth();
-    }
-
-    if (!globalAuth) {
-      console.error('Supabase Auth nem inicializálva');
-      alert('Az authentikáció még nem töltődött be. Próbáld újra néhány másodperc múlva.');
-      return;
     }
 
     // Inicializáljuk az auth modal-t, ha még nem történt meg
@@ -533,10 +539,24 @@ window.toggleNav = function () {
 
   /* ======= Navigáció újraépítése ======= */
   function rebuildNavigation() {
+    console.log('🔄 Nav újraépítése...');
+    
+    // Frissítsük a globalAuth-ot
+    if (window.getAuth && typeof window.getAuth === 'function') {
+      globalAuth = window.getAuth();
+    }
+    
+    // Ellenőrizzük az auth state-et
+    const loginState = checkLoginState();
+    console.log('Login state:', loginState);
+    
     const navContainer = document.querySelector('#mySidenav > div');
     if (navContainer) {
       navContainer.removeAttribute('data-nav-built');
       createNavigation();
+      console.log('✅ Nav újraépítve');
+    } else {
+      console.error('Nav container nem található!');
     }
   }
 
@@ -932,8 +952,90 @@ window.toggleNav = function () {
     } catch (e) { console.error('applyClickedCategoryIfAnyOnce error:', e); }
   }
 
+  /* ======= Supabase Auth betöltés és inicializálás ======= */
+  async function loadAndInitAuth() {
+    // Ha már betöltött az auth, ne töltsd be újra
+    if (window.getAuth && window.getAuth()) {
+      globalAuth = window.getAuth();
+      console.log('✅ Auth már inicializálva');
+      return globalAuth;
+    }
+
+    console.log('🚀 Auth betöltési folyamat indítása...');
+
+    // Ellenőrizzük, hogy be van-e töltve a Supabase library
+    if (typeof supabase === 'undefined') {
+      console.log('📦 Supabase library betöltése...');
+      
+      // Betöltjük a Supabase library-t
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        script.onload = () => {
+          console.log('✅ Supabase library betöltve');
+          resolve();
+        };
+        script.onerror = (err) => {
+          console.error('❌ Supabase library betöltési hiba');
+          reject(err);
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    // Auth modal CSS betöltése
+    if (!document.getElementById('auth-modal-css-injected')) {
+      const link = document.createElement('link');
+      link.id = 'auth-modal-css-injected';
+      link.rel = 'stylesheet';
+      link.href = 'assets/css/auth-modal.css';
+      document.head.appendChild(link);
+    }
+
+    // Betöltjük a Supabase Auth JS-t
+    if (!window.initSupabaseAuth) {
+      console.log('📦 Supabase Auth JS betöltése...');
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'assets/js/supabase-auth.js';
+        script.onload = () => {
+          console.log('✅ Supabase Auth JS betöltve');
+          resolve();
+        };
+        script.onerror = (err) => {
+          console.error('❌ Supabase Auth JS betöltési hiba');
+          reject(err);
+        };
+        document.head.appendChild(script);
+      });
+      
+      // Várunk egy kicsit, hogy a script inicializálódjon
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    // Auth inicializálása
+    if (window.initSupabaseAuth) {
+      console.log('🔐 Auth inicializálása...');
+      try {
+        globalAuth = await window.initSupabaseAuth();
+        console.log('✅ Auth sikeresen inicializálva');
+        
+        // Exportáljuk globálisan hogy más scriptek is elérhessék
+        window._agazati_auth_ready = true;
+        
+        return globalAuth;
+      } catch (error) {
+        console.error('❌ Auth inicializálási hiba:', error);
+        return null;
+      }
+    }
+
+    console.error('❌ initSupabaseAuth függvény nem található!');
+    return null;
+  }
+
   /* ======= Betöltési rutinok ======= */
-  function initNav() {
+  async function initNav() {
     // Először hozzuk létre a navbar-t
     createTopNavbar();
 
@@ -952,7 +1054,10 @@ window.toggleNav = function () {
       }
     }
 
-    // Létrehozzuk a navigációt
+    // Betöltjük és inicializáljuk az auth-ot
+    await loadAndInitAuth();
+
+    // Létrehozzuk a navigációt (most már az auth be van töltve)
     createNavigation();
 
     // Alkalmazzuk a mentett kategóriákat
@@ -969,6 +1074,7 @@ window.toggleNav = function () {
     if (window.addEventListener) {
       window.addEventListener('loginStateChanged', function() {
         updateLoginStatus();
+        rebuildNavigation(); // Frissítsük a nav-ot amikor változik a login state
       });
     }
   }

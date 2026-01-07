@@ -65,11 +65,45 @@ class SupabaseAuth {
 
     // Auth state változás figyelés
     this.sb.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Auth state change:', event);
       if (event === 'SIGNED_IN' && session) {
         await this.loadUserProfile(session.user);
+        
+        // Várunk egy kicsit hogy a profil betöltődjön
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Frissítsük a navigációt amikor bejelentkezünk
+        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+          window.rebuildNav();
+        }
+        // Küldjünk eseményt a login state változásról
+        window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+          detail: { loggedIn: true, isAdmin: this.isAdmin } 
+        }));
       } else if (event === 'SIGNED_OUT') {
         this.currentUser = null;
         this.isAdmin = false;
+        // Frissítsük a navigációt amikor kijelentkezünk
+        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+          window.rebuildNav();
+        }
+        // Küldjünk eseményt a logout-ról
+        window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+          detail: { loggedIn: false, isAdmin: false } 
+        }));
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('🔄 Token frissítve');
+      } else if (event === 'USER_UPDATED' && session) {
+        await this.loadUserProfile(session.user);
+      } else if (event === 'INITIAL_SESSION' && session) {
+        // Kezdeti session betöltése - már megtörtént az init()-ben
+        console.log('✅ Kezdeti session betöltve');
+        
+        // Frissítsük a navigációt a kezdeti session után is
+        await new Promise(resolve => setTimeout(resolve, 200));
+        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+          window.rebuildNav();
+        }
       }
     });
 
@@ -81,28 +115,69 @@ class SupabaseAuth {
     
     console.log('🔄 Loading user profile for:', user.email);
     
-    // Admin role ellenőrzés a user_metadata-ból vagy külön táblából
-    const { data, error } = await this.sb
-      .from('user_roles')
-      .select('is_admin')
-      .eq('user_id', user.id)
-      .single();
+    // ELSŐDLEGES: Ellenőrizzük a user metadata-t (ez mindig elérhető)
+    const metadataAdmin = user.user_metadata?.is_admin === true;
+    console.log('📋 User metadata is_admin:', metadataAdmin);
+    
+    // MÁSODLAGOS: Próbáljuk lekérdezni a user_roles táblából
+    let databaseAdmin = false;
+    try {
+      const { data, error } = await this.sb
+        .from('user_roles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    console.log('User roles query result:', { data, error });
+      console.log('User roles query result:', { data, error });
 
-    if (data && !error) {
-      this.isAdmin = data.is_admin === true;
-      console.log('✅ Admin status from database:', this.isAdmin);
-    } else {
-      // Fallback: ellenőrizzük a user metadata-t
-      this.isAdmin = user.user_metadata?.is_admin === true;
-      console.log('⚠️ Admin status from metadata (fallback):', this.isAdmin);
-      if (error) {
-        console.error('❌ Error loading user_roles:', error);
+      if (data && !error) {
+        databaseAdmin = data.is_admin === true;
+        console.log('✅ Admin status from database:', databaseAdmin);
+      } else if (error && error.code === 'PGRST116') {
+        // Nincs sor a táblában
+        console.log('ℹ️ Nincs user_roles bejegyzés (ez normális első bejelentkezéskor)');
+      } else if (error) {
+        console.warn('⚠️ User_roles tábla lekérdezési hiba:', error.message);
+        console.log('💡 Fallback: metadata használata');
       }
+    } catch (err) {
+      console.warn('⚠️ User_roles tábla nem elérhető:', err.message);
+      console.log('💡 Fallback: metadata használata');
     }
     
-    console.log('👤 User:', user.email, '| Admin:', this.isAdmin);
+    // Admin jog beállítása: metadata VAGY database
+    // Ha bármelyik igaz, akkor admin
+    this.isAdmin = metadataAdmin || databaseAdmin;
+    
+    console.log('👤 User:', user.email, '| Admin:', this.isAdmin, `(metadata: ${metadataAdmin}, database: ${databaseAdmin})`);
+    
+    // Ha van metadata admin jog de nincs database-ben, próbáljuk létrehozni
+    if (metadataAdmin && !databaseAdmin) {
+      console.log('🔄 Metadata admin jog megvan, szinkronizálás database-be...');
+      await this.createUserRoleEntry(user.id, true);
+    }
+  }
+
+  async createUserRoleEntry(userId, isAdmin) {
+    try {
+      console.log('📝 User role bejegyzés létrehozása...');
+      const { error } = await this.sb
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          is_admin: isAdmin,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) {
+        console.warn('⚠️ User_roles bejegyzés létrehozása sikertelen:', error.message);
+      } else {
+        console.log('✅ User role bejegyzés létrehozva');
+      }
+    } catch (err) {
+      console.warn('⚠️ Exception creating user_roles entry:', err.message);
+    }
   }
 
   // ====================================
@@ -333,6 +408,7 @@ class SupabaseAuthModal {
     this.registerError = document.getElementById("registerError");
     this.registerSuccess = document.getElementById("registerSuccess");
     this.toggleRegisterPassword = document.getElementById("toggleRegisterPassword");
+    this.toggleRegisterPasswordConfirm = document.getElementById("toggleRegisterPasswordConfirm");
     this.showLoginTab = document.getElementById("showLoginFromRegister");
 
     // Forgot password form elements
@@ -347,6 +423,10 @@ class SupabaseAuthModal {
     // Social login buttons
     this.googleBtn = document.getElementById("googleBtn");
     this.githubBtn = document.getElementById("githubBtn");
+    
+    // Social registration buttons
+    this.googleRegisterBtn = document.getElementById("googleRegisterBtn");
+    this.githubRegisterBtn = document.getElementById("githubRegisterBtn");
 
     // Event listeners
     this.setupEventListeners();
@@ -385,6 +465,10 @@ class SupabaseAuthModal {
     // Social logins
     this.googleBtn?.addEventListener("click", () => this.handleGoogleLogin());
     this.githubBtn?.addEventListener("click", () => this.handleGithubLogin());
+    
+    // Social registration (uses same OAuth methods)
+    this.googleRegisterBtn?.addEventListener("click", () => this.handleGoogleLogin());
+    this.githubRegisterBtn?.addEventListener("click", () => this.handleGithubLogin());
 
     // Show login from register
     this.showLoginTab?.addEventListener("click", () => this.showTab("login"));
@@ -395,6 +479,9 @@ class SupabaseAuthModal {
     });
     this.toggleRegisterPassword?.addEventListener("click", () => {
       this.togglePasswordVisibility(this.registerPassword, this.toggleRegisterPassword);
+    });
+    this.toggleRegisterPasswordConfirm?.addEventListener("click", () => {
+      this.togglePasswordVisibility(this.registerPasswordConfirm, this.toggleRegisterPasswordConfirm);
     });
 
     // Cancel button
@@ -525,11 +612,26 @@ class SupabaseAuthModal {
       return;
     }
 
+    // Extra védelem a stuck loading state ellen
+    if (!this.loginBtn) {
+      console.error("Login button not found!");
+      this.showError(this.loginError, "Hiba történt. Próbáld újra!");
+      return;
+    }
+
     try {
       this.loginBtn.disabled = true;
       this.loginBtn.textContent = "Bejelentkezés...";
 
-      await this.auth.signInWithEmail(email, password);
+      // Timeout védelem: ha 30 másodperc alatt nem válaszol a Supabase
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Időtúllépés! Túl sokáig tart a bejelentkezés.')), 30000)
+      );
+
+      await Promise.race([
+        this.auth.signInWithEmail(email, password),
+        timeoutPromise
+      ]);
       
       this.showSuccess(this.loginSuccess, "Sikeres bejelentkezés! 🎉");
       
@@ -542,8 +644,11 @@ class SupabaseAuthModal {
       console.error("Login error:", error);
       this.showError(this.loginError, this.getErrorMessage(error));
     } finally {
-      this.loginBtn.disabled = false;
-      this.loginBtn.textContent = "Bejelentkezés";
+      // Mindenképpen visszaállítjuk a gombot
+      if (this.loginBtn) {
+        this.loginBtn.disabled = false;
+        this.loginBtn.textContent = "Bejelentkezés";
+      }
     }
   }
 
