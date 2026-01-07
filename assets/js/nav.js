@@ -244,6 +244,7 @@
   let sidenav = null;
   let __navSearchSnapshot = null;
   let globalAuth = null; // Supabase Auth instance
+  let globalAuthModal = null; // Globális auth modal instance
 
   /* ======= Nav struktúra ======= */
   const getNavStructure = (isLoggedIn = false) => {
@@ -384,7 +385,7 @@
     if (!btn) return;
     
     // Ellenőrizzük hogy a Supabase auth betöltött-e
-    if (window.getAuth && typeof window.getAuth === 'function') {
+    if (!globalAuth && window.getAuth && typeof window.getAuth === 'function') {
       globalAuth = window.getAuth();
     }
     
@@ -419,9 +420,16 @@
       if (globalAuth) {
         await globalAuth.signOut();
       }
-      rebuildNavigation();
       
-      window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: false } }));
+      // Tisztítsuk meg a globális auth modal-t is
+      globalAuthModal = null;
+      
+      rebuildNavigation();
+      updateLoginStatus();
+      
+      window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+        detail: { loggedIn: false } 
+      }));
       
       // Ha secret oldalon vagyunk, menjünk a főoldalra
       const currentPathname = window.location.pathname;
@@ -438,22 +446,54 @@
   /* ======= Modal kezelés (Supabase Auth Modal) ======= */
   
   // Modal megnyitása a Supabase Auth modal használatával
-  window.openLoginModal = function() {
-    // Ellenőrizzük, hogy létezik-e az auth modal
-    const authModal = document.getElementById('authModal');
-    if (!authModal) {
-      console.error('Auth modal nem található. Győződj meg róla, hogy a auth-modal.html be van töltve.');
+  window.openLoginModal = async function() {
+    // Ha még nincs auth modal HTML betöltve, várjunk
+    const authModalContainer = document.getElementById('authModalContainer');
+    if (authModalContainer && !authModalContainer.innerHTML.trim()) {
+      try {
+        const response = await fetch('assets/components/auth-modal.html');
+        const html = await response.text();
+        authModalContainer.innerHTML = html;
+      } catch (err) {
+        console.error('Auth modal betöltési hiba:', err);
+        alert('Hiba történt a bejelentkezési ablak betöltésekor.');
+        return;
+      }
+    }
+
+    // Várjuk meg, hogy a globalAuth elérhető legyen
+    if (!globalAuth && window.getAuth) {
+      globalAuth = window.getAuth();
+    }
+
+    if (!globalAuth) {
+      console.error('Supabase Auth nem inicializálva');
+      alert('Az authentikáció még nem töltődött be. Próbáld újra néhány másodperc múlva.');
       return;
     }
-    
-    // Nyissuk meg az auth modal-t
-    if (window.SupabaseAuthModal) {
-      const modal = new window.SupabaseAuthModal('authModal');
-      modal.open();
-    } else {
-      // Fallback: közvetlenül jelenítjük meg a modal-t
-      authModal.style.display = 'flex';
+
+    // Inicializáljuk az auth modal-t, ha még nem történt meg
+    if (!globalAuthModal) {
+      globalAuthModal = new window.SupabaseAuthModal(globalAuth);
+      globalAuthModal.init({
+        onSuccess: async () => {
+          // Frissítsük a navigációt
+          await rebuildNavigation();
+          updateLoginStatus();
+          
+          // Küldjünk eseményt a státusz változásról
+          window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+            detail: { loggedIn: true } 
+          }));
+        },
+        onCancel: () => {
+          // Modal bezárva
+        }
+      });
     }
+
+    // Nyissuk meg a modal-t
+    globalAuthModal.open();
   };
 
   // Ha korábban sorba álltak openLoginModal hívások, futtassuk őket
@@ -920,6 +960,13 @@ window.toggleNav = function () {
     // flush queued early calls (ha voltak)
     try { _agazati_flush_queue('toggleNav', window.toggleNav); } catch(e){}
     try { _agazati_flush_queue('openLoginModal', window.openLoginModal); } catch(e){}
+    
+    // Auth state change listener
+    if (window.addEventListener) {
+      window.addEventListener('loginStateChanged', function() {
+        updateLoginStatus();
+      });
+    }
   }
 
   // Várakozás a DOM betöltődésére
