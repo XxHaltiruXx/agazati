@@ -1,14 +1,16 @@
-const APP_VERSION = "1.4.3";
+// Verzió dinamikusan a GitHub Releases alapján
+let APP_VERSION = "1.4.3"; // Fallback verzió ha nem sikerül lekérdezni
 
 // Verziószám frissítése
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  // Először próbáljuk meg lekérdezni a legfrissebb release-t
+  await loadVersionFromReleases();
+  
+  // Frissítjük a verziókat a DOM-ban
   const versionElements = document.querySelectorAll(".version-number");
   versionElements.forEach((element) => {
     element.textContent = APP_VERSION;
   });
-  
-  // Verzió ellenőrzés a GitHub Releases alapján
-  checkForNewVersion();
 });
 
 const repoOwner = "XxHaltiruXx";
@@ -141,78 +143,39 @@ function compareVersions(v1, v2) {
   return 0;
 }
 
-async function checkForNewVersion() {
+async function loadVersionFromReleases() {
   try {
-    const now = nowTs();
+    // Cache ellenőrzés - ha kevesebb mint 1 óra telt el
+    const cachedVersion = localStorage.getItem(KEY_LATEST_VERSION);
     const lastCheck = parseInt(localStorage.getItem(KEY_VERSION_CHECK_TS) || "0", 10);
+    const now = nowTs();
     
-    // Ha kevesebb mint 24 óra telt el az utolsó ellenőrzés óta
-    if (lastCheck && now - lastCheck < VERSION_CHECK_INTERVAL_MS) {
-      const cachedVersion = localStorage.getItem(KEY_LATEST_VERSION);
-      if (cachedVersion && compareVersions(cachedVersion, APP_VERSION) > 0) {
-        console.log(`[agazati] Cached: új verzió elérhető: ${cachedVersion} (jelenlegi: ${APP_VERSION})`);
-        showVersionNotification(cachedVersion);
-      }
+    if (cachedVersion && lastCheck && now - lastCheck < 60 * 60 * 1000) {
+      // 1 órás cache
+      APP_VERSION = cachedVersion;
+      console.log(`[agazati] Verzió cache-ből betöltve: ${APP_VERSION}`);
       return;
     }
     
-    // Új ellenőrzés
+    // Lekérdezzük a legfrissebb release-t
     const release = await fetchLatestRelease(repoOwner, repoName);
-    if (!release) {
+    if (release && release.version) {
+      APP_VERSION = release.version.replace(/^v/, ""); // 'v' prefix eltávolítása
+      localStorage.setItem(KEY_LATEST_VERSION, APP_VERSION);
       localStorage.setItem(KEY_VERSION_CHECK_TS, now.toString());
-      return;
-    }
-    
-    localStorage.setItem(KEY_LATEST_VERSION, release.version);
-    localStorage.setItem(KEY_VERSION_CHECK_TS, now.toString());
-    
-    if (compareVersions(release.version, APP_VERSION) > 0) {
-      console.log(`[agazati] Új verzió elérhető: ${release.version} (jelenlegi: ${APP_VERSION})`);
-      showVersionNotification(release.version, release.url);
+      console.log(`[agazati] Verzió GitHub Releases-ből betöltve: ${APP_VERSION}`);
     } else {
-      console.log(`[agazati] Az alkalmazás naprakész (${APP_VERSION})`);
+      console.log(`[agazati] Fallback verzió használata: ${APP_VERSION}`);
     }
   } catch (err) {
-    console.error("[agazati] Verzió ellenőrzés sikertelen:", err);
+    console.error("[agazati] Verzió betöltési hiba:", err);
+    console.log(`[agazati] Fallback verzió használata: ${APP_VERSION}`);
   }
 }
 
-function showVersionNotification(newVersion, releaseUrl) {
-  // Ellenőrzi, hogy már létezik-e értesítés
-  if (document.querySelector(".version-notification")) return;
-  
-  const notification = document.createElement("div");
-  notification.className = "version-notification";
-  notification.innerHTML = `
-    <div class="version-notification-content">
-      <span class="version-notification-text">
-        🎉 Új verzió elérhető: <strong>${newVersion}</strong> (jelenlegi: ${APP_VERSION})
-      </span>
-      ${releaseUrl ? `<a href="${releaseUrl}" target="_blank" rel="noopener" class="version-notification-link">Részletek</a>` : ''}
-      <button class="version-notification-close" aria-label="Bezárás">×</button>
-    </div>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Animáció a megjelenéshez
-  setTimeout(() => notification.classList.add("show"), 100);
-  
-  // Bezárás gomb
-  const closeBtn = notification.querySelector(".version-notification-close");
-  closeBtn.addEventListener("click", () => {
-    notification.classList.remove("show");
-    setTimeout(() => notification.remove(), 300);
-  });
-  
-  // Automatikus eltűnés 10 másodperc után
-  setTimeout(() => {
-    if (notification.parentElement) {
-      notification.classList.remove("show");
-      setTimeout(() => notification.remove(), 300);
-    }
-  }, 10000);
-}
+// checkForNewVersion és showVersionNotification töölve
+// Az APP_VERSION már mindig a legfrissebb release-t mutatja (GitHub Releases-ből betöltve)
+// Nincs szükség külön verzió ellenőrzésre és frissítési értesítésre
 
 async function performCommitCheck() {
   const now = nowTs();
