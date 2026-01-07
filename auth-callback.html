@@ -103,8 +103,45 @@
 <body>
   <div class="callback-container">
     <div class="spinner"></div>
-    <h1>Bejelentkezés folyamatban...</h1>
-    <p>Kérlek várj, amíg feldolgozzuk az authentikációdat.</p>
+    <h1 id="mainTitle">Bejelentkezés folyamatban...</h1>
+    <p id="mainText">Kérlek várj, amíg feldolgozzuk az authentikációdat.</p>
+
+    <!-- Password Reset Form -->
+    <div id="passwordResetForm" style="display: none; max-width: 400px; margin: 0 auto;">
+      <h1 style="margin-bottom: 1rem;">🔐 Új Jelszó Beállítása</h1>
+      <p style="margin-bottom: 1.5rem;">Add meg az új jelszavadat:</p>
+      
+      <div style="margin-bottom: 1rem; text-align: left;">
+        <label for="newPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Új Jelszó</label>
+        <input 
+          type="password" 
+          id="newPassword" 
+          placeholder="Minimum 6 karakter"
+          style="width: 100%; padding: 0.75rem; background: var(--bg-mid); border: 1px solid var(--accent); border-radius: 6px; color: var(--text); font-size: 1rem;"
+        >
+      </div>
+      
+      <div style="margin-bottom: 1.5rem; text-align: left;">
+        <label for="confirmPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Jelszó Megerősítése</label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          placeholder="Jelszó újra"
+          style="width: 100%; padding: 0.75rem; background: var(--bg-mid); border: 1px solid var(--accent); border-radius: 6px; color: var(--text); font-size: 1rem;"
+        >
+      </div>
+      
+      <button 
+        id="resetPasswordBtn" 
+        class="back-link" 
+        style="width: 100%; cursor: pointer; border: none; font-size: 1rem;"
+      >
+        Jelszó Megváltoztatása
+      </button>
+      
+      <div id="resetError" style="display: none; margin-top: 1rem; padding: 0.75rem; background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: 6px; color: #ff4d4d;"></div>
+      <div id="resetSuccess" style="display: none; margin-top: 1rem; padding: 0.75rem; background: rgba(77, 255, 77, 0.1); border: 1px solid rgba(77, 255, 77, 0.3); border-radius: 6px; color: #4dff4d;"></div>
+    </div>
 
     <div class="error-box" id="errorBox">
       <h2>❌ Hiba történt</h2>
@@ -129,6 +166,89 @@
 
     console.log('✅ Auth callback - Supabase client inicializálva');
 
+    async function handlePasswordReset() {
+      console.log('🔐 Password reset mode activated');
+      
+      // Hide spinner and default text
+      document.querySelector('.spinner').style.display = 'none';
+      document.getElementById('mainTitle').style.display = 'none';
+      document.getElementById('mainText').style.display = 'none';
+      
+      // Show password reset form
+      document.getElementById('passwordResetForm').style.display = 'block';
+      
+      const resetBtn = document.getElementById('resetPasswordBtn');
+      const newPasswordInput = document.getElementById('newPassword');
+      const confirmPasswordInput = document.getElementById('confirmPassword');
+      const resetError = document.getElementById('resetError');
+      const resetSuccess = document.getElementById('resetSuccess');
+      
+      resetBtn.addEventListener('click', async () => {
+        resetError.style.display = 'none';
+        resetSuccess.style.display = 'none';
+        
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        // Validáció
+        if (!newPassword || !confirmPassword) {
+          resetError.textContent = '❌ Kérlek töltsd ki mindkét mezőt!';
+          resetError.style.display = 'block';
+          return;
+        }
+        
+        if (newPassword.length < 6) {
+          resetError.textContent = '❌ A jelszónak legalább 6 karakter hosszúnak kell lennie!';
+          resetError.style.display = 'block';
+          return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+          resetError.textContent = '❌ A két jelszó nem egyezik!';
+          resetError.style.display = 'block';
+          return;
+        }
+        
+        try {
+          resetBtn.disabled = true;
+          resetBtn.textContent = 'Mentés...';
+          
+          console.log('🔄 Updating password...');
+          
+          // Frissítjük a jelszót
+          const { data, error } = await sb.auth.updateUser({
+            password: newPassword
+          });
+          
+          if (error) throw error;
+          
+          console.log('✅ Password updated successfully');
+          
+          resetSuccess.textContent = '✅ Jelszó sikeresen megváltoztatva! Átirányítás...';
+          resetSuccess.style.display = 'block';
+          
+          // Átirányítás a főoldalra
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 2000);
+          
+        } catch (err) {
+          console.error('❌ Password reset error:', err);
+          resetError.textContent = `❌ Hiba: ${err.message || 'Ismeretlen hiba történt'}`;
+          resetError.style.display = 'block';
+          resetBtn.disabled = false;
+          resetBtn.textContent = 'Jelszó Megváltoztatása';
+        }
+      });
+      
+      // Enter key support
+      confirmPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          resetBtn.click();
+        }
+      });
+    }
+
     async function handleAuthCallback() {
       try {
         console.log('Auth callback started...');
@@ -136,8 +256,20 @@
         console.log('Hash:', window.location.hash);
         console.log('Search:', window.location.search);
 
-        // Ellenőrizzük hogy van-e error paraméter az URL-ben
+        // Ellenőrizzük hogy password reset-ről van-e szó
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const urlParams = new URLSearchParams(window.location.search);
+        const type = hashParams.get('type') || urlParams.get('type');
+        
+        console.log('Auth type:', type);
+        
+        if (type === 'recovery') {
+          console.log('🔐 Password recovery detected');
+          handlePasswordReset();
+          return;
+        }
+
+        // Ellenőrizzük hogy van-e error paraméter az URL-ben
         const errorParam = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
         

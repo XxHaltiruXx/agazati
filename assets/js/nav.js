@@ -392,14 +392,24 @@
     
     const isLoggedIn = globalAuth && globalAuth.isAuthenticated();
     
+    // Távolítsuk el a régi event listener-t
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
     if (isLoggedIn) {
-      btn.textContent = 'Kijelentkezés';
-      btn.setAttribute('aria-pressed', 'true');
-      btn.onclick = function () { logoutFromNav(); };
+      newBtn.textContent = 'Kijelentkezés';
+      newBtn.setAttribute('aria-pressed', 'true');
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        logoutFromNav();
+      });
     } else {
-      btn.textContent = 'Bejelentkezés';
-      btn.setAttribute('aria-pressed', 'false');
-      btn.onclick = function () { openLoginModal(); };
+      newBtn.textContent = 'Bejelentkezés';
+      newBtn.setAttribute('aria-pressed', 'false');
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        openLoginModal();
+      });
     }
   }
 
@@ -420,13 +430,25 @@
   }
 
   async function logoutFromNav() {
+    console.log('🔄 Kijelentkezés indítása...');
+    
     try {
       if (globalAuth) {
         await globalAuth.signOut();
+        console.log('✅ Kijelentkezés sikeres');
+      } else {
+        console.warn('⚠️ Nincs auth instance, local storage tisztítása...');
+        // Ha nincs auth, legalább tisztítsuk a local storage-t
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key);
+          }
+        });
       }
       
       // Tisztítsuk meg a globális auth modal-t is
       globalAuthModal = null;
+      globalAuth = null;
       
       rebuildNavigation();
       updateLoginStatus();
@@ -434,6 +456,8 @@
       window.dispatchEvent(new CustomEvent('loginStateChanged', { 
         detail: { loggedIn: false } 
       }));
+      
+      console.log('🔄 Átirányítás...');
       
       // Ha secret oldalon vagyunk, menjünk a főoldalra
       const currentPathname = window.location.pathname;
@@ -443,7 +467,26 @@
         window.location.reload();
       }
     } catch (e) {
-      console.error('Kijelentkezés sikertelen:', e);
+      // Ne dobjunk hibát, csak loggoljuk és tisztítsuk meg mindent
+      console.warn('⚠️ Kijelentkezési hiba (ignorálva):', e.message || e);
+      
+      // Tisztítsuk meg mindent manuálisan
+      globalAuthModal = null;
+      globalAuth = null;
+      
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Mindenképp irányítsuk át
+      const currentPathname = window.location.pathname;
+      if (currentPathname.includes('secret/')) {
+        window.location.href = '/agazati/';
+      } else {
+        window.location.reload();
+      }
     }
   }
 

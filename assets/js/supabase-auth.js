@@ -244,24 +244,62 @@ class SupabaseAuth {
   }
 
   async signOut() {
-    const { error } = await this.sb.auth.signOut();
-    if (error) throw error;
+    try {
+      // Próbáljuk meg a normál kijelentkezést
+      const { error } = await this.sb.auth.signOut();
+      
+      // Ha a session már lejárt vagy nincs meg, az nem baj
+      if (error && error.message !== 'Auth session missing!') {
+        console.warn('⚠️ Kijelentkezési figyelmeztetés:', error.message);
+      }
+    } catch (err) {
+      // Ha bármi hiba történik, egyszerűen tisztítsuk meg a local storage-t
+      console.warn('⚠️ Kijelentkezési hiba - local storage tisztítása:', err.message);
+    }
     
+    // Mindenképp törljük a local state-et
     this.currentUser = null;
     this.isAdmin = false;
+    
+    // Tisztítsuk meg a local storage-t manuálisan is
+    try {
+      localStorage.removeItem('supabase.auth.token');
+      // A Supabase storage kulcsok
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          localStorage.removeItem(key);
+        }
+      });
+      console.log('✅ Local storage megtisztítva');
+    } catch (e) {
+      console.warn('⚠️ Local storage tisztítási hiba:', e);
+    }
+    
+    return true;
   }
 
   async resetPassword(email) {
-    const { data, error } = await this.sb.auth.resetPasswordForEmail(email, {
-      redirectTo: SUPABASE_CONFIG.REDIRECT_URL
-    });
+    try {
+      console.log('🔄 Jelszó visszaállítás indítása:', email);
+      console.log('📧 Redirect URL:', SUPABASE_CONFIG.REDIRECT_URL);
+      
+      const { data, error } = await this.sb.auth.resetPasswordForEmail(email, {
+        redirectTo: SUPABASE_CONFIG.REDIRECT_URL
+      });
 
-    if (error) throw error;
-    
-    // Log: segít debuggolni az email küldést
-    console.log('Password reset email sent to:', email);
-    
-    return data;
+      if (error) {
+        console.error('❌ Jelszó visszaállítási hiba:', error);
+        throw error;
+      }
+      
+      console.log('✅ Jelszó visszaállító email elküldve:', email);
+      console.log('📋 Response data:', data);
+      
+      return data;
+    } catch (error) {
+      console.error('❌ resetPassword error:', error);
+      throw error;
+    }
   }
 
   // ====================================
@@ -273,16 +311,40 @@ class SupabaseAuth {
       throw new Error('Unauthorized: Only admins can set admin roles');
     }
 
-    const { data, error } = await this.sb
-      .from('user_roles')
-      .upsert({
-        user_id: userId,
-        is_admin: isAdmin,
-        updated_at: new Date().toISOString()
+    try {
+      // 1. Frissítjük a user_roles táblát (UPDATE, nem UPSERT!)
+      const { error: dbError } = await this.sb
+        .from('user_roles')
+        .update({
+          is_admin: isAdmin,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (dbError) throw dbError;
+
+      // 2. FONTOS: Frissítjük a user metadata-ját is!
+      // Ez egy Supabase Edge Function vagy RPC hívás kéne legyen
+      // De mivel kliens oldalon vagyunk, nem férünk hozzá az admin API-hoz
+      // Ehelyett egy Database Function-t fogunk használni
+      
+      const { error: funcError } = await this.sb.rpc('set_user_admin_metadata', {
+        target_user_id: userId,
+        admin_status: isAdmin
       });
 
-    if (error) throw error;
-    return data;
+      if (funcError) {
+        console.warn('⚠️ Nem sikerült frissíteni a metadata-t:', funcError.message);
+        console.warn('💡 A user_roles tábla frissült, de a metadata nem. Futtasd le a set-admin-metadata-function.sql scriptet!');
+      }
+
+      console.log(`✅ Admin status updated: ${userId} -> ${isAdmin}`);
+      return { success: true };
+      
+    } catch (error) {
+      console.error('❌ setUserAdmin error:', error);
+      throw error;
+    }
   }
 
   async getAllUsers() {
@@ -496,6 +558,13 @@ class SupabaseAuthModal {
   }
 
   showTab(tab) {
+    console.log('🔄 Switching to tab:', tab);
+    console.log('Forms found:', {
+      loginForm: !!this.loginForm,
+      registerForm: !!this.registerForm,
+      forgotPasswordForm: !!this.forgotPasswordForm
+    });
+    
     // Hide all forms
     if (this.loginForm) this.loginForm.style.display = "none";
     if (this.registerForm) this.registerForm.style.display = "none";
@@ -508,15 +577,28 @@ class SupabaseAuthModal {
 
     // Show selected form
     if (tab === "login") {
-      if (this.loginForm) this.loginForm.style.display = "block";
+      if (this.loginForm) {
+        this.loginForm.style.display = "block";
+        console.log('✅ Login form shown');
+      }
       this.tabButtons.login?.classList.add("active");
       this.clearMessages();
     } else if (tab === "register") {
-      if (this.registerForm) this.registerForm.style.display = "block";
+      if (this.registerForm) {
+        this.registerForm.style.display = "block";
+        console.log('✅ Register form shown');
+      }
       this.tabButtons.register?.classList.add("active");
       this.clearMessages();
     } else if (tab === "forgot") {
-      if (this.forgotPasswordForm) this.forgotPasswordForm.style.display = "block";
+      if (this.forgotPasswordForm) {
+        this.forgotPasswordForm.style.display = "block";
+        console.log('✅ Forgot password form shown');
+        console.log('Form element:', this.forgotPasswordForm);
+        console.log('Form innerHTML length:', this.forgotPasswordForm.innerHTML?.length);
+      } else {
+        console.error('❌ Forgot password form NOT FOUND!');
+      }
       this.clearMessages();
     }
   }
@@ -731,22 +813,44 @@ class SupabaseAuthModal {
       return;
     }
 
+    console.log('🔑 Jelszó visszaállítás kérése:', email);
+
     try {
       this.forgotBtn.disabled = true;
       this.forgotBtn.textContent = "Küldés...";
 
-      await this.auth.resetPassword(email);
+      const result = await this.auth.resetPassword(email);
+      
+      console.log('✅ Jelszó visszaállító email kérés sikeres:', result);
       
       this.showSuccess(this.forgotSuccess, 
-        "Jelszó visszaállító email elküldve! Ellenőrizd a postaládádat. 📧");
+        "✅ Jelszó visszaállító email elküldve!\n\n📧 Ellenőrizd az email fiókodat (és a SPAM mappát is).\n\n💡 Ha nem érkezik meg 5 percen belül, próbáld újra vagy ellenőrizd hogy a megadott email cím létezik-e.");
       
       setTimeout(() => {
         this.showTab("login");
-      }, 3000);
+      }, 5000);
       
     } catch (error) {
-      console.error("Forgot password error:", error);
-      this.showError(this.forgotError, this.getErrorMessage(error));
+      console.error("❌ Forgot password error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        details: error
+      });
+      
+      let errorMsg = this.getErrorMessage(error);
+      
+      // Speciális esetek
+      if (error.message && error.message.includes('rate limit')) {
+        errorMsg = '⏰ Túl sok jelszó visszaállítási kérés! Várj 1 órát és próbáld újra.';
+      } else if (error.message && error.message.includes('not found')) {
+        errorMsg = '❌ Ez az email cím nem található a rendszerben. Biztos jól írtad be?';
+      } else if (!error.message) {
+        errorMsg = '⚠️ Ismeretlen hiba történt. Ellenőrizd az internet kapcsolatot!';
+      }
+      
+      this.showError(this.forgotError, errorMsg);
     } finally {
       this.forgotBtn.disabled = false;
       this.forgotBtn.textContent = "Jelszó visszaállítása";

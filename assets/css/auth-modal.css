@@ -30,8 +30,9 @@
   transform: scale(.98) !important;
   opacity: 0 !important;
   transition: transform 180ms cubic-bezier(.2, .9, .3, 1), opacity 180ms ease !important;
-  z-index: 1001 !important;
+  z-index: 10001 !important;
   position: relative !important;
+  overflow: hidden !important;
 }
 
 #authModal.show #authBox {
