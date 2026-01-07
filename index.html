@@ -151,14 +151,37 @@
           const response = await fetch('assets/components/auth-modal.html');
           const html = await response.text();
           authModalContainer.innerHTML = html;
+          
+          // Modal HTML betöltés után inicializáljuk a modal-t
+          if (window.initSupabaseAuth && window.SupabaseAuthModal) {
+            // Inicializáljuk a Supabase Auth-t
+            const auth = await window.initSupabaseAuth();
+            
+            // Létrehozzuk és inicializáljuk a modal instance-t
+            window.globalAuthModal = new window.SupabaseAuthModal(auth);
+            window.globalAuthModal.init({
+              onSuccess: function() {
+                console.log('Sikeres bejelentkezés!');
+                // Frissítsük a navigációt
+                if (window.location.reload) {
+                  setTimeout(() => window.location.reload(), 500);
+                }
+              },
+              onCancel: function() {
+                console.log('Bejelentkezés megszakítva');
+              }
+            });
+            
+            console.log('Auth modal sikeresen inicializálva');
+          }
         } catch (err) {
           console.error('Auth modal betöltési hiba:', err);
         }
-      }
-
-      // Supabase Auth inicializálás
-      if (window.initSupabaseAuth) {
-        await window.initSupabaseAuth();
+      } else {
+        // Ha nincs modal container, csak az auth-t inicializáljuk
+        if (window.initSupabaseAuth) {
+          await window.initSupabaseAuth();
+        }
       }
     })();
   </script>

@@ -656,3 +656,4 @@ window.SupabaseAuth = SupabaseAuth;
 window.SupabaseAuthModal = SupabaseAuthModal;
 window.initSupabaseAuth = initSupabaseAuth;
 window.getAuth = getAuth;
+window.globalAuthModal = globalAuthModal;
