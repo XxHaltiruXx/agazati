@@ -1,0 +1,47 @@
+<!-- ====================================
+     KÖZPONTI BEJELENTKEZÉSI MODAL
+     ==================================== -->
+<div id="pwModal">
+  <div id="pwBox">
+    <h2 style="margin: 0 0 8px">🔐 Bejelentkezés</h2>
+    <div style="font-size: 0.95rem; color: var(--muted); margin-bottom: 10px">
+      Írd be a jelszót a bejelentkezéshez.
+    </div>
+    <div class="password-container">
+      <div class="password-inner">
+        <input
+          id="pwInput"
+          type="password"
+          autocomplete="off"
+          placeholder="Jelszó"
+        />
+        <span
+          class="toggle-password"
+          id="togglePassword"
+          role="button"
+          tabindex="0"
+        ></span>
+      </div>
+    </div>
+    <div class="remember-container">
+      <input type="checkbox" id="rememberMe" />
+      <label for="rememberMe">Emlékezz rám</label>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 12px;
+      "
+    >
+      <button id="pwCancel" class="ghost">Mégse</button>
+      <button id="pwOk">Bejelentkezés</button>
+    </div>
+    <div class="error" id="pwNote">Helytelen jelszó</div>
+    <div class="info" id="pwInfo">Sikeres — hozzáférés engedélyezve</div>
+    <small class="hint">
+      Szóköz a bevitelnél: a jelszó trim-elve lesz (véletlen szóközök eltávolítása).
+    </small>
+  </div>
+</div>

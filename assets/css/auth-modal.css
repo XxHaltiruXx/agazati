@@ -1,0 +1,145 @@
+/* ====================================
+   KÖZPONTI AUTH MODAL STÍLUSOK
+   ==================================== */
+/* Ezt a fájlt minden admin oldal használja */
+
+#pwModal {
+  position: fixed !important;
+  inset: 0 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(2px) !important;
+  z-index: 10000 !important;
+  padding: 1rem !important;
+}
+
+#pwModal.show {
+  display: flex !important;
+}
+
+#pwBox {
+  background: var(--bg-mid) !important;
+  color: var(--text) !important;
+  padding: 1.2rem 1.4rem !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+  max-width: 380px !important;
+  box-shadow: 0 10px 30px rgba(11, 9, 26, 0.6), 0 0 20px rgba(127, 90, 240, 0.18) !important;
+  transform: scale(.98) !important;
+  opacity: 0 !important;
+  transition: transform 180ms cubic-bezier(.2, .9, .3, 1), opacity 180ms ease !important;
+  z-index: 1001 !important;
+  position: relative !important;
+}
+
+#pwModal.show #pwBox {
+  transform: scale(1) !important;
+  opacity: 1 !important;
+}
+
+.password-container {
+  width: 100%;
+}
+
+.password-inner {
+  position: relative;
+  width: 100%;
+}
+
+.password-inner input {
+  width: 100%;
+  padding: 0.55rem 38px 0.55rem 0.55rem;
+  background: #16162a;
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-sizing: border-box;
+  height: 40px;
+  font-size: 1rem;
+}
+
+.password-inner input:focus {
+  outline: none;
+  border-color: var(--accent-light);
+  box-shadow: 0 0 6px rgba(127, 90, 240, 0.5);
+}
+
+.toggle-password {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: transparent;
+  /* background-image beállítva JS-ben, nem CSS-ben */
+  background-size: 20px;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  transition: opacity 0.2s ease;
+  opacity: 0.7;
+  user-select: none;
+}
+
+.toggle-password:hover {
+  opacity: 1 !important;
+}
+
+.remember-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.remember-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.remember-container label {
+  cursor: pointer;
+  user-select: none;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.error {
+  color: var(--error);
+  display: none;
+  margin-top: 6px;
+  font-size: 0.9rem;
+}
+
+.info {
+  color: var(--success);
+  display: none;
+  margin-top: 6px;
+  font-size: 0.9rem;
+}
+
+.hint {
+  color: var(--muted);
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  #pwBox {
+    padding: 1.2rem 1.4rem !important;
+    max-width: 340px !important;
+  }
+  
+  .password-inner input {
+    font-size: 0.95rem;
+  }
+}

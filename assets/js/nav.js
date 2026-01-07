@@ -419,7 +419,8 @@
       baseStructure["Titkos"] = {
         icon: "assets/images/sidesecret.svg",
         items: [
-          { title: "Infosharer", link: "secret/infosharer/" }
+          { title: "Infosharer", link: "secret/infosharer/" },
+          { title: "Release Manager", link: "secret/releases/" }
         ]
       };
     }
@@ -1094,17 +1095,20 @@ window.toggleNav = function () {
     });
 
     // Bejelentkezési gomb megjelenítése a footer-ben — CSS kezeli a megjelenést
-    // --- SKIP SIDEBAR AUTH ON INFOSHARER PAGES ---
-    // Ha az oldal maga tartalmaz már auth gombot (pl. infosharer), akkor ne jelenjen meg a sidebar-ban.
+    // --- SKIP SIDEBAR AUTH ON INFOSHARER AND OTHER SECRET PAGES ---
+    // Ha az oldal maga tartalmaz már auth gombot (pl. infosharer, releases), akkor ne jelenjen meg a sidebar-ban.
     const hasPageAuth = (function() {
       try {
         if (window.location && typeof window.location.pathname === 'string') {
           const currentPathname = window.location.pathname.replace(/^\/agazati\/?/i, '/');
           if (currentPathname.includes('infosharer')) return true;
+          if (currentPathname.includes('releases')) return true;
+          if (currentPathname.includes('/secret/')) return true;
         }
         // alternatív: az oldal jelölheti, hogy saját auth buttonja van, pl. <button id="infosharer-auth"> vagy data attribútum
         if (document.getElementById('infosharer-auth')) return true;
         if (document.querySelector('[data-infosharer-auth]')) return true;
+        if (document.querySelector('[data-page-auth]')) return true;
       } catch (e) {}
       return false;
     })();

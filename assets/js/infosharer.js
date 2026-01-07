@@ -43,9 +43,9 @@ let totalStorageUsed = 0; // Bytes
 // DOM ELEMEK
 // ====================================
 
-let ta, openPw, pwModal, pwInput, pwOk, pwCancel, pwNote, pwInfo;
+let ta, openPw;
 let saveBtn, statusEl, copyBtn, copyBtn2, authBtns, mainBtns;
-let togglePassword, rememberMe, logoutBtn;
+let logoutBtn;
 let slotContainer, filesStatus;
 let uploadModal, deleteModal, fileInfoModal;
 let fileUploadInput, modalSlotTitle, selectedFileName, selectedFileSize;
@@ -56,20 +56,12 @@ function initDOMElements() {
   // Szövegszerkesztő elemek
   ta = document.getElementById("shared");
   openPw = document.getElementById("openPw");
-  pwModal = document.getElementById("pwModal");
-  pwInput = document.getElementById("pwInput");
-  pwOk = document.getElementById("pwOk");
-  pwCancel = document.getElementById("pwCancel");
-  pwNote = document.getElementById("pwNote");
-  pwInfo = document.getElementById("pwInfo");
   saveBtn = document.getElementById("saveBtn");
   statusEl = document.getElementById("status");
   copyBtn = document.getElementById("copyBtn");
   copyBtn2 = document.getElementById("copyBtn2");
   authBtns = document.getElementById("authBtns");
   mainBtns = document.querySelector(".mainBtns");
-  togglePassword = document.getElementById("togglePassword");
-  rememberMe = document.getElementById("rememberMe");
   logoutBtn = document.getElementById("logoutBtn");
 
   // Fájlkezelés elemei
@@ -1316,80 +1308,36 @@ async function reorderSlots(deletedSlotNum) {
 // ====================================
 
 function setupEventListeners() {
-  // Jelszó modal események
+  // Auth Modal inicializálás (AuthModal from auth.js)
+  const authModal = new window.AuthModal();
+  authModal.init({
+    onSuccess: () => {
+      // Sikeres bejelentkezés után
+      canEdit = true;
+      ta.readOnly = false;
+      saveBtn.disabled = false;
+      mainBtns.style.display = "none";
+      authBtns.style.display = "flex";
+      
+      // Remember me kezelés
+      if (document.getElementById("rememberMe")?.checked) {
+        setRememberToken();
+      }
+      
+      // Site-wide login
+      setSitewideLoginState();
+      
+      // Slot-ok frissítése
+      updateSlots();
+    },
+    onCancel: () => {
+      // Mégse gomb
+    }
+  });
+  
+  // Írás engedélyezése gomb
   openPw.addEventListener("click", () => {
-    pwNote.style.display = "none";
-    pwInfo.style.display = "none";
-    pwModal.style.display = "flex";
-    pwModal.setAttribute("aria-hidden", "false");
-    pwInput.value = "";
-    pwInput.type = "password";
-    togglePassword.style.backgroundImage = 'url("assets/images/view.webp")';
-    setTimeout(() => pwInput.focus(), 50);
-  });
-  
-  // Modal bezárás
-  const closeModal = () => {
-    pwModal.style.display = "none";
-    pwModal.setAttribute("aria-hidden", "true");
-    pwInput.value = "";
-    pwNote.style.display = "none";
-    pwInput.type = "password";
-    togglePassword.style.backgroundImage = 'url("assets/images/view.webp")';
-    rememberMe.checked = false;
-  };
-  
-  pwCancel.addEventListener("click", closeModal);
-  
-  // ESC billentyű
-  pwModal.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      closeModal();
-    }
-  });
-  
-  // Modal kattintás háttérre
-  pwModal.addEventListener("mousedown", (e) => {
-    if (e.target === pwModal && e.button === 0) {
-      e.preventDefault();
-      pwCancel.click();
-    }
-  });
-  
-  // Enter billentyű a jelszómezőben
-  pwInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      pwOk.click();
-    }
-  });
-  
-  // Jelszó OK gomb
-  pwOk.addEventListener("click", async () => {
-    const raw = pwInput.value || "";
-    const attempt = raw.trim();
-    pwNote.style.display = "none";
-    try {
-      const h = await sha256hex(attempt);
-      document.dispatchEvent(
-        new CustomEvent("infosharer:pwAttempt", {
-          detail: { hash: h, raw: attempt },
-        })
-      );
-    } catch (err) {
-      pwNote.textContent = "Hiba a jelszóellenőrzésnél";
-      pwNote.style.display = "block";
-    }
-  });
-  
-  // Jelszó láthatóság váltása
-  togglePassword.addEventListener("click", function () {
-    const isPassword = pwInput.type === "password";
-    pwInput.type = isPassword ? "text" : "password";
-    this.style.backgroundImage = isPassword
-      ? 'url("assets/images/hide.webp")'
-      : 'url("assets/images/view.webp")';
+    authModal.open();
   });
   
   // Mentés gomb
@@ -1501,64 +1449,6 @@ function setupEventListeners() {
       }
     });
   }
-  
-  // Bejelentkezési események
-  document.addEventListener("infosharer:pwAttempt", (ev) => {
-    try {
-      const sentHash = (ev?.detail?.hash || "").toLowerCase();
-      if (!PASSWORD_HASH || PASSWORD_HASH.length === 0) {
-        document.dispatchEvent(
-          new CustomEvent("infosharer:authFail", {
-            detail: { message: "A szerver nincs konfigurálva." },
-          })
-        );
-        return;
-      }
-      if (sentHash === PASSWORD_HASH.toLowerCase()) {
-        document.dispatchEvent(new CustomEvent("infosharer:authSuccess"));
-        canEdit = true;
-        saveBtn.disabled = false;
-        setTimeout(() => ta.focus(), 50);
-      } else {
-        document.dispatchEvent(
-          new CustomEvent("infosharer:authFail", {
-            detail: { message: "Helytelen jelszó" },
-          })
-        );
-      }
-    } catch (err) {
-      document.dispatchEvent(
-        new CustomEvent("infosharer:authFail", {
-          detail: { message: "Hiba" },
-        })
-      );
-    }
-  });
-  
-  document.addEventListener("infosharer:authSuccess", () => {
-    pwModal.style.display = "none";
-    pwModal.setAttribute("aria-hidden", "true");
-    pwInput.value = "";
-    pwNote.style.display = "none";
-    pwInfo.style.display = "block";
-    setTimeout(() => (pwInfo.style.display = "none"), 1200);
-    ta.readOnly = false;
-    mainBtns.style.display = "none";
-    authBtns.style.display = "flex";
-    
-    setSitewideLoginState();
-    if (rememberMe.checked) {
-      setRememberToken();
-    }
-    rememberMe.checked = false;
-    
-    updateSlots();
-  });
-  
-  document.addEventListener("infosharer:authFail", (e) => {
-    pwNote.textContent = e?.detail?.message || "Helytelen jelszó";
-    pwNote.style.display = "block";
-  });
 }
 
 // ====================================
@@ -1572,9 +1462,7 @@ async function initialize() {
   // DOM elemek inicializálása
   initDOMElements();
   
-  // Alapértelmezett beállítások
-  pwModal.style.display = "none";
-  pwModal.setAttribute("aria-hidden", "true");
+  // Alapértelmezett beállítások - modal rejtve van CSS-ben, nem kell inline
   ta.readOnly = true;
   saveBtn.disabled = true;
   

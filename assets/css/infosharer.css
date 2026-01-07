@@ -108,36 +108,7 @@ button.ghost:hover{
   color:white;
   border-color:var(--accent);
 }
-#pwModal{
-  position:fixed;
-  inset:0;
-  background:rgba(8,8,20,0.85);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-#pwBox{
-  background:var(--bg-mid);
-  color:var(--text);
-  padding:1.2rem 1.4rem;
-  border-radius:12px;
-  max-width:340px;
-  box-shadow:0 0 20px rgba(127,90,240,0.3);
-}
-#pwInput{
-  width:100%;
-  padding:0.55rem;
-  background:#16162a;
-  color:var(--text);
-  border:1px solid var(--accent);
-  border-radius:6px;
-}
-#pwInput:focus{
-  outline:none;
-  border-color:var(--accent-light);
-  box-shadow:0 0 6px var(--accent-light);
-}
+/* Modal és password stílusok most az auth-modal.css-ben vannak */
 .error{
   color:var(--error);
   display:none;
@@ -182,50 +153,7 @@ button:disabled{
   color:var(--muted);
   border-color:transparent;
 }
-.password-container {
-  width: 100%;
-}
-.password-inner {
-  position: relative;
-  width: 100%;
-}
-.password-inner input {
-  width: 100%;
-  padding: 0.55rem 38px 0.55rem 0.55rem;
-  background: #16162a;
-  color: var(--text);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  box-sizing: border-box;
-  height: 40px;
-  font-size: 1rem;
-}
-.toggle-password {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: transparent;
-  background-image: url("../../assets/images/view.webp");
-  background-size: 20px;
-  background-position: center;
-  background-repeat: no-repeat;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 4px;
-  width: 28px;
-  height: 28px;
-  transition: all 0.2s ease;
-  opacity: 0.7;
-  user-select: none;
-  filter: brightness(0) invert(1);
-}
-
-.toggle-password:hover {
-  opacity: 1;
-  background-color: rgba(127, 90, 240, 0.06);
-}
+/* Password container és toggle password stílusok az auth-modal.css-ben */
 .remember-container {
   display: flex;
   align-items: center;

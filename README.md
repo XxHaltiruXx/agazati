@@ -34,6 +34,7 @@
 | 📱 **Reszponzív** | Minden eszközön tökéletesen működik |
 | 🎨 **Modern UI** | Glassmorphism & gradient design |
 | 🔐 **Bejelentkezés** | Védett tartalmak elérése |
+| 🔄 **Auto-update** | Automatikus verzióellenőrzés GitHub Releases-ből |
 
 ---
 
@@ -96,8 +97,9 @@ agazati/
 - **Bootstrap 5.3.3** - Reszponzív UI komponensek
 - **Pyodide** - Python a böngészőben (WebAssembly)
 - **Space Grotesk** - Modern betűtípus
-- **GitHub API** - Utolsó commit dátum megjelenítése
+- **GitHub API** - Utolsó commit dátum + verzióellenőrzés
 - **SessionStorage** - Navigáció állapot mentése
+- **LocalStorage** - Verzió cache és commit tracking
 
 ---
 
@@ -139,6 +141,12 @@ agazati/
 ### 🌐 HTML/CSS Runner
 - Bal oldalt HTML, jobb oldalt CSS szerkesztő
 - Valós idejű előnézet alul
+
+### 🔄 Automatikus Verzióellenőrzés
+- Naponta ellenőrzi a GitHub Releases-t új verzió esetén
+- Értesítés megjelenítése, ha frissítés érhető el
+- Cache-elt verzióinformációk a gyors betöltéshez
+- Részletes információ a [RELEASES.md](RELEASES.md) fájlban
 
 ---
 

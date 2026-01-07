@@ -162,3 +162,111 @@ div.contacts div {
   margin: 0 10px;
   display: block;
 }
+
+/* Verzió értesítés stílusok */
+.version-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  max-width: 400px;
+  opacity: 0;
+  transform: translateX(450px);
+  transition: all 0.3s ease-in-out;
+}
+
+.version-notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.version-notification-content {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.version-notification-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  min-width: 200px;
+}
+
+.version-notification-text strong {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.version-notification-link {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.version-notification-link:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.version-notification-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  margin-left: auto;
+}
+
+.version-notification-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+  .version-notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    transform: translateY(-120px);
+  }
+  
+  .version-notification.show {
+    transform: translateY(0);
+  }
+  
+  .version-notification-content {
+    padding: 14px 16px;
+  }
+  
+  .version-notification-text {
+    font-size: 13px;
+    min-width: auto;
+  }
+  
+  .version-notification-link {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}

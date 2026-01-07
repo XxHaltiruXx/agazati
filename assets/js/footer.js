@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", function () {
   versionElements.forEach((element) => {
     element.textContent = APP_VERSION;
   });
+  
+  // Verzió ellenőrzés a GitHub Releases alapján
+  checkForNewVersion();
 });
 
 const repoOwner = "XxHaltiruXx";
@@ -20,6 +23,9 @@ const KEY_LAST_COMMIT_ISO = LS_PREFIX + "lastCommitISO";
 const KEY_LAST_COMMIT_FMT = LS_PREFIX + "lastCommitFormatted";
 const KEY_LAST_CHECK_TS = LS_PREFIX + "lastCheckTs";
 const KEY_SKIP_UNTIL_TS = LS_PREFIX + "skipUntilTs";
+const KEY_LATEST_VERSION = LS_PREFIX + "latestVersion";
+const KEY_VERSION_CHECK_TS = LS_PREFIX + "versionCheckTs";
+const VERSION_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 óra
 
 
 function computeBasePath(repo) {
@@ -96,6 +102,116 @@ async function fetchLatestCommitISO(owner, repo) {
 function setFooterDate(formatted) {
   const timeEl = document.querySelector(".time");
   if (timeEl) timeEl.textContent = formatted;
+}
+
+async function fetchLatestRelease(owner, repo) {
+  const url = `${githubApiBase}/repos/${owner}/${repo}/releases/latest`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    if (res.status === 404) {
+      console.log("[agazati] Még nincs release a repository-ban.");
+      return null;
+    }
+    throw new Error(`GitHub Releases API error ${res.status}`);
+  }
+  const data = await res.json();
+  return {
+    version: data.tag_name,
+    name: data.name,
+    url: data.html_url,
+    publishedAt: data.published_at
+  };
+}
+
+function compareVersions(v1, v2) {
+  // Egyszerű verzió összehasonlítás (pl. "1.4.3" vs "1.5.0")
+  // Eltávolítja a 'v' prefix-et ha van
+  const clean1 = v1.replace(/^v/, "");
+  const clean2 = v2.replace(/^v/, "");
+  
+  const parts1 = clean1.split(".").map(Number);
+  const parts2 = clean2.split(".").map(Number);
+  
+  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+    const p1 = parts1[i] || 0;
+    const p2 = parts2[i] || 0;
+    if (p1 > p2) return 1;
+    if (p1 < p2) return -1;
+  }
+  return 0;
+}
+
+async function checkForNewVersion() {
+  try {
+    const now = nowTs();
+    const lastCheck = parseInt(localStorage.getItem(KEY_VERSION_CHECK_TS) || "0", 10);
+    
+    // Ha kevesebb mint 24 óra telt el az utolsó ellenőrzés óta
+    if (lastCheck && now - lastCheck < VERSION_CHECK_INTERVAL_MS) {
+      const cachedVersion = localStorage.getItem(KEY_LATEST_VERSION);
+      if (cachedVersion && compareVersions(cachedVersion, APP_VERSION) > 0) {
+        console.log(`[agazati] Cached: új verzió elérhető: ${cachedVersion} (jelenlegi: ${APP_VERSION})`);
+        showVersionNotification(cachedVersion);
+      }
+      return;
+    }
+    
+    // Új ellenőrzés
+    const release = await fetchLatestRelease(repoOwner, repoName);
+    if (!release) {
+      localStorage.setItem(KEY_VERSION_CHECK_TS, now.toString());
+      return;
+    }
+    
+    localStorage.setItem(KEY_LATEST_VERSION, release.version);
+    localStorage.setItem(KEY_VERSION_CHECK_TS, now.toString());
+    
+    if (compareVersions(release.version, APP_VERSION) > 0) {
+      console.log(`[agazati] Új verzió elérhető: ${release.version} (jelenlegi: ${APP_VERSION})`);
+      showVersionNotification(release.version, release.url);
+    } else {
+      console.log(`[agazati] Az alkalmazás naprakész (${APP_VERSION})`);
+    }
+  } catch (err) {
+    console.error("[agazati] Verzió ellenőrzés sikertelen:", err);
+  }
+}
+
+function showVersionNotification(newVersion, releaseUrl) {
+  // Ellenőrzi, hogy már létezik-e értesítés
+  if (document.querySelector(".version-notification")) return;
+  
+  const notification = document.createElement("div");
+  notification.className = "version-notification";
+  notification.innerHTML = `
+    <div class="version-notification-content">
+      <span class="version-notification-text">
+        🎉 Új verzió elérhető: <strong>${newVersion}</strong> (jelenlegi: ${APP_VERSION})
+      </span>
+      ${releaseUrl ? `<a href="${releaseUrl}" target="_blank" rel="noopener" class="version-notification-link">Részletek</a>` : ''}
+      <button class="version-notification-close" aria-label="Bezárás">×</button>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animáció a megjelenéshez
+  setTimeout(() => notification.classList.add("show"), 100);
+  
+  // Bezárás gomb
+  const closeBtn = notification.querySelector(".version-notification-close");
+  closeBtn.addEventListener("click", () => {
+    notification.classList.remove("show");
+    setTimeout(() => notification.remove(), 300);
+  });
+  
+  // Automatikus eltűnés 10 másodperc után
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.classList.remove("show");
+      setTimeout(() => notification.remove(), 300);
+    }
+  }, 10000);
 }
 
 async function performCommitCheck() {
