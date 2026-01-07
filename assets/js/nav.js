@@ -88,25 +88,166 @@
   font-weight: 600;
 }
 
-/* auth gomb (lila) */
-#navAuthBtn {
+/* auth gomb (lila) - DEPRECATED, már nem használjuk a sidenavban */
+
+/* Navbar auth gomb jobb oldalon */
+.navbar-auth-container {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: var(--nav-height, 90px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 85px; /* Fix szélesség hogy ne ugorjon */
+  padding: 0 20px;
+  background: linear-gradient(90deg, rgba(76,11,206,0) 0%, rgba(76,11,206,1) 20%, rgba(76,11,206,1) 100%);
+  z-index: 4;
+  pointer-events: none; /* Ne takarja el a navbar scrolling-ot */
+}
+
+.navbar-auth-container > * {
+  pointer-events: auto; /* De a gyerek elemek kattinthatók */
+}
+
+.navbar-auth-btn {
   background: var(--accent);
   color: #fff;
   border: none;
-  padding: 0.56rem 0.9rem;
-  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 50%;
   cursor: pointer;
   font-weight: 600;
-  width: 100%;
-  max-width: none;
-  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
-  box-shadow: 0 6px 18px rgba(127,90,240,0.12);
+  font-size: 18px;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 4px 12px rgba(127,90,240,0.3);
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Kezdetben rejtve amíg a JS nem inicializálja */
+  opacity: 0;
+  visibility: hidden;
+  position: absolute; /* Abszolút pozíció a container-ben */
 }
-#navAuthBtn:hover { transform: translateY(-2px); background: var(--accent-light); }
+.navbar-auth-btn.loaded {
+  opacity: 1;
+  visibility: visible;
+}
+.navbar-auth-btn:hover { 
+  background: var(--accent-light);
+  box-shadow: 0 6px 16px rgba(127,90,240,0.4);
+}
+
+.navbar-user-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  overflow: hidden;
+  /* Teljesen rejtve amíg a JS nem tölti be */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute; /* Abszolút pozíció - ugyanott mint a gomb */
+}
+.navbar-user-avatar.loaded {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.navbar-user-avatar:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+.navbar-user-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.navbar-user-avatar span {
+  position: relative;
+  z-index: 1;
+}
+
+/* User dropdown menu */
+.navbar-user-dropdown {
+  position: fixed; /* Fixed pozíció hogy mindig jó helyen legyen */
+  top: calc(var(--nav-height, 90px) + 5px); /* Navbar alatt */
+  right: 20px; /* Jobbra igazítva */
+  background: #1a1a2e;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  padding: 8px;
+  min-width: 180px;
+  display: none;
+  z-index: 1000;
+  border: 1px solid rgba(127,90,240,0.3);
+}
+.navbar-user-dropdown.show {
+  display: block;
+}
+.navbar-user-dropdown-item {
+  padding: 10px 14px;
+  color: #e4e4ff;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.navbar-user-dropdown-item:hover {
+  background: rgba(127,90,240,0.15);
+}
+.navbar-user-dropdown-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 6px 0;
+}
+.navbar-user-dropdown-email {
+  padding: 10px 14px;
+  color: #888ab8;
+  font-size: 12px;
+  word-break: break-all;
+}
 
 /* mobil finomítás */
 @media (max-width:700px) {
   #mySidenav .nav-item { padding: 0.6rem; }
+  .navbar-auth-container {
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .navbar-auth-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .navbar-user-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+  .navbar-user-dropdown {
+    min-width: 160px;
+    right: -10px;
+  }
 }
 `;
   const style = document.createElement('style');
@@ -183,6 +324,19 @@
               <a class="nav-link" href="math/alapok">matek</a>
             </div>
           </div>
+        </div>
+        <div class="navbar-auth-container" id="navbarAuthContainer">
+          <div class="navbar-user-avatar" id="navbarUserAvatar">
+            <span id="navbarUserInitials"></span>
+            <div class="navbar-user-dropdown" id="navbarUserDropdown">
+              <div class="navbar-user-dropdown-email" id="navbarUserEmail"></div>
+              <div class="navbar-user-dropdown-divider"></div>
+              <div class="navbar-user-dropdown-item" id="navbarLogoutBtn">
+                <span>🚪</span> Kijelentkezés
+              </div>
+            </div>
+          </div>
+          <button class="navbar-auth-btn" id="navbarAuthBtn" title="Bejelentkezés">👤</button>
         </div>
       </nav>
     `;
@@ -382,7 +536,13 @@
 
   /* ======= Bejelentkezési állapot kezelése ======= */
   function updateLoginStatus() {
-    const btn = document.getElementById('navAuthBtn');
+    const btn = document.getElementById('navbarAuthBtn');
+    const avatar = document.getElementById('navbarUserAvatar');
+    const initials = document.getElementById('navbarUserInitials');
+    const dropdown = document.getElementById('navbarUserDropdown');
+    const logoutBtn = document.getElementById('navbarLogoutBtn');
+    const emailEl = document.getElementById('navbarUserEmail');
+    
     if (!btn) return;
     
     // Ellenőrizzük hogy a Supabase auth betöltött-e
@@ -397,19 +557,87 @@
     btn.parentNode.replaceChild(newBtn, btn);
     
     if (isLoggedIn) {
-      newBtn.textContent = 'Kijelentkezés';
-      newBtn.setAttribute('aria-pressed', 'true');
-      newBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        logoutFromNav();
-      });
+      // Gomb elrejtése bejelentkezés után
+      newBtn.classList.remove('loaded');
+      
+      // Profilkép megjelenítése
+      if (avatar && initials) {
+        const user = globalAuth.getCurrentUser();
+        if (user && user.email) {
+          // Email első betűje az avatárba
+          const firstLetter = user.email.charAt(0).toUpperCase();
+          initials.textContent = firstLetter;
+          avatar.title = user.email;
+          
+          // Email megjelenítése a dropdown-ban
+          if (emailEl) {
+            emailEl.textContent = user.email;
+          }
+          
+          // Most jelenítjük meg az avatart (loaded class)
+          avatar.classList.add('loaded');
+          // Most jelenítjük meg az avatart (loaded class)
+          avatar.classList.add('loaded');
+          
+          // Avatar kattintás - dropdown toggle (NEM klónozzuk, csak eltávolítjuk az event listener-t)
+          // Először távolítsuk el az összes korábbi listener-t
+          avatar.replaceWith(avatar.cloneNode(true));
+          const freshAvatar = document.getElementById('navbarUserAvatar');
+          
+          if (freshAvatar) {
+            // Megtartjuk a loaded class-t
+            freshAvatar.classList.add('loaded');
+            
+            freshAvatar.addEventListener('click', function(e) {
+              e.stopPropagation();
+              const dd = document.getElementById('navbarUserDropdown');
+              if (dd) {
+                dd.classList.toggle('show');
+              }
+            });
+          }
+          
+          // Kijelentkezés gomb a dropdown-ban
+          const freshLogoutBtn = document.getElementById('navbarLogoutBtn');
+          if (freshLogoutBtn) {
+            freshLogoutBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              logoutFromNav();
+            });
+          }
+        }
+      }
     } else {
-      newBtn.textContent = 'Bejelentkezés';
+      // Bejelentkezési gomb megjelenítése
+      newBtn.classList.add('loaded');
       newBtn.setAttribute('aria-pressed', 'false');
       newBtn.addEventListener('click', function(e) {
         e.preventDefault();
         openLoginModal();
       });
+      
+      // Profilkép elrejtése
+      if (avatar) {
+        avatar.classList.remove('loaded');
+        // Dropdown bezárása
+        if (dropdown) {
+          dropdown.classList.remove('show');
+        }
+      }
+    }
+    
+    // Kattintás bárhova bezárja a dropdown-ot (csak egyszer adjuk hozzá)
+    if (!document.__dropdownClickHandlerAdded) {
+      document.addEventListener('click', function(e) {
+        const dd = document.getElementById('navbarUserDropdown');
+        const av = document.getElementById('navbarUserAvatar');
+        // Ha nem az avatarra kattintottunk, zárjuk be a dropdown-ot
+        if (dd && av && !av.contains(e.target)) {
+          dd.classList.remove('show');
+        }
+      });
+      document.__dropdownClickHandlerAdded = true;
     }
   }
 
@@ -905,24 +1133,8 @@ window.toggleNav = function () {
       return false;
     })();
 
-    if (!hasPageAuth) {
-      const authWrap = document.createElement('div');
-      authWrap.style.width = '100%';
-      authWrap.style.display = 'flex';
-      authWrap.style.justifyContent = 'center';
-      authWrap.style.alignItems = 'center';
-
-      const authBtn = document.createElement('button');
-      authBtn.id = 'navAuthBtn';
-      authBtn.className = 'nav-auth-btn';
-      // NE állítsunk inline width-et itt — a CSS fent garantálja, hogy teljes szélességet kapjon
-      authBtn.textContent = 'Bejelentkezés';
-
-      authWrap.appendChild(authBtn);
-      footer.appendChild(authWrap);
-    } else {
-      // Ha kihagytuk az auth gombot, hagyjuk üresen a footert (vagy oda tehetünk más elemeket később)
-    }
+    // Auth gomb mostantól a navbar jobb oldalán van, nem a sidenav footer-ben
+    // Üresen hagyjuk a footert vagy más elemeket tehetünk ide később
 
     // Frissítsd a bejelentkezési állapotot
     updateLoginStatus();
