@@ -163,9 +163,7 @@
               onSuccess: function() {
                 console.log('Sikeres bejelentkezés!');
                 // Frissítsük a navigációt
-                if (window.location.reload) {
-                  setTimeout(() => window.location.reload(), 500);
-                }
+                setTimeout(() => window.location.reload(), 500);
               },
               onCancel: function() {
                 console.log('Bejelentkezés megszakítva');
