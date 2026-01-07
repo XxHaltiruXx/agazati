@@ -185,24 +185,19 @@ class SupabaseAuth {
   setupRealtimeSubscription() {
     if (!this.sb || this.realtimeChannel) return;
 
-    // console.log('🔔 Setting up realtime subscription for user_roles...');
+    console.log('🔔 Realtime subscription beállítása...');
 
     this.realtimeChannel = this.sb
-      .channel('user_roles_changes', {
-        config: {
-          broadcast: { self: true },
-          presence: { key: '' }
-        }
-      })
+      .channel('user_roles_changes')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'UPDATE',
           schema: 'public',
           table: 'user_roles'
         },
         async (payload) => {
-          console.log('🔔 Realtime event érkezett:', payload.eventType, payload);
+          console.log('🔔 Realtime UPDATE event:', payload);
           await this.handleUserRoleChange(payload);
         }
       )
@@ -213,25 +208,27 @@ class SupabaseAuth {
           console.error('❌ Realtime subscription hiba:', err);
         } else if (status === 'TIMED_OUT') {
           console.warn('⏱️ Realtime subscription timeout');
+        } else {
+          console.log('🔔 Realtime status:', status);
         }
       });
   }
 
   async handleUserRoleChange(payload) {
-    const { eventType, new: newData, old: oldData } = payload;
+    const { eventType, new: newData } = payload;
 
-    // console.log('🔔 Realtime event:', { eventType, newData, oldData });
+    console.log('🔔 handleUserRoleChange:', { eventType, newData });
 
     // Csak akkor foglalkozunk vele, ha a saját user_id-nk érintett
     const currentUserId = this.getUserId();
     if (!currentUserId) return;
 
-    const changedUserId = newData?.user_id || oldData?.user_id;
+    const changedUserId = newData?.user_id;
     
     if (changedUserId !== currentUserId) {
       // Más felhasználó változott - csak frissítjük a nézetet ha admin oldalon vagyunk
       if (window.location.pathname.includes('secret/admin')) {
-        // console.log('👥 Más felhasználó admin státusza változott, frissítés...');
+        console.log('👥 Más felhasználó admin státusza változott, frissítés...');
         if (window.loadUsers && typeof window.loadUsers === 'function') {
           await window.loadUsers();
         }
@@ -239,55 +236,59 @@ class SupabaseAuth {
       return;
     }
 
-    // Saját admin státuszunk változott
-    if (eventType === 'UPDATE') {
-      const wasAdmin = oldData?.is_admin === true;
-      const isNowAdmin = newData?.is_admin === true;
+    // SAJÁT admin státuszunk változott!
+    console.log('🔥 SAJÁT admin státusz változás detektálva!');
+    
+    // Lekérdezzük a korábbi állapotot és az újat
+    const wasAdmin = this.isAdmin; // Jelenlegi állapot (régi)
+    const isNowAdmin = newData?.is_admin === true; // Új állapot
+    
+    console.log(`🔄 Státusz változás: ${wasAdmin} -> ${isNowAdmin}`);
 
-      // Csak akkor csináljunk valamit ha TÉNYLEG változott
-      if (wasAdmin === isNowAdmin) {
-        // console.log('✅ Admin státusz nem változott:', { wasAdmin, isNowAdmin });
-        return;
-      }
-
-      // console.log(`🔔 SAJÁT admin státusz VÁLTOZÁS: ${wasAdmin} -> ${isNowAdmin}`);
-      
-      // Frissítsük az isAdmin értéket
-      this.isAdmin = isNowAdmin;
-
-      // Értesítés megjelenítése
-      if (isNowAdmin) {
-        this.showAdminGrantedNotification();
-      } else {
-        this.showAdminRevokedNotification();
-      }
-
-      // UI frissítése - küldjünk CustomEvent-et
-      window.dispatchEvent(new CustomEvent('loginStateChanged', { 
-        detail: { loggedIn: true, isAdmin: this.isAdmin } 
-      }));
-      
-      // Navbar frissítése
-      if (window.rebuildNav && typeof window.rebuildNav === 'function') {
-        window.rebuildNav();
-      }
-
-      // Ha elvették az admin jogot és admin oldalon vagyunk, AZONNAL irányítsuk át
-      if (!isNowAdmin && this.isOnAdminPage()) {
-        // Rövid késleltetés csak a notification megjelenítéséhez
-        setTimeout(() => {
-          const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
-          const lastPath = this.lastKnownPath || baseUrl;
-          window.location.href = lastPath.includes('secret/') ? baseUrl : lastPath;
-        }, 2000);
-      } else if (isNowAdmin) {
-        // Ha admin jogot kaptunk, frissítsük az oldalt 3 másodperc múlva
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
-      }
+    // Csak akkor csináljunk valamit ha TÉNYLEG változott
+    if (wasAdmin === isNowAdmin) {
+      console.log('✅ Nincs változás, kihagyva');
+      return;
     }
-    // INSERT eseményt figyelmen kívül hagyunk (regisztráció, első létrehozás)
+
+    // Frissítsük az isAdmin értéket
+    this.isAdmin = isNowAdmin;
+    console.log(`✅ Új admin státusz beállítva: ${this.isAdmin}`);
+
+    // Értesítés megjelenítése
+    if (isNowAdmin) {
+      this.showAdminGrantedNotification();
+    } else {
+      this.showAdminRevokedNotification();
+    }
+
+    // UI frissítése - küldjünk CustomEvent-et
+    console.log('📡 loginStateChanged event kibocsajtása...');
+    window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+      detail: { loggedIn: true, isAdmin: this.isAdmin } 
+    }));
+    
+    // Navbar frissítése
+    if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+      window.rebuildNav();
+    }
+
+    // Ha elvették az admin jogot és admin oldalon vagyunk, AZONNAL irányítsuk át
+    if (!isNowAdmin && this.isOnAdminPage()) {
+      console.warn('⚠️ Admin jog elvesztve admin oldalon - átirányítás...');
+      // Rövid késleltetés csak a notification megjelenítéséhez
+      setTimeout(() => {
+        const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
+        const lastPath = this.lastKnownPath || baseUrl;
+        window.location.href = lastPath.includes('secret/') ? baseUrl : lastPath;
+      }, 2000);
+    } else if (isNowAdmin) {
+      // Ha admin jogot kaptunk, frissítsük az oldalt 3 másodperc múlva
+      console.log('🎉 Admin jog megkapva - oldal frissítése 3 mp múlva');
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    }
   }
 
   showAdminGrantedNotification() {
