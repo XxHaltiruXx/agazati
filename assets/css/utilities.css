@@ -47,6 +47,10 @@
 .hidden-input {
   display: none;
 }
+
+#usersTableBody .text-muted {
+  color: #ffffff !important;
+}
  
 @media (max-width: 768px) {
   .code-block {
