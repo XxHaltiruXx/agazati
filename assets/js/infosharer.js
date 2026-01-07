@@ -5,21 +5,15 @@
 const SUPABASE_URL = "https://ccpuoqrbmldunshaxpes.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjcHVvcXJibWxkdW5zaGF4cGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MTE2MDUsImV4cCI6MjA3ODA4NzYwNX0.QpVCmzF96Fp5hdgFyR0VkT9RV6qKiLkA8Yv_LArSk5I";
-const PASSWORD_HASH =
-  "248e464b6e49676c615430dbfb831787d3d7c78e52bd2cb2461608991f7204f6";
 const TABLE = "infosharer";
 const ID = 1;
 const BUCKET_NAME = "infosharer-uploads";
 const MAX_STORAGE_BYTES = 50 * 1024 * 1024; // 50 MB összesen
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB per file
-const REMEMBER_ME_KEY = "infosharer_remember_token";
-const SITEWIDE_LOGIN_KEY = "__agazati_login_state";
-const SITEWIDE_LOGIN_EXPIRY = "__agazati_login_expiry";
-const REMEMBER_DURATION = 365 * 24 * 60 * 60 * 1000;
-const SITEWIDE_LOGIN_DURATION = 24 * 60 * 60 * 1000; // 24 óra
 
 // Supabase kliens importálása dinamikusan
 let supabase;
+let globalAuth = null; // Auth instance from supabase-auth.js
 
 async function initSupabase() {
   const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/+esm");
@@ -87,7 +81,7 @@ function initDOMElements() {
 // SEGÉDFÜGGVÉNYEK
 // ====================================
 
-// SHA-256 hash függvény
+// SHA-256 hash függvény (már nem használt, de megtartjuk backward compatibilityért)
 async function sha256hex(str) {
   const enc = new TextEncoder().encode(str);
   const digest = await crypto.subtle.digest("SHA-256", enc);
@@ -217,82 +211,6 @@ function updateStorageDisplay() {
     storageBar.style.background = 'linear-gradient(90deg, var(--accent), var(--accent-light))';
     freeSpace.style.color = 'var(--success)';
   }
-}
-
-// ====================================
-// BEJELENTKEZÉSI FUNKCIÓK
-// ====================================
-
-// Site-wide bejelentkezés
-function setSitewideLoginState() {
-  try {
-    const expiry = Date.now() + SITEWIDE_LOGIN_DURATION;
-    localStorage.setItem(SITEWIDE_LOGIN_KEY, "logged_in");
-    localStorage.setItem(SITEWIDE_LOGIN_EXPIRY, expiry.toString());
-    
-    if (window.setLoginState) {
-      window.setLoginState();
-    }
-  } catch (e) {
-    console.error("Site-wide bejelentkezési állapot mentése sikertelen:", e);
-  }
-}
-
-function checkSitewideLogin() {
-  try {
-    const loginState = localStorage.getItem(SITEWIDE_LOGIN_KEY);
-    const loginExpiry = localStorage.getItem(SITEWIDE_LOGIN_EXPIRY);
-    
-    if (!loginState || !loginExpiry) return false;
-    
-    const now = Date.now();
-    if (now > parseInt(loginExpiry)) {
-      localStorage.removeItem(SITEWIDE_LOGIN_KEY);
-      localStorage.removeItem(SITEWIDE_LOGIN_EXPIRY);
-      return false;
-    }
-    
-    return loginState === "logged_in";
-  } catch (e) {
-    return false;
-  }
-}
-
-function clearSitewideLogin() {
-  try {
-    localStorage.removeItem(SITEWIDE_LOGIN_KEY);
-    localStorage.removeItem(SITEWIDE_LOGIN_EXPIRY);
-    
-    if (window.logoutFromNav) {
-      window.logoutFromNav();
-    }
-  } catch (e) {
-    console.error("Site-wide bejelentkezés törlése sikertelen:", e);
-  }
-}
-
-// Remember me token kezelése
-function setRememberToken() {
-  const token = {
-    value: PASSWORD_HASH,
-    expires: Date.now() + REMEMBER_DURATION,
-  };
-  localStorage.setItem(REMEMBER_ME_KEY, JSON.stringify(token));
-}
-
-function checkRememberMe() {
-  const stored = localStorage.getItem(REMEMBER_ME_KEY);
-  if (!stored) return false;
-  try {
-    const token = JSON.parse(stored);
-    if (token.value === PASSWORD_HASH && token.expires > Date.now()) {
-      return true;
-    }
-  } catch (e) {
-    console.error("Hibás remember token:", e);
-  }
-  localStorage.removeItem(REMEMBER_ME_KEY);
-  return false;
 }
 
 // ====================================
@@ -1308,27 +1226,24 @@ async function reorderSlots(deletedSlotNum) {
 // ====================================
 
 function setupEventListeners() {
-  // Auth Modal inicializálás (AuthModal from auth.js)
-  const authModal = new window.AuthModal();
+  // Auth Modal inicializálás (SupabaseAuthModal from supabase-auth.js)
+  const authModal = new window.SupabaseAuthModal(globalAuth);
   authModal.init({
     onSuccess: () => {
       // Sikeres bejelentkezés után
-      canEdit = true;
-      ta.readOnly = false;
-      saveBtn.disabled = false;
-      mainBtns.style.display = "none";
-      authBtns.style.display = "flex";
-      
-      // Remember me kezelés
-      if (document.getElementById("rememberMe")?.checked) {
-        setRememberToken();
+      // Admin ellenőrzés
+      if (globalAuth.isAdminUser()) {
+        canEdit = true;
+        ta.readOnly = false;
+        saveBtn.disabled = false;
+        mainBtns.style.display = "none";
+        authBtns.style.display = "flex";
+        
+        // Slot-ok frissítése
+        updateSlots();
+      } else {
+        alert('❌ Nincs jogosultságod szerkesztéshez! Csak admin felhasználók szerkeszthetnek.');
       }
-      
-      // Site-wide login
-      setSitewideLoginState();
-      
-      // Slot-ok frissítése
-      updateSlots();
     },
     onCancel: () => {
       // Mégse gomb
@@ -1374,9 +1289,9 @@ function setupEventListeners() {
   copyBtn2.addEventListener("click", () => handleCopy(copyBtn2));
   
   // Kijelentkezés
-  logoutBtn.addEventListener("click", function () {
-    localStorage.removeItem(REMEMBER_ME_KEY);
-    clearSitewideLogin();
+  logoutBtn.addEventListener("click", async function () {
+    // Supabase logout
+    await globalAuth.signOut();
     
     canEdit = false;
     ta.readOnly = true;
@@ -1456,8 +1371,19 @@ function setupEventListeners() {
 // ====================================
 
 async function initialize() {
+  // Auth Modal HTML betöltése
+  const authModalContainer = document.getElementById('authModalContainer');
+  if (authModalContainer) {
+    const response = await fetch('assets/components/auth-modal.html');
+    const html = await response.text();
+    authModalContainer.innerHTML = html;
+  }
+
   // Supabase inicializálása
   await initSupabase();
+  
+  // Supabase Auth inicializálása
+  globalAuth = await window.initSupabaseAuth();
   
   // DOM elemek inicializálása
   initDOMElements();
@@ -1466,8 +1392,8 @@ async function initialize() {
   ta.readOnly = true;
   saveBtn.disabled = true;
   
-  // Ellenőrizzük a remember me és site-wide bejelentkezést
-  if (checkRememberMe() || checkSitewideLogin()) {
+  // Ellenőrizzük az authentikációt és admin jogot
+  if (globalAuth.isAuthenticated() && globalAuth.isAdminUser()) {
     canEdit = true;
     ta.readOnly = false;
     saveBtn.disabled = false;

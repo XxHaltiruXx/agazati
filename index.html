@@ -132,6 +132,37 @@
 
   </main>
 
+  <!-- Supabase Auth Modal Container -->
+  <div id="authModalContainer"></div>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-auth.js"></script>
+  <link rel="stylesheet" href="assets/css/auth-modal.css" />
+
+  <!-- Auth Init Script -->
+  <script>
+    // Supabase Auth inicializálása a főoldalon
+    (async function() {
+      // Modal HTML betöltése
+      const authModalContainer = document.getElementById('authModalContainer');
+      if (authModalContainer) {
+        try {
+          const response = await fetch('assets/components/auth-modal.html');
+          const html = await response.text();
+          authModalContainer.innerHTML = html;
+        } catch (err) {
+          console.error('Auth modal betöltési hiba:', err);
+        }
+      }
+
+      // Supabase Auth inicializálás
+      if (window.initSupabaseAuth) {
+        await window.initSupabaseAuth();
+      }
+    })();
+  </script>
+
   <script src="assets/js/nav.js"></script>
   <script src="assets/js/search.js"></script>
   <script src="assets/js/footer.js"></script>

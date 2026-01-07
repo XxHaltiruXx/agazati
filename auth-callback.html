@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bejelentkezés folyamatban... - Agazati</title>
+  <link rel="shortcut icon" href="assets/images/agazati.ico" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0b091a;
+      --bg-mid: #16162a;
+      --text: #e4e4f0;
+      --accent: #7f5af0;
+      --accent-light: #9d7cf5;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .callback-container {
+      text-align: center;
+      max-width: 500px;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 2rem;
+      border: 4px solid rgba(127, 90, 240, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: var(--accent-light);
+    }
+
+    p {
+      color: var(--text);
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+
+    .error-box {
+      background: rgba(255, 77, 77, 0.1);
+      border: 1px solid rgba(255, 77, 77, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      display: none;
+    }
+
+    .error-box.show {
+      display: block;
+    }
+
+    .error-box h2 {
+      color: #ff4d4d;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      font-weight: 600;
+    }
+
+    .back-link:hover {
+      background: var(--accent-light);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="callback-container">
+    <div class="spinner"></div>
+    <h1>Bejelentkezés folyamatban...</h1>
+    <p>Kérlek várj, amíg feldolgozzuk az authentikációdat.</p>
+
+    <div class="error-box" id="errorBox">
+      <h2>❌ Hiba történt</h2>
+      <p id="errorMessage">Ismeretlen hiba</p>
+      <a href="index.html" class="back-link">Vissza a főoldalra</a>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://rtguezsjtkxjwhipuaqe.supabase.co"
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z3VlenNqdGt4andoaXB1YXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NTY5OTgsImV4cCI6MjA4MzMzMjk5OH0.96ZPMeVMKOEt2nOfflI_pm9-ILLKp-S6x20MGu-9pV8"
+
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    async function handleAuthCallback() {
+      try {
+        // Feldolgozza a hash-ben lévő access token-t
+        const { data: sessionData, error: sessionError } = await sb.auth.getSession()
+        
+        if (sessionError) {
+          throw sessionError
+        }
+
+        // Ellenőrizzük a user-t
+        const { data: userData, error: userError } = await sb.auth.getUser()
+        
+        if (userError || !userData.user) {
+          throw new Error("Nem sikerült a felhasználói adatok lekérése")
+        }
+
+        console.log("Sikeres bejelentkezés:", userData.user.email)
+
+        // Visszatérési URL meghatározása
+        // Ellenőrizzük hogy van-e state paraméter a redirect URL-ben
+        const urlParams = new URLSearchParams(window.location.search)
+        const returnUrl = urlParams.get('return_to') || localStorage.getItem('auth_return_url') || 'index.html'
+        
+        // Clean up
+        localStorage.removeItem('auth_return_url')
+
+        // Hash eltakarítása és redirect
+        history.replaceState(null, "", returnUrl)
+        window.location.href = returnUrl
+
+      } catch (err) {
+        console.error("Auth feldolgozás hiba:", err)
+        
+        const errorBox = document.getElementById('errorBox')
+        const errorMessage = document.getElementById('errorMessage')
+        
+        if (errorMessage) {
+          errorMessage.textContent = err.message || "Hiba történt a bejelentkezés során. Próbáld újra."
+        }
+        
+        if (errorBox) {
+          errorBox.classList.add('show')
+        }
+
+        // Hide spinner
+        document.querySelector('.spinner').style.display = 'none'
+        document.querySelector('h1').style.display = 'none'
+        document.querySelector('p').style.display = 'none'
+      }
+    }
+
+    // Indítás
+    handleAuthCallback()
+  </script>
+</body>
+</html>

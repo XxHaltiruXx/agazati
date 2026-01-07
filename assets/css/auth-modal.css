@@ -1,9 +1,9 @@
 /* ====================================
-   KÖZPONTI AUTH MODAL STÍLUSOK
+   SUPABASE AUTH MODAL STÍLUSOK
    ==================================== */
-/* Ezt a fájlt minden admin oldal használja */
+/* Modern authentikációs modal minden admin oldalhoz */
 
-#pwModal {
+#authModal {
   position: fixed !important;
   inset: 0 !important;
   display: none !important;
@@ -15,17 +15,17 @@
   padding: 1rem !important;
 }
 
-#pwModal.show {
+#authModal.show {
   display: flex !important;
 }
 
-#pwBox {
+#authBox {
   background: var(--bg-mid) !important;
   color: var(--text) !important;
-  padding: 1.2rem 1.4rem !important;
+  padding: 1.5rem !important;
   border-radius: 12px !important;
   width: 100% !important;
-  max-width: 380px !important;
+  max-width: 420px !important;
   box-shadow: 0 10px 30px rgba(11, 9, 26, 0.6), 0 0 20px rgba(127, 90, 240, 0.18) !important;
   transform: scale(.98) !important;
   opacity: 0 !important;
@@ -34,11 +34,83 @@
   position: relative !important;
 }
 
-#pwModal.show #pwBox {
+#authModal.show #authBox {
   transform: scale(1) !important;
   opacity: 1 !important;
 }
 
+/* Auth Tabs */
+.auth-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  border-bottom: 2px solid rgba(127, 90, 240, 0.2);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-bottom: -2px;
+}
+
+.auth-tab:hover {
+  color: var(--text);
+  background: rgba(127, 90, 240, 0.1);
+}
+
+.auth-tab.active {
+  color: var(--accent-light);
+  border-bottom-color: var(--accent-light);
+}
+
+/* Form Styles */
+.auth-form {
+  margin-top: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  background: #16162a;
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent-light);
+  box-shadow: 0 0 8px rgba(127, 90, 240, 0.4);
+}
+
+.form-group input::placeholder {
+  color: var(--muted);
+}
+
+/* Password Container */
 .password-container {
   width: 100%;
 }
@@ -50,29 +122,28 @@
 
 .password-inner input {
   width: 100%;
-  padding: 0.55rem 38px 0.55rem 0.55rem;
+  padding: 0.65rem 45px 0.65rem 0.75rem;
   background: #16162a;
   color: var(--text);
   border: 1px solid var(--accent);
   border-radius: 6px;
   box-sizing: border-box;
-  height: 40px;
   font-size: 1rem;
 }
 
 .password-inner input:focus {
   outline: none;
   border-color: var(--accent-light);
-  box-shadow: 0 0 6px rgba(127, 90, 240, 0.5);
+  box-shadow: 0 0 8px rgba(127, 90, 240, 0.4);
 }
 
 .toggle-password {
   position: absolute;
-  right: 8px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   background-color: transparent;
-  /* background-image beállítva JS-ben, nem CSS-ben */
+  background-image: url('../images/view.webp');
   background-size: 20px;
   background-position: center;
   background-repeat: no-repeat;
@@ -80,8 +151,8 @@
   border-radius: 4px;
   cursor: pointer;
   padding: 4px;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   transition: opacity 0.2s ease;
   opacity: 0.7;
   user-select: none;
@@ -89,57 +160,187 @@
 
 .toggle-password:hover {
   opacity: 1 !important;
+  background-color: rgba(127, 90, 240, 0.1);
 }
 
-.remember-container {
+/* Auth Actions */
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.primary-btn:hover {
+  background: var(--accent-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(127, 90, 240, 0.3);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Auth Link */
+.auth-link {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.auth-link a {
+  color: var(--accent-light);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.auth-link a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* Social Login */
+.social-login {
+  margin-top: 1.5rem;
+}
+
+.divider {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.8rem;
+  text-align: center;
+  margin: 1.5rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
-.remember-container input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(127, 90, 240, 0.2);
 }
 
-.remember-container label {
-  cursor: pointer;
-  user-select: none;
+.divider span {
+  padding: 0 1rem;
+}
+
+.social-btn {
+  width: 100%;
+  padding: 0.7rem;
+  margin-bottom: 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text);
+  border: 1px solid rgba(127, 90, 240, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
   font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.2s ease;
 }
 
+.social-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.social-btn:active {
+  transform: translateY(0);
+}
+
+.social-btn.google:hover {
+  background: rgba(66, 133, 244, 0.1);
+}
+
+.social-btn.github:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Messages */
 .error {
   color: var(--error);
   display: none;
-  margin-top: 6px;
+  margin-top: 0.75rem;
+  padding: 0.6rem;
+  background: rgba(255, 77, 77, 0.1);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  border-radius: 6px;
   font-size: 0.9rem;
 }
 
 .info {
   color: var(--success);
   display: none;
-  margin-top: 6px;
+  margin-top: 0.75rem;
+  padding: 0.6rem;
+  background: rgba(77, 255, 77, 0.1);
+  border: 1px solid rgba(77, 255, 77, 0.3);
+  border-radius: 6px;
   font-size: 0.9rem;
 }
 
-.hint {
+/* Ghost Button */
+.ghost {
+  background: transparent;
   color: var(--muted);
-  display: block;
-  margin-top: 6px;
-  font-size: 0.8rem;
+  border: 1px solid rgba(127, 90, 240, 0.3);
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.ghost:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(127, 90, 240, 0.1);
 }
 
 /* Responsive */
 @media (max-width: 500px) {
-  #pwBox {
-    padding: 1.2rem 1.4rem !important;
-    max-width: 340px !important;
+  #authBox {
+    padding: 1.2rem !important;
+    max-width: 360px !important;
   }
   
+  .form-group input,
   .password-inner input {
     font-size: 0.95rem;
   }
+
+  .auth-tab {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .social-btn {
+    font-size: 0.9rem;
+    padding: 0.65rem;
+  }
 }
+

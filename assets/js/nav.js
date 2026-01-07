@@ -104,108 +104,8 @@
 }
 #navAuthBtn:hover { transform: translateY(-2px); background: var(--accent-light); }
 
-/* Modal overlay + box + animáció */
-#pwModal {
-  position: fixed;
-  inset: 0;
-  background: rgba(8,8,20,0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999999999;
-}
-#pwModal[aria-hidden="false"] { display:flex; }
-#pwBox {
-  background: var(--bg-mid);
-  color: var(--text);
-  padding: 1.2rem 1.4rem;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 380px;
-  box-shadow: 0 10px 30px rgba(11,9,26,0.6), 0 0 20px rgba(127,90,240,0.18);
-  transform: scale(.98);
-  opacity: 0;
-  transition: transform 180ms cubic-bezier(.2,.9,.3,1), opacity 180ms ease;
-}
-#pwModal[aria-hidden="false"] #pwBox { transform: scale(1); opacity: 1; }
-
-/* INPUT: elég jobb padding, hogy az ikon soha ne takarja a szöveget */
-#pwInput {
-  width: 100%;
-  padding: 0.55rem 52px 0.55rem 0.55rem;
-  background: #16162a;
-  color: var(--text);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  box-sizing: border-box;
-  height: 40px;
-  font-size: 1rem;
-}
-#pwInput:focus { outline:none; border-color:var(--accent-light); box-shadow:0 0 6px var(--accent-light); }
-
-/* wrapper az abszolút ikonhoz (relatív pozíció garantálva) */
-.password-container { width: 100%; }
-.password-inner {
-  position: relative;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* modal gombok: pwOk (accent) és pwCancel (ghost) */
-#pwOk, #pwCancel { min-width: 110px; padding:0.5rem 0.9rem; border-radius:8px; cursor:pointer; font-weight:600; }
-#pwOk { background: var(--accent); color:#fff; border:none; }
-#pwOk:hover { background: var(--accent-light); transform: translateY(-2px); }
-#pwCancel { background: transparent; color:var(--muted); border:1px solid rgba(136,138,184,0.12); }
-#pwCancel:hover { background: rgba(127,90,240,0.04); color:var(--text); border-color: rgba(127,90,240,0.14); }
-
-/* error/info */
-.error{ color:var(--error); display:none; margin-top:8px; font-size:0.95rem; }
-.info { color:var(--success); display:none; margin-top:8px; font-size:0.95rem; }
-.hint { color:var(--muted); display:block; margin-top:8px; font-size:0.83rem; }
-
-/* remember-container: balra igazítás */
-.remember-container { display:flex; align-items:center; gap:8px; margin:12px 0 8px; justify-content:flex-start; }
-
-/* TOGGLE-PASSWORD: mindig látható, pontosan a mező jobb szélén */
-/* kombináljuk a "soft" megjelenést a biztos pozícionálással */
-.toggle-password, #togglePwBtn {
-  display: block;
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  opacity: 0.85;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 20px;
-  filter: brightness(0) invert(1);
-  z-index: 3;
-  padding: 4px;
-  box-sizing: border-box;
-  border-radius: 6px;
-}
-.toggle-password:hover {
-  opacity: 1;
-  background-color: rgba(127,90,240,0.06);
-}
-/* képek a megadott asset útvonalról (user kérésére) - csak sidebar modal */
-#pwBox .toggle-password.show,
-#pwModal .toggle-password.show {
-  background-image: url("assets/images/hide.webp") !important;
-}
-#pwBox .toggle-password:not(.show),
-#pwModal .toggle-password:not(.show) {
-  background-image: url("assets/images/view.webp") !important;
-}
-
 /* mobil finomítás */
 @media (max-width:700px) {
-  #pwBox { width:92%; max-width:420px; }
   #mySidenav .nav-item { padding: 0.6rem; }
 }
 `;
@@ -339,14 +239,11 @@
   const NAV_STATE_KEY = '__agazati_nav_state';
   const SUBMENU_STATE_KEY = '__agazati_submenu_state';
   const CLICK_CATEGORY_KEY = '__agazati_nav_category_v3';
-  const LOGIN_STATE_KEY = '__agazati_login_state';
-  const LOGIN_EXPIRY_KEY = '__agazati_login_expiry';
-  const LOGIN_DURATION = 24 * 60 * 60 * 1000; // 24 óra
-  const PASSWORD_HASH = '248e464b6e49676c615430dbfb831787d3d7c78e52bd2cb2461608991f7204f6';
   
   let isNavOpen = false;
   let sidenav = null;
   let __navSearchSnapshot = null;
+  let globalAuth = null; // Supabase Auth instance
 
   /* ======= Nav struktúra ======= */
   const getNavStructure = (isLoggedIn = false) => {
@@ -485,7 +382,14 @@
   function updateLoginStatus() {
     const btn = document.getElementById('navAuthBtn');
     if (!btn) return;
-    const isLoggedIn = checkLoginState();
+    
+    // Ellenőrizzük hogy a Supabase auth betöltött-e
+    if (window.getAuth && typeof window.getAuth === 'function') {
+      globalAuth = window.getAuth();
+    }
+    
+    const isLoggedIn = globalAuth && globalAuth.isAuthenticated();
+    
     if (isLoggedIn) {
       btn.textContent = 'Kijelentkezés';
       btn.setAttribute('aria-pressed', 'true');
@@ -498,53 +402,32 @@
   }
 
   function checkLoginState() {
-    try {
-      const loginState = localStorage.getItem(LOGIN_STATE_KEY);
-      const loginExpiry = localStorage.getItem(LOGIN_EXPIRY_KEY);
-      
-      if (!loginState || !loginExpiry) return false;
-      
-      const now = Date.now();
-      if (now > parseInt(loginExpiry)) {
-        // Lejárt a bejelentkezés
-        localStorage.removeItem(LOGIN_STATE_KEY);
-        localStorage.removeItem(LOGIN_EXPIRY_KEY);
-        return false;
-      }
-      
-      return loginState === 'logged_in';
-    } catch (e) {
-      console.error('Bejelentkezési állapot ellenőrzése sikertelen:', e);
-      return false;
+    if (globalAuth) {
+      return globalAuth.isAuthenticated();
     }
+    return false;
   }
 
   function setLoginState() {
-    try {
-      const expiry = Date.now() + LOGIN_DURATION;
-      localStorage.setItem(LOGIN_STATE_KEY, 'logged_in');
-      localStorage.setItem(LOGIN_EXPIRY_KEY, expiry.toString());
-      rebuildNavigation();
-      
-      // Értesítsd az oldalt a változásról
-      window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: true } }));
-    } catch (e) {
-      console.error('Bejelentkezési állapot mentése sikertelen:', e);
-    }
+    // Már nem szükséges, mert a Supabase auth automatikusan kezeli
+    rebuildNavigation();
+    window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: true } }));
   }
 
-  function logoutFromNav() {
+  async function logoutFromNav() {
     try {
-      localStorage.removeItem(LOGIN_STATE_KEY);
-      localStorage.removeItem(LOGIN_EXPIRY_KEY);
+      if (globalAuth) {
+        await globalAuth.signOut();
+      }
       rebuildNavigation();
       
-      // Értesítsd az oldalt a változásról
       window.dispatchEvent(new CustomEvent('loginStateChanged', { detail: { loggedIn: false } }));
       
-      // Ha infosharer oldalon vagyunk, frissítsük azt is
-      const currentPathname = window.location.pathname.replace(/^\/agazati\/?/i, '/');
-      if (currentPathname.includes('infosharer')) {
+      // Ha secret oldalon vagyunk, menjünk a főoldalra
+      const currentPathname = window.location.pathname;
+      if (currentPathname.includes('secret/')) {
+        window.location.href = '/agazati/';
+      } else {
         window.location.reload();
       }
     } catch (e) {
@@ -552,220 +435,29 @@
     }
   }
 
-  /* ======= Modal kezelés (most a CSS-ed ID-jeivel) ======= */
-  async function sha256hex(str){
-    const enc = new TextEncoder().encode(str);
-    const digest = await crypto.subtle.digest('SHA-256', enc);
-    return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
-
-  function createLoginModal() {
-    // Ellenőrizzük, hogy már létezik-e a modal
-    if (document.getElementById('pwModal')) return;
-
-    const modalHTML = `
-      <div id="pwModal" style="display:none" aria-hidden="true" role="dialog" tabindex="-1">
-        <div id="pwBox" role="document" tabindex="0">
-          <h2 style="margin:0 0 8px">Bejelentkezés</h2>
-          <div style="font-size:0.95rem;color:var(--muted);margin-bottom:10px">Írd be a jelszót a bejelentkezéshez.</div>
-          <div class="password-container">
-            <div class="password-inner">
-              <input id="pwInput" type="password" autocomplete="off" placeholder="Jelszó" />
-              <button type="button" id="togglePwBtn" class="toggle-password" aria-label="Jelszó mutatása/elrejtése"></button>
-            </div>
-          </div>
-          <div class="remember-container">
-            <input type="checkbox" id="pwRemember">
-            <label for="pwRemember">Emlékezz rám</label>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-            <button id="pwCancel" class="ghost">Mégse</button>
-            <button id="pwOk">Bejelentkezés</button>
-          </div>
-          <div class="error" id="pwNote">Helytelen jelszó</div>
-          <div class="info" id="pwInfo">Sikeres bejelentkezés</div>
-          <small class="hint">Szóköz a bevitelnél: a jelszó trim-elve lesz (véletlen szóközök eltávolítása).</small>
-        </div>
-      </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    setupModalEvents();
-  }
-
-  function setupModalEvents() {
-    const modal = document.getElementById('pwModal');
-    const pwInput = document.getElementById('pwInput');
-    const pwOk = document.getElementById('pwOk');
-    const pwCancel = document.getElementById('pwCancel');
-    const pwNote = document.getElementById('pwNote');
-    const pwInfo = document.getElementById('pwInfo');
-    const togglePwBtn = document.getElementById('togglePwBtn');
-    const rememberMe = document.getElementById('pwRemember');
-
-    if (!modal) return;
-
-    // Jelszó láthatóság váltása — kezeljük a .show class-t is, mindig láthatóvá tesszük az ikont
-    if (togglePwBtn) {
-      // biztosítsuk, hogy a wrapper pozícionálva legyen
-      const parent = togglePwBtn.closest('.password-inner');
-      if (parent) parent.style.position = parent.style.position || 'relative';
-
-      // override input padding (biztosítjuk, hogy az ikon ne takarja a szöveget)
-      if (pwInput) {
-        try { pwInput.style.paddingRight = '52px'; } catch (e) {}
-      }
-
-      // mindig jelenjen meg az ikon
-      try {
-        togglePwBtn.style.display = 'block';
-        togglePwBtn.style.opacity = '1';
-        togglePwBtn.style.right = '8px';
-      } catch(e){}
-
-      // inicializáljuk a class-t az alapértelmezett input típus alapján (password => not .show)
-      if (pwInput && pwInput.type === 'password') {
-        togglePwBtn.classList.remove('show');
-        togglePwBtn.setAttribute('aria-pressed', 'false');
-      } else {
-        togglePwBtn.classList.add('show');
-        togglePwBtn.setAttribute('aria-pressed', 'true');
-      }
-
-      // kattintás váltás
-      togglePwBtn.addEventListener('click', function() {
-        if (!pwInput) return;
-        const isPassword = pwInput.type === 'password';
-        try { pwInput.type = isPassword ? 'text' : 'password'; } catch(e){}
-
-        if (isPassword) {
-          togglePwBtn.classList.add('show');
-          togglePwBtn.setAttribute('aria-pressed', 'true');
-        } else {
-          togglePwBtn.classList.remove('show');
-          togglePwBtn.setAttribute('aria-pressed', 'false');
-        }
-
-        // fókusz vissza az inputra
-        try { pwInput.focus(); } catch(e){}
-      });
-
-      // biztosítjuk, hogy input esemény esetén se tűnjön el (ha valami külső kód elrejtené)
-      if (pwInput) {
-        pwInput.addEventListener('input', () => {
-          try {
-            togglePwBtn.style.display = 'block';
-            togglePwBtn.style.opacity = '1';
-          } catch(e){}
-        });
-      }
-
-      // amikor a modal megnyílik, erőltetjük az ikon megjelenését is — ha openLoginModal belül van, az meghívja ezt
+  /* ======= Modal kezelés (Supabase Auth Modal) ======= */
+  
+  // Modal megnyitása a Supabase Auth modal használatával
+  window.openLoginModal = function() {
+    // Ellenőrizzük, hogy létezik-e az auth modal
+    const authModal = document.getElementById('authModal');
+    if (!authModal) {
+      console.error('Auth modal nem található. Győződj meg róla, hogy a auth-modal.html be van töltve.');
+      return;
     }
-
-
-
-    // Modal megnyitása
-    window.openLoginModal = function() {
-      if (pwNote) pwNote.style.display = 'none';
-      if (pwInfo) pwInfo.style.display = 'none';
-      modal.style.display = 'flex';
-      modal.setAttribute('aria-hidden', 'false');
-      if (pwInput) {
-        pwInput.value = '';
-        pwInput.type = 'password';
-        setTimeout(() => pwInput.focus(), 50);
-      }
-    };
-
-    // Ha korábban sorba álltak openLoginModal hívások, futtassuk őket
-    try { _agazati_flush_queue('openLoginModal', window.openLoginModal); } catch(e){}
-
-    // Modal bezárása
-    const closeModal = () => {
-      modal.style.display = 'none';
-      modal.setAttribute('aria-hidden', 'true');
-      if (pwInput) {
-        pwInput.value = '';
-        if (pwNote) pwNote.style.display = 'none';
-        pwInput.type = 'password';
-      }
-      if (rememberMe) rememberMe.checked = false;
-    };
-
-    if (pwCancel) {
-      pwCancel.addEventListener('click', closeModal);
+    
+    // Nyissuk meg az auth modal-t
+    if (window.SupabaseAuthModal) {
+      const modal = new window.SupabaseAuthModal('authModal');
+      modal.open();
+    } else {
+      // Fallback: közvetlenül jelenítjük meg a modal-t
+      authModal.style.display = 'flex';
     }
+  };
 
-    // ESC billentyű
-    modal.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        closeModal();
-      }
-    });
-
-    // Kattintás a háttérre
-    modal.addEventListener('mousedown', (e) => {
-      if (e.target === modal && e.button === 0) {
-        e.preventDefault();
-        closeModal();
-      }
-    });
-
-    // Enter a jelszó mezőben
-    if (pwInput) {
-      pwInput.addEventListener('keydown', (e) => { 
-        if (e.key === 'Enter') { 
-          e.preventDefault(); 
-          if (pwOk) pwOk.click(); 
-        } 
-      });
-    }
-
-    // Bejelentkezés gomb
-    if (pwOk) {
-      pwOk.addEventListener('click', async () => {
-        const raw = pwInput.value || '';
-        const attempt = raw.trim();
-        if (pwNote) pwNote.style.display = 'none';
-        
-        try {
-          const h = await sha256hex(attempt);
-          if (h === PASSWORD_HASH.toLowerCase()) {
-            // Sikeres bejelentkezés
-            setLoginState();
-            if (rememberMe && rememberMe.checked) {
-              const token = {
-                value: PASSWORD_HASH,
-                expires: Date.now() + (365 * 24 * 60 * 60 * 1000)
-              };
-              localStorage.setItem('infosharer_remember_token', JSON.stringify(token));
-            }
-            if (pwInfo) {
-              pwInfo.style.display = 'block';
-              setTimeout(() => {
-                closeModal();
-                setTimeout(() => { if (pwInfo) pwInfo.style.display = 'none'; }, 1200);
-              }, 500);
-            } else {
-              closeModal();
-            }
-          } else {
-            if (pwNote) {
-              pwNote.textContent = 'Helytelen jelszó';
-              pwNote.style.display = 'block';
-            }
-          }
-        } catch(err) {
-          if (pwNote) {
-            pwNote.textContent = 'Hiba a jelszóellenőrzésnél';
-            pwNote.style.display = 'block';
-          }
-        }
-      });
-    }
-  }
+  // Ha korábban sorba álltak openLoginModal hívások, futtassuk őket
+  try { _agazati_flush_queue('openLoginModal', window.openLoginModal); } catch(e){}
 
   // Globális függvények a HTML-ből való hozzáféréshez
   window.setLoginState = setLoginState;
@@ -1200,9 +892,6 @@ window.toggleNav = function () {
   function initNav() {
     // Először hozzuk létre a navbar-t
     createTopNavbar();
-    
-    // Aztán a modalt
-    createLoginModal();
 
     // Inicializáljuk a sidenav-et
     sidenav = document.getElementById('mySidenav');
