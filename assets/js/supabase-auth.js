@@ -123,13 +123,13 @@ class SupabaseAuth {
     
     // console.log('🔄 Loading user profile for:', user.email);
     
-    // ELSŐDLEGES: Ellenőrizzük a user metadata-t (ez mindig elérhető)
+    // MÁSODLAGOS fallback: Ellenőrizzük a user metadata-t
     const metadataAdmin = user.user_metadata?.is_admin === true;
-    // console.log('📋 User metadata is_admin:', metadataAdmin);
     
-    // MÁSODLAGOS: Próbáljuk lekérdezni a user_roles táblából
+    // ELSŐDLEGES: Próbáljuk lekérdezni a user_roles táblából - EZ A FŐ FORRÁS!
     let databaseAdmin = false;
     let hadDatabaseEntry = false;
+    
     try {
       const { data, error } = await this.sb
         .from('user_roles')
@@ -140,39 +140,38 @@ class SupabaseAuth {
       // console.log('User roles query result:', { data, error });
 
       if (data && !error) {
+        // VAN database bejegyzés - EZ az IGAZ forrás!
         databaseAdmin = data.is_admin === true;
         hadDatabaseEntry = true;
-        // console.log('✅ Admin status from database:', databaseAdmin);
+        // console.log('✅ Admin status from DATABASE (autoritatív forrás):', databaseAdmin);
       } else if (!data && !error) {
-        // maybeSingle() null-t ad vissza ha nincs sor - hozzuk létre
-        // console.log('ℹ️ Nincs user_roles bejegyzés, létrehozás is_admin=false értékkel');
-        await this.createUserRoleEntry(user.id, false);
-        databaseAdmin = false;
-        hadDatabaseEntry = false;
+        // Nincs még database bejegyzés - hozzuk létre
+        // console.log('ℹ️ Nincs user_roles bejegyzés, létrehozás...');
+        await this.createUserRoleEntry(user.id, metadataAdmin);
+        databaseAdmin = metadataAdmin;
+        hadDatabaseEntry = true;
       } else if (error) {
         // console.warn('⚠️ User_roles tábla lekérdezési hiba:', error.message);
-        // console.log('💡 Fallback: metadata használata');
+        hadDatabaseEntry = false;
       }
     } catch (err) {
       // console.warn('⚠️ User_roles tábla nem elérhető:', err.message);
-      // console.log('💡 Fallback: metadata használata');
+      hadDatabaseEntry = false;
     }
     
-    // Admin jog beállítása: DATABASE elsődleges, metadata másodlagos
-    // Ez biztosítja hogy a database mindig felülírja a metadata-t
+    // Admin jog beállítása:
+    // Ha van DATABASE bejegyzés -> azt használjuk (autoritás)
+    // Ha nincs DATABASE bejegyzés -> metadata (fallback)
     const newAdminStatus = hadDatabaseEntry ? databaseAdmin : metadataAdmin;
     
-    // Csak akkor változtassuk meg az isAdmin-t ha tényleg változott
-    if (this.isAdmin !== newAdminStatus) {
-      // console.log(`🔄 Admin státusz frissítés: ${this.isAdmin} -> ${newAdminStatus}`);
-      this.isAdmin = newAdminStatus;
-    }
+    // console.log(`👤 User: ${user.email} | Admin: ${newAdminStatus} | Source: ${hadDatabaseEntry ? 'DATABASE' : 'METADATA'} | (DB: ${databaseAdmin}, Meta: ${metadataAdmin})`);
     
-    // console.log('👤 User:', user.email, '| Admin:', this.isAdmin, `(metadata: ${metadataAdmin}, database: ${databaseAdmin})`);
+    // Állítsuk be az admin státuszt
+    this.isAdmin = newAdminStatus;
     
-    // Ha van metadata admin jog de nincs database-ben, próbáljuk létrehozni
-    if (metadataAdmin && !databaseAdmin && hadDatabaseEntry) {
-      // console.log('🔄 Metadata admin jog megvan, szinkronizálás database-be...');
+    // Ha van metadata admin jog de nincs még database-ben, szinkronizáljuk
+    if (metadataAdmin && !hadDatabaseEntry) {
+      // console.log('🔄 Metadata admin jog megvan, de nincs még database bejegyzés - létrehozás...');
       await this.createUserRoleEntry(user.id, true);
     }
   }
@@ -202,11 +201,14 @@ class SupabaseAuth {
   async handleUserRoleChange(payload) {
     const { eventType, new: newData, old: oldData } = payload;
 
+    // console.log('🔔 Realtime event:', { eventType, newData, oldData });
+
     // Csak akkor foglalkozunk vele, ha a saját user_id-nk érintett
     const currentUserId = this.getUserId();
     if (!currentUserId) return;
 
     const changedUserId = newData?.user_id || oldData?.user_id;
+    
     if (changedUserId !== currentUserId) {
       // Más felhasználó változott - csak frissítjük a nézetet ha admin oldalon vagyunk
       if (window.location.pathname.includes('secret/admin')) {
@@ -225,11 +227,13 @@ class SupabaseAuth {
 
       // Csak akkor csináljunk valamit ha TÉNYLEG változott
       if (wasAdmin === isNowAdmin) {
-        // console.log('🔔 Admin státusz nem változott:', { wasAdmin, isNowAdmin });
+        // console.log('✅ Admin státusz nem változott:', { wasAdmin, isNowAdmin });
         return;
       }
 
-      // console.log(`🔔 Admin státusz VÁLTOZÁS: ${wasAdmin} -> ${isNowAdmin}`);
+      // console.log(`🔔 SAJÁT admin státusz VÁLTOZÁS: ${wasAdmin} -> ${isNowAdmin}`);
+      
+      // Frissítsük az isAdmin értéket
       this.isAdmin = isNowAdmin;
 
       // Értesítés megjelenítése
@@ -250,10 +254,8 @@ class SupabaseAuth {
           window.location.href = lastPath.includes('secret/') ? baseUrl : lastPath;
         }, 3000);
       }
-    } else if (eventType === 'INSERT') {
-      // Új bejegyzés - ne csináljunk semmit, a loadUserProfile már kezeli
-      return;
     }
+    // INSERT eseményt figyelmen kívül hagyunk (regisztráció, első létrehozás)
   }
 
   showAdminGrantedNotification() {
