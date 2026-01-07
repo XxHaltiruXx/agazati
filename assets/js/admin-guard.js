@@ -9,22 +9,24 @@
 
   // Várjuk meg az auth inicializálását
   async function checkAdminAccess() {
-    const maxAttempts = 50; // 5 másodperc (50 x 100ms)
+    const maxAttempts = 150; // 15 másodperc (150 x 100ms)
     let attempts = 0;
 
     while (attempts < maxAttempts) {
-      // Várjuk meg a window.getAuth() elérhetőségét
+      // Várjuk meg a window.getAuth() elérhetőségét ÉS hogy be is töltődjön az auth
       if (window.getAuth && typeof window.getAuth === 'function') {
         const auth = window.getAuth();
         
-        if (auth) {
-          // console.log('🔐 Admin guard: Auth betöltve, ellenőrzés...');
+        // Várjuk meg hogy az auth tényleg inicializálódjon és legyen currentUser
+        if (auth && auth.sb) {
+          // console.log('🔐 Admin guard: Auth betöltve, ellenőrzés...', { 
+          //   isAuthenticated: auth.isAuthenticated(), 
+          //   isAdmin: auth.isAdminUser() 
+          // });
           
           // Ellenőrizzük hogy be van-e jelentkezve és admin-e
           const isLoggedIn = auth.isAuthenticated();
           const isAdmin = auth.isAdminUser();
-          
-          // console.log('Admin guard:', { isLoggedIn, isAdmin });
           
           if (!isLoggedIn) {
             // console.warn('⛔ Nem vagy bejelentkezve! Átirányítás a főoldalra...');
@@ -56,7 +58,7 @@
       attempts++;
     }
     
-    // Ha nem sikerült betölteni az auth-ot 5 másodperc alatt
+    // Ha nem sikerült betölteni az auth-ot 15 másodperc alatt
     console.error('❌ Admin guard: Auth nem töltődött be időben!');
     alert('⚠️ Hiba történt az authentikáció betöltésekor. Próbáld újra!');
     window.location.href = '/agazati/';
