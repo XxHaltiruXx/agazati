@@ -154,12 +154,22 @@
     const SUPABASE_URL = "https://ccpuoqrbmldunshaxpes.supabase.co"
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjcHVvcXJibWxkdW5zaGF4cGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MTE2MDUsImV4cCI6MjA3ODA4NzYwNX0.QpVCmzF96Fp5hdgFyR0VkT9RV6qKiLkA8Yv_LArSk5I"
 
+    // FONTOS: Először ellenőrizzük a type paramétert MIELŐTT inicializálnánk a Supabase-t!
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const urlParams = new URLSearchParams(window.location.search);
+    const authType = hashParams.get('type') || urlParams.get('type');
+    
+    console.log('🔍 Auth type detected:', authType);
+    console.log('Hash:', window.location.hash);
+    console.log('Search:', window.location.search);
+    
     // Session persistence beállítása
+    // Ha password recovery, akkor NE automatikusan dolgozza fel a session-t
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
+        detectSessionInUrl: authType !== 'recovery', // KI ha recovery!
         storage: window.localStorage
       }
     })
@@ -168,6 +178,47 @@
 
     async function handlePasswordReset() {
       console.log('🔐 Password reset mode activated');
+      
+      // Manuálisan dolgozzuk fel a recovery token-t
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        console.log('🔑 Recovery tokens:', { 
+          hasAccess: !!accessToken, 
+          hasRefresh: !!refreshToken 
+        });
+        
+        if (accessToken) {
+          // Beállítjuk a session-t a recovery token-nel
+          const { data, error } = await sb.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          
+          if (error) {
+            console.error('❌ Session setup error:', error);
+            throw error;
+          }
+          
+          console.log('✅ Recovery session established');
+        }
+      } catch (err) {
+        console.error('❌ Recovery token processing error:', err);
+        const errorBox = document.getElementById('errorBox');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        document.querySelector('.spinner').style.display = 'none';
+        
+        if (errorMessage) {
+          errorMessage.textContent = 'A jelszó visszaállító link lejárt vagy érvénytelen. Kérj új linket!';
+        }
+        if (errorBox) {
+          errorBox.classList.add('show');
+        }
+        return;
+      }
       
       // Hide spinner and default text
       document.querySelector('.spinner').style.display = 'none';
@@ -263,10 +314,11 @@
         
         console.log('Auth type:', type);
         
+        // Ha password recovery, akkor megállunk itt és meghívjuk a reset funkciót
         if (type === 'recovery') {
-          console.log('🔐 Password recovery detected');
-          handlePasswordReset();
-          return;
+          console.log('🔐 Password recovery detected - showing password reset form');
+          await handlePasswordReset();
+          return; // FONTOS: ne menjünk tovább a normál login flow-val!
         }
 
         // Ellenőrizzük hogy van-e error paraméter az URL-ben
