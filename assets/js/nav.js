@@ -439,21 +439,36 @@
   
   // Modal megnyitása a Supabase Auth modal használatával
   window.openLoginModal = function() {
-    // Ellenőrizzük, hogy létezik-e az auth modal
+    // Ellenőrizzük, hogy létezik-e a globális modal instance
+    if (window.globalAuthModal && typeof window.globalAuthModal.open === 'function') {
+      window.globalAuthModal.open();
+      return;
+    }
+    
+    // Ha nincs még inicializálva a modal, próbáljuk meg újra létrehozni
     const authModal = document.getElementById('authModal');
     if (!authModal) {
       console.error('Auth modal nem található. Győződj meg róla, hogy a auth-modal.html be van töltve.');
       return;
     }
     
-    // Nyissuk meg az auth modal-t
-    if (window.SupabaseAuthModal) {
-      const modal = new window.SupabaseAuthModal('authModal');
-      modal.open();
-    } else {
-      // Fallback: közvetlenül jelenítjük meg a modal-t
-      authModal.style.display = 'flex';
+    // Próbáljuk létrehozni a modal instance-t
+    if (window.SupabaseAuthModal && window.getAuth) {
+      try {
+        const auth = window.getAuth();
+        if (auth) {
+          window.globalAuthModal = new window.SupabaseAuthModal(auth);
+          window.globalAuthModal.init();
+          window.globalAuthModal.open();
+          return;
+        }
+      } catch (err) {
+        console.error('Auth modal inicializálási hiba:', err);
+      }
     }
+    
+    // Végső fallback: közvetlenül jelenítjük meg a modal-t
+    authModal.classList.add('show');
   };
 
   // Ha korábban sorba álltak openLoginModal hívások, futtassuk őket
