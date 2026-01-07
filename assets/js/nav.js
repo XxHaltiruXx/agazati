@@ -280,7 +280,7 @@
               <a class="nav-link" href="css/alapok">css</a>
               <a class="nav-link" href="python/alapok">python</a>
               <a class="nav-link" href="network/alapok">hálózat</a>
-              <a class="nav-link" href="math/">matek</a>
+              <a class="nav-link" href="math/alapok">matek</a>
             </div>
           </div>
         </div>

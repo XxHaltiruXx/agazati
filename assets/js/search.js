@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { text: 'CSS', icon: '🎨', link: 'css/alapok' },
         { text: 'Python', icon: '🐍', link: 'python/alapok' },
         { text: 'Hálózat', icon: '📡', link: 'network/alapok' },
-        { text: 'Matematika', icon: '📐', link: 'math/' }
+        { text: 'Matematika', icon: '📐', link: 'math/alapok' }
     ];
     
     // Javaslatok konténer létrehozása
