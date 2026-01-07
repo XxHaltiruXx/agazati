@@ -38,7 +38,7 @@ function getSupabaseClient() {
         storage: window.localStorage // Explicit localStorage használata
       }
     });
-    console.log('✅ Supabase client inicializálva session persistence-szel');
+    // console.log('✅ Supabase client inicializálva session persistence-szel');
   }
   return supabaseClient;
 }
@@ -51,6 +51,11 @@ class SupabaseAuth {
     this.currentUser = null;
     this.isAdmin = false;
     this.sb = null;
+    this.realtimeChannel = null;
+    this.lastKnownPath = '/';
+    this.profileLoaded = false; // Flag hogy a profil betöltődött-e
+    this.realtimeEnabled = false; // Flag hogy a realtime működik-e
+    this.pollingInterval = null; // Polling fallback
   }
 
   async init() {
@@ -63,13 +68,63 @@ class SupabaseAuth {
       await this.loadUserProfile(session.user);
     }
 
+    // Utolsó nem-admin oldal követése
+    this.trackLastNonAdminPage();
+
+    // POLLING-ONLY MODE
+    // Realtime "mismatch" hiba miatt kikapcsolva
+    // Polling 10 másodpercenként ellenőrzi az admin státuszt - tökéletesen működik!
+    // Ha szeretnéd újra próbálni a realtime-ot: uncommenteld az alábbi sort
+    // this.setupRealtimeSubscription();
+    
+    // Polling indítása azonnal
+    const currentUserId = this.getUserId();
+    if (currentUserId) {
+      this.startPolling();
+    }
+
     // Auth state változás figyelés
     this.sb.auth.onAuthStateChange(async (event, session) => {
+      // console.log('🔄 Auth state change:', event);
       if (event === 'SIGNED_IN' && session) {
         await this.loadUserProfile(session.user);
+        
+        // Várunk egy kicsit hogy a profil betöltődjön
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Frissítsük a navigációt amikor bejelentkezünk
+        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+          window.rebuildNav();
+        }
+        // Küldjünk eseményt a login state változásról
+        window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+          detail: { loggedIn: true, isAdmin: this.isAdmin } 
+        }));
       } else if (event === 'SIGNED_OUT') {
         this.currentUser = null;
         this.isAdmin = false;
+        this.profileLoaded = false;
+        // Frissítsük a navigációt amikor kijelentkezünk
+        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+          window.rebuildNav();
+        }
+        // Küldjünk eseményt a logout-ról
+        window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+          detail: { loggedIn: false, isAdmin: false } 
+        }));
+      } else if (event === 'TOKEN_REFRESHED') {
+        // console.log('🔄 Token frissítve');
+      } else if (event === 'USER_UPDATED' && session) {
+        await this.loadUserProfile(session.user);
+      } else if (event === 'INITIAL_SESSION' && session) {
+        // Kezdeti session betöltése - már megtörtént az init()-ben
+        // console.log('✅ Kezdeti session betöltve');
+        
+        // Frissítsük a navigációt a kezdeti session után is
+        await new Promise(resolve => setTimeout(resolve, 200));
+        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+          window.rebuildNav();
+        }
       }
     });
 
@@ -79,30 +134,439 @@ class SupabaseAuth {
   async loadUserProfile(user) {
     this.currentUser = user;
     
-    console.log('🔄 Loading user profile for:', user.email);
+    // console.log('🔄 Loading user profile for:', user.email);
     
-    // Admin role ellenőrzés a user_metadata-ból vagy külön táblából
-    const { data, error } = await this.sb
-      .from('user_roles')
-      .select('is_admin')
-      .eq('user_id', user.id)
-      .single();
+    // MÁSODLAGOS fallback: Ellenőrizzük a user metadata-t
+    const metadataAdmin = user.user_metadata?.is_admin === true;
+    
+    // ELSŐDLEGES: Próbáljuk lekérdezni a user_roles táblából - EZ A FŐ FORRÁS!
+    let databaseAdmin = false;
+    let hadDatabaseEntry = false;
+    
+    try {
+      const { data, error } = await this.sb
+        .from('user_roles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    console.log('User roles query result:', { data, error });
+      // console.log('User roles query result:', { data, error });
 
-    if (data && !error) {
-      this.isAdmin = data.is_admin === true;
-      console.log('✅ Admin status from database:', this.isAdmin);
-    } else {
-      // Fallback: ellenőrizzük a user metadata-t
-      this.isAdmin = user.user_metadata?.is_admin === true;
-      console.log('⚠️ Admin status from metadata (fallback):', this.isAdmin);
-      if (error) {
-        console.error('❌ Error loading user_roles:', error);
+      if (data && !error) {
+        // VAN database bejegyzés - EZ az IGAZ forrás!
+        databaseAdmin = data.is_admin === true;
+        hadDatabaseEntry = true;
+        // console.log('✅ Admin status from DATABASE (autoritatív forrás):', databaseAdmin);
+      } else if (!data && !error) {
+        // Nincs még database bejegyzés - hozzuk létre
+        // console.log('ℹ️ Nincs user_roles bejegyzés, létrehozás...');
+        await this.createUserRoleEntry(user.id, metadataAdmin);
+        databaseAdmin = metadataAdmin;
+        hadDatabaseEntry = true;
+      } else if (error) {
+        // console.warn('⚠️ User_roles tábla lekérdezési hiba:', error.message);
+        hadDatabaseEntry = false;
       }
+    } catch (err) {
+      // console.warn('⚠️ User_roles tábla nem elérhető:', err.message);
+      hadDatabaseEntry = false;
     }
     
-    console.log('👤 User:', user.email, '| Admin:', this.isAdmin);
+    // Admin jog beállítása:
+    // Ha van DATABASE bejegyzés -> azt használjuk (autoritás)
+    // Ha nincs DATABASE bejegyzés -> metadata (fallback)
+    const newAdminStatus = hadDatabaseEntry ? databaseAdmin : metadataAdmin;
+    
+    // console.log(`👤 User: ${user.email} | Admin: ${newAdminStatus} | Source: ${hadDatabaseEntry ? 'DATABASE' : 'METADATA'} | (DB: ${databaseAdmin}, Meta: ${metadataAdmin})`);
+    
+    // Állítsuk be az admin státuszt
+    this.isAdmin = newAdminStatus;
+    
+    // CSAK akkor hozzunk létre database bejegyzést ha egyáltalán nincs
+    // NE írjuk felül a database-t a metadata alapján!
+    if (!hadDatabaseEntry) {
+      // console.log('🔄 Nincs database bejegyzés - létrehozás metadata alapján:', metadataAdmin);
+      await this.createUserRoleEntry(user.id, metadataAdmin);
+    }
+    
+    // Jelöljük hogy a profil betöltődött
+    this.profileLoaded = true;
+  }
+
+  setupRealtimeSubscription() {
+    if (!this.sb || this.realtimeChannel) return;
+    
+    // Csak akkor indítsuk el ha be vagyunk jelentkezve
+    const currentUserId = this.getUserId();
+    if (!currentUserId) {
+      console.log('⏭️ Realtime subscription kihagyva - nincs bejelentkezett felhasználó');
+      return;
+    }
+
+    console.log('🔔 Realtime subscription beállítása user_id:', currentUserId);
+
+    // Realtime channel létrehozása
+    // FILTER ELTÁVOLÍTVA - binding mismatch miatt
+    // A handleUserRoleChange majd szűr client-oldalon
+    this.realtimeChannel = this.sb
+      .channel('user_roles_changes_v4')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_roles'
+          // filter eltávolítva - minden UPDATE event érkezik
+        },
+        async (payload) => {
+          console.log('🔔 Realtime UPDATE event:', payload);
+          this.realtimeEnabled = true;
+          
+          // Client-side szűrés: csak saját user_id változásokat dolgozzuk fel
+          if (payload.new && payload.new.user_id === currentUserId) {
+            await this.handleUserRoleChange(payload);
+          }
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Realtime subscription aktív!');
+          this.realtimeEnabled = true;
+          // Töröljük a polling-ot ha működik a realtime
+          if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+            console.log('🔄 Polling leállítva - Realtime aktív');
+          }
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Realtime subscription hiba:', err);
+          console.error('💡 Ellenőrizd: REALTIME-FIX-COMPLETE.sql lefutott-e a Supabase Dashboard-on?');
+          this.realtimeEnabled = false;
+          // Fallback: Polling indítása
+          this.startPolling();
+        } else if (status === 'TIMED_OUT') {
+          console.warn('⏱️ Realtime subscription timeout');
+          this.realtimeEnabled = false;
+          // Fallback: Polling indítása
+          this.startPolling();
+        } else {
+          console.log('🔔 Realtime status:', status);
+        }
+      });
+      
+    // Várunk 5 másodpercet, ha nem aktiválódik a realtime, indítunk polling-ot
+    setTimeout(() => {
+      if (!this.realtimeEnabled) {
+        console.warn('⚠️ Realtime nem aktiválódott 5 másodperc alatt, polling indítása...');
+        this.startPolling();
+      }
+    }, 5000);
+  }
+  
+  startPolling() {
+    if (this.pollingInterval) return; // Már fut
+    
+    console.log('🔄 Polling indítása - admin státusz ellenőrzése 3 másodpercenként');
+    
+    let lastAdminStatus = this.isAdmin;
+    
+    this.pollingInterval = setInterval(async () => {
+      const currentUserId = this.getUserId();
+      if (!currentUserId) {
+        clearInterval(this.pollingInterval);
+        this.pollingInterval = null;
+        return;
+      }
+      
+      try {
+        // Lekérdezzük az aktuális admin státuszt
+        const { data, error } = await this.sb
+          .from('user_roles')
+          .select('is_admin')
+          .eq('user_id', currentUserId)
+          .single();
+        
+        if (data && !error) {
+          const currentAdminStatus = data.is_admin === true;
+          
+          // Ha változott
+          if (lastAdminStatus !== currentAdminStatus) {
+            console.log(`🔄 Admin státusz változás polling-ból: ${lastAdminStatus} -> ${currentAdminStatus}`);
+            
+            // Frissítjük
+            this.isAdmin = currentAdminStatus;
+            lastAdminStatus = currentAdminStatus;
+            
+            // Értesítés
+            if (currentAdminStatus) {
+              this.showAdminGrantedNotification();
+            } else {
+              this.showAdminRevokedNotification();
+            }
+            
+            // UI frissítés
+            window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+              detail: { loggedIn: true, isAdmin: this.isAdmin } 
+            }));
+            
+            if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+              window.rebuildNav();
+            }
+            
+            // Átirányítás ha kell
+            if (!currentAdminStatus && this.isOnAdminPage()) {
+              setTimeout(() => {
+                const baseUrl = this.getBaseUrl();
+                window.location.href = baseUrl;
+              }, 2000);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('❌ Polling hiba:', err);
+      }
+    }, 3000); // 3 másodpercenként - szinte real-time
+  }
+
+  async handleUserRoleChange(payload) {
+    const { eventType, new: newData } = payload;
+
+    console.log('🔔 handleUserRoleChange:', { eventType, newData });
+
+    // Csak akkor foglalkozunk vele, ha a saját user_id-nk érintett
+    const currentUserId = this.getUserId();
+    if (!currentUserId) return;
+
+    const changedUserId = newData?.user_id;
+    
+    if (changedUserId !== currentUserId) {
+      // Más felhasználó változott - csak frissítjük a nézetet ha admin oldalon vagyunk
+      if (window.location.pathname.includes('secret/admin')) {
+        console.log('👥 Más felhasználó admin státusza változott, frissítés...');
+        if (window.loadUsers && typeof window.loadUsers === 'function') {
+          await window.loadUsers();
+        }
+      }
+      
+      // NEM TÉRUNK VISSZA - küldjünk értesítést ha mi vagyunk az admin
+      if (this.isAdmin) {
+        const isNowAdmin = newData?.is_admin === true;
+        if (isNowAdmin) {
+          this.showNotification(
+            '🎉 Admin jog hozzárendelve',
+            'Sikeresen admin jogot adtál egy felhasználónak.',
+            'success'
+          );
+        } else {
+          this.showNotification(
+            '⚠️ Admin jog elvonva',
+            'Sikeresen elvettted az admin jogot egy felhasználótól.',
+            'warning'
+          );
+        }
+      }
+      return;
+    }
+
+    // SAJÁT admin státuszunk változott!
+    console.log('🔥 SAJÁT admin státusz változás detektálva!');
+    
+    // Lekérdezzük a korábbi állapotot és az újat
+    const wasAdmin = this.isAdmin; // Jelenlegi állapot (régi)
+    const isNowAdmin = newData?.is_admin === true; // Új állapot
+    
+    console.log(`🔄 Státusz változás: ${wasAdmin} -> ${isNowAdmin}`);
+
+    // Csak akkor csináljunk valamit ha TÉNYLEG változott
+    if (wasAdmin === isNowAdmin) {
+      console.log('✅ Nincs változás, kihagyva');
+      return;
+    }
+
+    // Frissítsük az isAdmin értéket
+    this.isAdmin = isNowAdmin;
+    console.log(`✅ Új admin státusz beállítva: ${this.isAdmin}`);
+
+    // Értesítés megjelenítése
+    if (isNowAdmin) {
+      this.showAdminGrantedNotification();
+    } else {
+      this.showAdminRevokedNotification();
+    }
+
+    // UI frissítése - küldjünk CustomEvent-et
+    console.log('📡 loginStateChanged event kibocsajtása...');
+    window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+      detail: { loggedIn: true, isAdmin: this.isAdmin } 
+    }));
+    
+    // Navbar frissítése
+    if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+      window.rebuildNav();
+    }
+
+    // Ha elvették az admin jogot és admin oldalon vagyunk, AZONNAL irányítsuk át
+    if (!isNowAdmin && this.isOnAdminPage()) {
+      console.warn('⚠️ Admin jog elvesztve admin oldalon - átirányítás...');
+      // Rövid késleltetés csak a notification megjelenítéséhez
+      setTimeout(() => {
+        const baseUrl = this.getBaseUrl();
+        const lastPath = this.lastKnownPath || baseUrl;
+        window.location.href = lastPath.includes('secret/') ? baseUrl : lastPath;
+      }, 2000);
+    } else if (isNowAdmin) {
+      // Ha admin jogot kaptunk, frissítsük az oldalt 3 másodperc múlva
+      console.log('🎉 Admin jog megkapva - oldal frissítése 3 mp múlva');
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    }
+  }
+
+  showAdminGrantedNotification() {
+    this.showNotification(
+      '🎉 Admin Jogosultság Megkapva!',
+      'Mostantól hozzáférsz az admin funkciókhoz. Az oldal hamarosan frissül.',
+      'success'
+    );
+  }
+
+  showAdminRevokedNotification() {
+    this.showNotification(
+      '⚠️ Admin Jogosultság Elvéve!',
+      'Az admin jogosultságod el lett véve. Az admin oldalak nem lesznek elérhetőek.',
+      'warning'
+    );
+  }
+
+  showNotification(title, message, type = 'info') {
+    // Távolítsuk el az összes korábbi notification-t
+    const oldContainer = document.getElementById('authNotificationContainer');
+    if (oldContainer) {
+      oldContainer.remove();
+    }
+    
+    // Új container létrehozása
+    const container = document.createElement('div');
+    container.id = 'authNotificationContainer';
+    container.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 100000;
+      max-width: 420px;
+    `;
+    document.body.appendChild(container);
+
+    const notification = document.createElement('div');
+    const bgColor = type === 'success' ? '#1a5c36' : type === 'warning' ? '#5c3a1a' : '#1a3a5c';
+    const borderColor = type === 'success' ? '#2ecc71' : type === 'warning' ? '#e74c3c' : '#3498db';
+    
+    notification.style.cssText = `
+      background: ${bgColor};
+      border: 2px solid ${borderColor};
+      color: #ffffff;
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      animation: slideInBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+    
+    notification.innerHTML = `
+      <div style="font-weight: 700; font-size: 18px; margin-bottom: 10px; color: ${borderColor};">${title}</div>
+      <div style="font-size: 15px; line-height: 1.5; color: #e8e8e8;">${message}</div>
+    `;
+
+    container.appendChild(notification);
+
+    // Animáció CSS hozzáadása (csak egyszer)
+    if (!document.getElementById('authNotificationStyles')) {
+      const style = document.createElement('style');
+      style.id = 'authNotificationStyles';
+      style.textContent = `
+        @keyframes slideInBounce {
+          from { transform: translateX(500px) scale(0.8); opacity: 0; }
+          to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+        @keyframes fadeOutSlide {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(500px); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // 7 másodperc után eltűnik
+    setTimeout(() => {
+      notification.style.animation = 'fadeOutSlide 0.4s ease-out';
+      setTimeout(() => {
+        container.remove();
+      }, 400);
+    }, 7000);
+  }
+
+  isOnAdminPage() {
+    const path = window.location.pathname;
+    return path.includes('secret/');
+  }
+  
+  getBaseUrl() {
+    // Ellenőrizzük az origin-t és a pathname-t is
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    
+    // Ha GitHub Pages vagy a pathname tartalmazza az agazati-t
+    if (origin.includes('github.io') || pathname.includes('/agazati/')) {
+      return origin.includes('github.io') ? origin + '/agazati/' : '/agazati/';
+    }
+    
+    // Local vagy más host - csak a root
+    return '/';
+  }
+
+  refreshUI() {
+    // Frissítjük a navigációt
+    if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+      window.rebuildNav();
+    }
+    
+    // Event dispatch a státusz változásról
+    window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+      detail: { loggedIn: this.isAuthenticated(), isAdmin: this.isAdmin } 
+    }));
+  }
+
+  trackLastNonAdminPage() {
+    const path = window.location.pathname;
+    if (!path.includes('secret/')) {
+      this.lastKnownPath = path;
+    }
+  }
+
+  async createUserRoleEntry(userId, isAdmin = false) {
+    try {
+      // console.log('📝 User role bejegyzés létrehozása/frissítése...');
+      const { error } = await this.sb
+        .from('user_roles')
+        .upsert({
+          user_id: userId,
+          is_admin: isAdmin,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id', // Ha már létezik, frissítse
+          ignoreDuplicates: false
+        });
+      
+      if (error) {
+        // console.warn('⚠️ User_roles bejegyzés létrehozása sikertelen:', error.message);
+      } else {
+        // console.log('✅ User role bejegyzés létrehozva/frissítve: is_admin=' + isAdmin);
+      }
+    } catch (err) {
+      // console.warn('⚠️ Exception creating user_roles entry:', err.message);
+    }
   }
 
   // ====================================
@@ -123,12 +587,19 @@ class SupabaseAuth {
 
     if (error) throw error;
     
+    // Ha sikeres a regisztráció és van user ID, hozzuk létre az alap user_role bejegyzést
+    if (data.user && data.user.id) {
+      // Alapértelmezett is_admin = false
+      await this.createUserRoleEntry(data.user.id, false);
+      // console.log('✅ User role bejegyzés létrehozva: is_admin=false');
+    }
+    
     // Log: segít debuggolni az email küldést
-    console.log('Sign up response:', {
-      user: data.user?.email,
-      session: data.session ? 'Session created' : 'No session (email confirmation required)',
-      confirmationSentAt: data.user?.confirmation_sent_at
-    });
+    // console.log('Sign up response:', {
+      // user: data.user?.email,
+      // session: data.session ? 'Session created' : 'No session (email confirmation required)',
+      // confirmationSentAt: data.user?.confirmation_sent_at
+    // });
     
     return data;
   }
@@ -169,24 +640,76 @@ class SupabaseAuth {
   }
 
   async signOut() {
-    const { error } = await this.sb.auth.signOut();
-    if (error) throw error;
+    try {
+      // Próbáljuk meg a normál kijelentkezést
+      const { error } = await this.sb.auth.signOut();
+      
+      // Ha a session már lejárt vagy nincs meg, az nem baj
+      if (error && error.message !== 'Auth session missing!') {
+        // console.warn('⚠️ Kijelentkezési figyelmeztetés:', error.message);
+      }
+    } catch (err) {
+      // Ha bármi hiba történik, egyszerűen tisztítsuk meg a local storage-t
+      // console.warn('⚠️ Kijelentkezési hiba - local storage tisztítása:', err.message);
+    }
     
+    // Mindenképp törljük a local state-et
     this.currentUser = null;
     this.isAdmin = false;
+    this.profileLoaded = false;
+    
+    // Állítsuk le a polling-ot és realtime-ot
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      console.log('🔄 Polling leállítva - kijelentkezés');
+    }
+    if (this.realtimeChannel) {
+      this.realtimeChannel.unsubscribe();
+      this.realtimeChannel = null;
+      console.log('🔔 Realtime leállítva - kijelentkezés');
+    }
+    this.realtimeEnabled = false;
+    
+    // Tisztítsuk meg a local storage-t manuálisan is
+    try {
+      localStorage.removeItem('supabase.auth.token');
+      // A Supabase storage kulcsok
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          localStorage.removeItem(key);
+        }
+      });
+      // console.log('✅ Local storage megtisztítva');
+    } catch (e) {
+      // console.warn('⚠️ Local storage tisztítási hiba:', e);
+    }
+    
+    return true;
   }
 
   async resetPassword(email) {
-    const { data, error } = await this.sb.auth.resetPasswordForEmail(email, {
-      redirectTo: SUPABASE_CONFIG.REDIRECT_URL
-    });
+    try {
+      // console.log('🔄 Jelszó visszaállítás indítása:', email);
+      // console.log('📧 Redirect URL:', SUPABASE_CONFIG.REDIRECT_URL);
+      
+      const { data, error } = await this.sb.auth.resetPasswordForEmail(email, {
+        redirectTo: SUPABASE_CONFIG.REDIRECT_URL
+      });
 
-    if (error) throw error;
-    
-    // Log: segít debuggolni az email küldést
-    console.log('Password reset email sent to:', email);
-    
-    return data;
+      if (error) {
+        console.error('❌ Jelszó visszaállítási hiba:', error);
+        throw error;
+      }
+      
+      // console.log('✅ Jelszó visszaállító email elküldve:', email);
+      // console.log('📋 Response data:', data);
+      
+      return data;
+    } catch (error) {
+      console.error('❌ resetPassword error:', error);
+      throw error;
+    }
   }
 
   // ====================================
@@ -198,16 +721,61 @@ class SupabaseAuth {
       throw new Error('Unauthorized: Only admins can set admin roles');
     }
 
-    const { data, error } = await this.sb
-      .from('user_roles')
-      .upsert({
-        user_id: userId,
-        is_admin: isAdmin,
-        updated_at: new Date().toISOString()
+    try {
+      // 1. Először próbáljuk meg UPDATE-elni
+      const { error: updateError, count } = await this.sb
+        .from('user_roles')
+        .update({
+          is_admin: isAdmin,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select('*', { count: 'exact', head: true });
+
+      // Ha nem létezett a sor (count === 0), akkor INSERT-eljük
+      if (count === 0 || updateError?.code === 'PGRST116') {
+        const { error: insertError } = await this.sb
+          .from('user_roles')
+          .insert({
+            user_id: userId,
+            is_admin: isAdmin,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        
+        if (insertError) throw insertError;
+      } else if (updateError) {
+        throw updateError;
+      }
+
+      // 2. FONTOS: Frissítjük a user metadata-ját is!
+      // Ez egy Supabase Edge Function vagy RPC hívás kéne legyen
+      // De mivel kliens oldalon vagyunk, nem férünk hozzá az admin API-hoz
+      // Ehelyett egy Database Function-t fogunk használni
+      
+      const { error: funcError } = await this.sb.rpc('set_user_admin_metadata', {
+        target_user_id: userId,
+        admin_status: isAdmin
       });
 
-    if (error) throw error;
-    return data;
+      if (funcError) {
+        // console.warn('⚠️ Nem sikerült frissíteni a metadata-t:', funcError.message);
+        // console.warn('💡 A user_roles tábla frissült, de a metadata nem. Futtasd le a set-admin-metadata-function.sql scriptet!');
+      }
+
+      // console.log(`✅ Admin status updated: ${userId} -> ${isAdmin}`);
+      
+      // Ha saját magunkat frissítettük, azonnal töltsük újra a profilt
+      if (userId === this.getUserId()) {
+        await this.loadUserProfile(this.currentUser);
+      }
+      
+      return { success: true };
+      
+    } catch (error) {
+      console.error('❌ setUserAdmin error:', error);
+      throw error;
+    }
   }
 
   async getAllUsers() {
@@ -333,6 +901,7 @@ class SupabaseAuthModal {
     this.registerError = document.getElementById("registerError");
     this.registerSuccess = document.getElementById("registerSuccess");
     this.toggleRegisterPassword = document.getElementById("toggleRegisterPassword");
+    this.toggleRegisterPasswordConfirm = document.getElementById("toggleRegisterPasswordConfirm");
     this.showLoginTab = document.getElementById("showLoginFromRegister");
 
     // Forgot password form elements
@@ -347,6 +916,10 @@ class SupabaseAuthModal {
     // Social login buttons
     this.googleBtn = document.getElementById("googleBtn");
     this.githubBtn = document.getElementById("githubBtn");
+    
+    // Social registration buttons
+    this.googleRegisterBtn = document.getElementById("googleRegisterBtn");
+    this.githubRegisterBtn = document.getElementById("githubRegisterBtn");
 
     // Event listeners
     this.setupEventListeners();
@@ -385,6 +958,10 @@ class SupabaseAuthModal {
     // Social logins
     this.googleBtn?.addEventListener("click", () => this.handleGoogleLogin());
     this.githubBtn?.addEventListener("click", () => this.handleGithubLogin());
+    
+    // Social registration (uses same OAuth methods)
+    this.googleRegisterBtn?.addEventListener("click", () => this.handleGoogleLogin());
+    this.githubRegisterBtn?.addEventListener("click", () => this.handleGithubLogin());
 
     // Show login from register
     this.showLoginTab?.addEventListener("click", () => this.showTab("login"));
@@ -395,6 +972,9 @@ class SupabaseAuthModal {
     });
     this.toggleRegisterPassword?.addEventListener("click", () => {
       this.togglePasswordVisibility(this.registerPassword, this.toggleRegisterPassword);
+    });
+    this.toggleRegisterPasswordConfirm?.addEventListener("click", () => {
+      this.togglePasswordVisibility(this.registerPasswordConfirm, this.toggleRegisterPasswordConfirm);
     });
 
     // Cancel button
@@ -409,6 +989,13 @@ class SupabaseAuthModal {
   }
 
   showTab(tab) {
+    // console.log('🔄 Switching to tab:', tab);
+    // console.log('Forms found:', {
+      // loginForm: !!this.loginForm,
+      // registerForm: !!this.registerForm,
+      // forgotPasswordForm: !!this.forgotPasswordForm
+    // });
+    
     // Hide all forms
     if (this.loginForm) this.loginForm.style.display = "none";
     if (this.registerForm) this.registerForm.style.display = "none";
@@ -421,15 +1008,28 @@ class SupabaseAuthModal {
 
     // Show selected form
     if (tab === "login") {
-      if (this.loginForm) this.loginForm.style.display = "block";
+      if (this.loginForm) {
+        this.loginForm.style.display = "block";
+        // console.log('✅ Login form shown');
+      }
       this.tabButtons.login?.classList.add("active");
       this.clearMessages();
     } else if (tab === "register") {
-      if (this.registerForm) this.registerForm.style.display = "block";
+      if (this.registerForm) {
+        this.registerForm.style.display = "block";
+        // console.log('✅ Register form shown');
+      }
       this.tabButtons.register?.classList.add("active");
       this.clearMessages();
     } else if (tab === "forgot") {
-      if (this.forgotPasswordForm) this.forgotPasswordForm.style.display = "block";
+      if (this.forgotPasswordForm) {
+        this.forgotPasswordForm.style.display = "block";
+        // console.log('✅ Forgot password form shown');
+        // console.log('Form element:', this.forgotPasswordForm);
+        // console.log('Form innerHTML length:', this.forgotPasswordForm.innerHTML?.length);
+      } else {
+        console.error('❌ Forgot password form NOT FOUND!');
+      }
       this.clearMessages();
     }
   }
@@ -525,11 +1125,26 @@ class SupabaseAuthModal {
       return;
     }
 
+    // Extra védelem a stuck loading state ellen
+    if (!this.loginBtn) {
+      console.error("Login button not found!");
+      this.showError(this.loginError, "Hiba történt. Próbáld újra!");
+      return;
+    }
+
     try {
       this.loginBtn.disabled = true;
       this.loginBtn.textContent = "Bejelentkezés...";
 
-      await this.auth.signInWithEmail(email, password);
+      // Timeout védelem: ha 30 másodperc alatt nem válaszol a Supabase
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Időtúllépés! Túl sokáig tart a bejelentkezés.')), 30000)
+      );
+
+      await Promise.race([
+        this.auth.signInWithEmail(email, password),
+        timeoutPromise
+      ]);
       
       this.showSuccess(this.loginSuccess, "Sikeres bejelentkezés! 🎉");
       
@@ -542,8 +1157,11 @@ class SupabaseAuthModal {
       console.error("Login error:", error);
       this.showError(this.loginError, this.getErrorMessage(error));
     } finally {
-      this.loginBtn.disabled = false;
-      this.loginBtn.textContent = "Bejelentkezés";
+      // Mindenképpen visszaállítjuk a gombot
+      if (this.loginBtn) {
+        this.loginBtn.disabled = false;
+        this.loginBtn.textContent = "Bejelentkezés";
+      }
     }
   }
 
@@ -626,22 +1244,44 @@ class SupabaseAuthModal {
       return;
     }
 
+    // console.log('🔑 Jelszó visszaállítás kérése:', email);
+
     try {
       this.forgotBtn.disabled = true;
       this.forgotBtn.textContent = "Küldés...";
 
-      await this.auth.resetPassword(email);
+      const result = await this.auth.resetPassword(email);
+      
+      // console.log('✅ Jelszó visszaállító email kérés sikeres:', result);
       
       this.showSuccess(this.forgotSuccess, 
-        "Jelszó visszaállító email elküldve! Ellenőrizd a postaládádat. 📧");
+        "✅ Jelszó visszaállító email elküldve!\n\n📧 Ellenőrizd az email fiókodat (és a SPAM mappát is).\n\n💡 Ha nem érkezik meg 5 percen belül, próbáld újra vagy ellenőrizd hogy a megadott email cím létezik-e.");
       
       setTimeout(() => {
         this.showTab("login");
-      }, 3000);
+      }, 5000);
       
     } catch (error) {
-      console.error("Forgot password error:", error);
-      this.showError(this.forgotError, this.getErrorMessage(error));
+      console.error("❌ Forgot password error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        details: error
+      });
+      
+      let errorMsg = this.getErrorMessage(error);
+      
+      // Speciális esetek
+      if (error.message && error.message.includes('rate limit')) {
+        errorMsg = '⏰ Túl sok jelszó visszaállítási kérés! Várj 1 órát és próbáld újra.';
+      } else if (error.message && error.message.includes('not found')) {
+        errorMsg = '❌ Ez az email cím nem található a rendszerben. Biztos jól írtad be?';
+      } else if (!error.message) {
+        errorMsg = '⚠️ Ismeretlen hiba történt. Ellenőrizd az internet kapcsolatot!';
+      }
+      
+      this.showError(this.forgotError, errorMsg);
     } finally {
       this.forgotBtn.disabled = false;
       this.forgotBtn.textContent = "Jelszó visszaállítása";

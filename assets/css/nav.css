@@ -7,7 +7,7 @@ nav.navbar {
   background-color: #4c0bce;
   padding: 0 12px !important;
   padding-left: var(--nav-pad) !important;
-  padding-right: var(--nav-pad) !important;
+  padding-right: 120px !important; /* Hely az auth gombnak jobb oldalon */
   text-shadow: 0 0 15px #000000;
   z-index: 2;
   position: fixed;
@@ -235,4 +235,11 @@ button {
 
 button.nav-item {
   padding: 10px;
+}
+
+/* Navbar auth container és avatar mobilon */
+@media (max-width: 700px) {
+  nav.navbar {
+    padding-right: 100px !important; /* Kevesebb hely mobilon */
+  }
 }

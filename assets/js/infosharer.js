@@ -1225,7 +1225,22 @@ async function reorderSlots(deletedSlotNum) {
 // ESEMÉNYKEZELŐK
 // ====================================
 
-function setupEventListeners() {
+async function setupEventListeners() {
+  // Várunk amíg a SupabaseAuthModal betöltődik
+  console.log('⏳ Várakozás a SupabaseAuthModal betöltésére...');
+  let attempts = 0;
+  while (!window.SupabaseAuthModal && attempts < 100) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+  
+  if (!window.SupabaseAuthModal) {
+    console.error('❌ SupabaseAuthModal nem töltődött be!');
+    return;
+  }
+  
+  console.log('✅ SupabaseAuthModal betöltve');
+  
   // Auth Modal inicializálás (SupabaseAuthModal from supabase-auth.js)
   const authModal = new window.SupabaseAuthModal(globalAuth);
   authModal.init({
@@ -1404,8 +1419,15 @@ async function initialize() {
   // Supabase inicializálása
   await initSupabase();
   
-  // Supabase Auth inicializálása
-  globalAuth = await window.initSupabaseAuth();
+  // Supabase Auth - ellenőrizzük hogy már inicializálva van-e (nav.js betölti)
+  if (window.getAuth) {
+    globalAuth = window.getAuth();
+  }
+  
+  // Ha még nincs inicializálva (pl. nav.js előtt töltődött be), inicializáljuk most
+  if (!globalAuth && window.initSupabaseAuth) {
+    globalAuth = await window.initSupabaseAuth();
+  }
   
   // DOM elemek inicializálása
   initDOMElements();
@@ -1415,16 +1437,44 @@ async function initialize() {
   saveBtn.disabled = true;
   
   // Ellenőrizzük az authentikációt és admin jogot
-  if (globalAuth.isAuthenticated() && globalAuth.isAdminUser()) {
+  if (globalAuth && globalAuth.isAuthenticated() && globalAuth.isAdminUser()) {
+    console.log('✅ Infosharer: Admin felhasználó, szerkesztési mód engedélyezve');
     canEdit = true;
     ta.readOnly = false;
     saveBtn.disabled = false;
     mainBtns.style.display = "none";
     authBtns.style.display = "flex";
+  } else {
+    console.log('ℹ️ Infosharer: Csak olvasási mód (nincs admin jog vagy nincs bejelentkezve)');
   }
   
   // Eseménykezelők beállítása
-  setupEventListeners();
+  await setupEventListeners();
+  
+  // Login state változás figyelése
+  window.addEventListener('loginStateChanged', async (event) => {
+    console.log('🔄 Infosharer: Login state changed', event.detail);
+    
+    if (event.detail.loggedIn && event.detail.isAdmin) {
+      // Admin bejelentkezett
+      canEdit = true;
+      ta.readOnly = false;
+      saveBtn.disabled = false;
+      mainBtns.style.display = "none";
+      authBtns.style.display = "flex";
+      await updateSlots();
+      setStatus('success', '✅ Admin jogosultság aktiválva!');
+    } else if (!event.detail.loggedIn) {
+      // Kijelentkezés
+      canEdit = false;
+      ta.readOnly = true;
+      saveBtn.disabled = true;
+      mainBtns.style.display = "flex";
+      authBtns.style.display = "none";
+      await updateSlots();
+      setStatus('info', 'Csak olvasási mód');
+    }
+  });
   
   // Slotok betöltése
   updateSlots();

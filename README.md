@@ -33,8 +33,10 @@
 | 🔍 **Keresés** | Intelligens keresési javaslatok |
 | 📱 **Reszponzív** | Minden eszközön tökéletesen működik |
 | 🎨 **Modern UI** | Glassmorphism & gradient design |
-| 🔐 **Bejelentkezés** | Védett tartalmak elérése |
+| 🔐 **Auth Rendszer** | Supabase alapú bejelentkezés (Email + OAuth) |
+| 👤 **Admin Panel** | Felhasználók és jogosultságok kezelése |
 | 🔄 **Auto-update** | Automatikus verzióellenőrzés GitHub Releases-ből |
+| 📦 **Release Manager** | GitHub verziókezelés admin felület |
 
 ---
 
@@ -89,6 +91,7 @@ agazati/
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
 ![Python](https://img.shields.io/badge/Pyodide-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
 </div>
 
@@ -96,10 +99,20 @@ agazati/
 
 - **Bootstrap 5.3.3** - Reszponzív UI komponensek
 - **Pyodide** - Python a böngészőben (WebAssembly)
+- **Supabase** - Backend as a Service (Auth, Database, RLS)
+- **OAuth 2.0** - Google & GitHub bejelentkezés
+- **PostgreSQL** - Adatbázis (Supabase által hosztolt)
 - **Space Grotesk** - Modern betűtípus
 - **GitHub API** - Utolsó commit dátum + verzióellenőrzés
 - **SessionStorage** - Navigáció állapot mentése
 - **LocalStorage** - Verzió cache és commit tracking
+
+### Auth & Backend
+
+- **Supabase Auth** - Email/jelszó + OAuth providers
+- **Row Level Security (RLS)** - Adatbázis szintű hozzáférés-vezérlés
+- **User Roles** - Metadata alapú jogosultság kezelés
+- **Session Management** - Automatikus token refresh és persistence
 
 ---
 
@@ -148,6 +161,19 @@ agazati/
 - Cache-elt verzióinformációk a gyors betöltéshez
 - Részletes információ a [RELEASES.md](RELEASES.md) fájlban
 
+### 🔐 Bejelentkezés & Jogosultságok
+- **Email/Jelszó** - Hagyományos regisztráció és bejelentkezés
+- **OAuth** - Google és GitHub social login
+- **Jelszó-visszaállítás** - Email alapú reset funkció
+- **Admin Panel** - Felhasználók és szerepkörök kezelése (csak adminoknak)
+- **Védett tartalmak** - Bejelentkezést igénylő oldalak
+
+### 📊 Admin Funkciók
+- User management és jogosultság módosítás
+- Release Manager - GitHub verziókezelés
+- Supabase Dashboard gyorselérés
+- Fejlesztési naplók és változások követése
+
 ---
 
 ## 🎨 Képernyőképek
@@ -187,6 +213,17 @@ Szívesen fogadunk minden hozzájárulást!
 - [ ] Sötét/világos téma váltás
 - [ ] Több nyelv támogatása
 - [ ] Offline támogatás (PWA)
+- [ ] User profile szerkesztés
+- [ ] Avatar feltöltés funkció
+- [ ] Email értesítések testreszabása
+
+---
+
+## 📚 Dokumentáció
+
+- [CHANGES.md](CHANGES.md) - Teljes fejlesztési napló és változtatások
+- [RELEASES.md](RELEASES.md) - GitHub Releases verziókezelési útmutató
+- [RELEASE_NOTES_v1.5.0.md](RELEASE_NOTES_v1.5.0.md) - Legújabb verzió részletei
 
 ---
 
