@@ -31,7 +31,8 @@
           if (!isLoggedIn) {
             // console.warn('⛔ Nem vagy bejelentkezve! Átirányítás a főoldalra...');
             alert('⛔ Ez az oldal csak bejelentkezett felhasználóknak érhető el!');
-            window.location.href = '/agazati/';
+            const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
+            window.location.href = baseUrl;
             return;
           }
           
@@ -39,11 +40,12 @@
             // console.warn('⛔ Nem vagy admin! Átirányítás vissza...');
             alert('⛔ Ez az oldal csak admin felhasználók számára érhető el!');
             
-            // Visszairányítás az előző oldalra vagy főoldalra
+            const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
+            // Visszaírányítás az előző oldalra vagy főoldalra
             if (document.referrer && !document.referrer.includes('secret/')) {
               window.location.href = document.referrer;
             } else {
-              window.location.href = '/agazati/';
+              window.location.href = baseUrl;
             }
             return;
           }
@@ -61,7 +63,8 @@
     // Ha nem sikerült betölteni az auth-ot 15 másodperc alatt
     console.error('❌ Admin guard: Auth nem töltődött be időben!');
     alert('⚠️ Hiba történt az authentikáció betöltésekor. Próbáld újra!');
-    window.location.href = '/agazati/';
+    const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
+    window.location.href = baseUrl;
   }
 
   // Automatikus ellenőrzés amikor az oldal betöltődik
