@@ -5,7 +5,91 @@ footer {
   margin: 0;
   font-size: 75%;
   text-align: center;
-  max-height: 550px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Mobil nézet optimalizálása */
+@media (max-width: 768px) {
+  footer {
+    padding: 40px 20px;
+    min-height: 450px;
+  }
+  
+  footer p {
+    font-size: 16px;
+    margin-bottom: 1.2rem;
+  }
+  
+  footer h3 {
+    font-size: 18px;
+    margin: 25px 10px;
+  }
+  
+  /* Kapcsolatok maradnak egymás mellett tablet nézetben */
+  div.contacts {
+    flex-wrap: wrap;
+    gap: 15px 20px;
+  }
+  
+  div.contacts div {
+    margin: 0 8px;
+  }
+  
+  div.contacts a {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  footer {
+    padding: 30px 15px;
+    min-height: 500px;
+  }
+  
+  footer p {
+    font-size: 14px;
+    margin-bottom: 1rem;
+  }
+  
+  footer h3 {
+    font-size: 16px;
+    margin: 20px 5px;
+  }
+  
+  /* Csak nagyon kicsi kijelzőn menjenek egymás alá */
+  div.contacts {
+    flex-wrap: wrap;
+    gap: 12px;
+    max-width: 100%;
+  }
+  
+  div.contacts div {
+    margin: 0 5px;
+  }
+  
+  div.contacts a {
+    font-size: 13px;
+  }
+  
+  div.contacts img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Extra kis képernyő - itt már tényleg egymás alá */
+@media (max-width: 360px) {
+  div.contacts {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  div.contacts div {
+    margin: 5px auto;
+  }
 }
 
 footer p {
@@ -38,8 +122,10 @@ div.contacts {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 20px;
   margin: auto;
-  
+  max-width: 100%;
 }
 
 div.contacts a {
