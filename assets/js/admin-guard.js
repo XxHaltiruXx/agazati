@@ -9,7 +9,7 @@
 
   // Várjuk meg az auth inicializálását
   async function checkAdminAccess() {
-    const maxAttempts = 150; // 15 másodperc (150 x 100ms)
+    const maxAttempts = 200; // 20 másodperc (200 x 100ms)
     let attempts = 0;
 
     while (attempts < maxAttempts) {
@@ -17,9 +17,9 @@
       if (window.getAuth && typeof window.getAuth === 'function') {
         const auth = window.getAuth();
         
-        // Várjuk meg hogy az auth tényleg inicializálódjon és legyen currentUser
-        if (auth && auth.sb) {
-          // console.log('🔐 Admin guard: Auth betöltve, ellenőrzés...', { 
+        // Várjuk meg hogy az auth tényleg inicializálódjon ÉS a profil betöltődjön
+        if (auth && auth.sb && auth.currentUser && auth.profileLoaded) {
+          // console.log('🔐 Admin guard: Auth ÉS profil betöltve, ellenőrzés...', { 
           //   isAuthenticated: auth.isAuthenticated(), 
           //   isAdmin: auth.isAdminUser() 
           // });
@@ -60,7 +60,7 @@
       attempts++;
     }
     
-    // Ha nem sikerült betölteni az auth-ot 15 másodperc alatt
+    // Ha nem sikerült betölteni az auth-ot 20 másodperc alatt
     console.error('❌ Admin guard: Auth nem töltődött be időben!');
     alert('⚠️ Hiba történt az authentikáció betöltésekor. Próbáld újra!');
     const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';

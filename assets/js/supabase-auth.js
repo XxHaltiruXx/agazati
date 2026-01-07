@@ -53,6 +53,7 @@ class SupabaseAuth {
     this.sb = null;
     this.realtimeChannel = null;
     this.lastKnownPath = '/';
+    this.profileLoaded = false; // Flag hogy a profil betöltődött-e
   }
 
   async init() {
@@ -91,6 +92,7 @@ class SupabaseAuth {
       } else if (event === 'SIGNED_OUT') {
         this.currentUser = null;
         this.isAdmin = false;
+        this.profileLoaded = false;
         // Frissítsük a navigációt amikor kijelentkezünk
         if (window.rebuildNav && typeof window.rebuildNav === 'function') {
           window.rebuildNav();
@@ -169,11 +171,15 @@ class SupabaseAuth {
     // Állítsuk be az admin státuszt
     this.isAdmin = newAdminStatus;
     
-    // Ha van metadata admin jog de nincs még database-ben, szinkronizáljuk
-    if (metadataAdmin && !hadDatabaseEntry) {
-      // console.log('🔄 Metadata admin jog megvan, de nincs még database bejegyzés - létrehozás...');
-      await this.createUserRoleEntry(user.id, true);
+    // CSAK akkor hozzunk létre database bejegyzést ha egyáltalán nincs
+    // NE írjuk felül a database-t a metadata alapján!
+    if (!hadDatabaseEntry) {
+      // console.log('🔄 Nincs database bejegyzés - létrehozás metadata alapján:', metadataAdmin);
+      await this.createUserRoleEntry(user.id, metadataAdmin);
     }
+    
+    // Jelöljük hogy a profil betöltődött
+    this.profileLoaded = true;
   }
 
   setupRealtimeSubscription() {
@@ -470,6 +476,7 @@ class SupabaseAuth {
     // Mindenképp törljük a local state-et
     this.currentUser = null;
     this.isAdmin = false;
+    this.profileLoaded = false;
     
     // Tisztítsuk meg a local storage-t manuálisan is
     try {
@@ -522,16 +529,31 @@ class SupabaseAuth {
     }
 
     try {
-      // 1. Frissítjük a user_roles táblát (UPDATE, nem UPSERT!)
-      const { error: dbError } = await this.sb
+      // 1. Először próbáljuk meg UPDATE-elni
+      const { error: updateError, count } = await this.sb
         .from('user_roles')
         .update({
           is_admin: isAdmin,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .select('*', { count: 'exact', head: true });
 
-      if (dbError) throw dbError;
+      // Ha nem létezett a sor (count === 0), akkor INSERT-eljük
+      if (count === 0 || updateError?.code === 'PGRST116') {
+        const { error: insertError } = await this.sb
+          .from('user_roles')
+          .insert({
+            user_id: userId,
+            is_admin: isAdmin,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        
+        if (insertError) throw insertError;
+      } else if (updateError) {
+        throw updateError;
+      }
 
       // 2. FONTOS: Frissítjük a user metadata-ját is!
       // Ez egy Supabase Edge Function vagy RPC hívás kéne legyen
