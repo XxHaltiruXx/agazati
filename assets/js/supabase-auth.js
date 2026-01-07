@@ -184,6 +184,13 @@ class SupabaseAuth {
 
   setupRealtimeSubscription() {
     if (!this.sb || this.realtimeChannel) return;
+    
+    // Csak akkor indítsuk el ha be vagyunk jelentkezve
+    const currentUserId = this.getUserId();
+    if (!currentUserId) {
+      console.log('⏭️ Realtime subscription kihagyva - nincs bejelentkezett felhasználó');
+      return;
+    }
 
     console.log('🔔 Realtime subscription beállítása...');
 
@@ -233,6 +240,24 @@ class SupabaseAuth {
           await window.loadUsers();
         }
       }
+      
+      // NEM TÉRUNK VISSZA - küldjünk értesítést ha mi vagyunk az admin
+      if (this.isAdmin) {
+        const isNowAdmin = newData?.is_admin === true;
+        if (isNowAdmin) {
+          this.showNotification(
+            '🎉 Admin jog hozzárendelve',
+            'Sikeresen admin jogot adtál egy felhasználónak.',
+            'success'
+          );
+        } else {
+          this.showNotification(
+            '⚠️ Admin jog elvonva',
+            'Sikeresen elvettted az admin jogot egy felhasználótól.',
+            'warning'
+          );
+        }
+      }
       return;
     }
 
@@ -278,7 +303,7 @@ class SupabaseAuth {
       console.warn('⚠️ Admin jog elvesztve admin oldalon - átirányítás...');
       // Rövid késleltetés csak a notification megjelenítéséhez
       setTimeout(() => {
-        const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
+        const baseUrl = this.getBaseUrl();
         const lastPath = this.lastKnownPath || baseUrl;
         window.location.href = lastPath.includes('secret/') ? baseUrl : lastPath;
       }, 2000);
@@ -377,6 +402,20 @@ class SupabaseAuth {
   isOnAdminPage() {
     const path = window.location.pathname;
     return path.includes('secret/');
+  }
+  
+  getBaseUrl() {
+    // Ellenőrizzük az origin-t és a pathname-t is
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    
+    // Ha GitHub Pages vagy a pathname tartalmazza az agazati-t
+    if (origin.includes('github.io') || pathname.includes('/agazati/')) {
+      return origin.includes('github.io') ? origin + '/agazati/' : '/agazati/';
+    }
+    
+    // Local vagy más host - csak a root
+    return '/';
   }
 
   refreshUI() {

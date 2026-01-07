@@ -11,6 +11,16 @@
   async function checkAdminAccess() {
     const maxAttempts = 200; // 20 másodperc (200 x 100ms)
     let attempts = 0;
+    
+    // Helper a helyes baseUrl-hez
+    function getBaseUrl() {
+      const origin = window.location.origin;
+      const pathname = window.location.pathname;
+      if (origin.includes('github.io') || pathname.includes('/agazati/')) {
+        return origin.includes('github.io') ? origin + '/agazati/' : '/agazati/';
+      }
+      return '/';
+    }
 
     while (attempts < maxAttempts) {
       // Várjuk meg a window.getAuth() elérhetőségét ÉS hogy be is töltődjön az auth
@@ -31,8 +41,7 @@
           if (!isLoggedIn) {
             // console.warn('⛔ Nem vagy bejelentkezve! Átirányítás a főoldalra...');
             alert('⛔ Ez az oldal csak bejelentkezett felhasználóknak érhető el!');
-            const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
-            window.location.href = baseUrl;
+            window.location.href = getBaseUrl();
             return;
           }
           
@@ -40,12 +49,11 @@
             // console.warn('⛔ Nem vagy admin! Átirányítás vissza...');
             alert('⛔ Ez az oldal csak admin felhasználók számára érhető el!');
             
-            const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
             // Visszaírányítás az előző oldalra vagy főoldalra
             if (document.referrer && !document.referrer.includes('secret/')) {
               window.location.href = document.referrer;
             } else {
-              window.location.href = baseUrl;
+              window.location.href = getBaseUrl();
             }
             return;
           }
@@ -63,8 +71,7 @@
     // Ha nem sikerült betölteni az auth-ot 20 másodperc alatt
     console.error('❌ Admin guard: Auth nem töltődött be időben!');
     alert('⚠️ Hiba történt az authentikáció betöltésekor. Próbáld újra!');
-    const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
-    window.location.href = baseUrl;
+    window.location.href = getBaseUrl();
   }
 
   // Automatikus ellenőrzés amikor az oldal betöltődik
