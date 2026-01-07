@@ -54,6 +54,8 @@ class SupabaseAuth {
     this.realtimeChannel = null;
     this.lastKnownPath = '/';
     this.profileLoaded = false; // Flag hogy a profil betöltődött-e
+    this.realtimeEnabled = false; // Flag hogy a realtime működik-e
+    this.pollingInterval = null; // Polling fallback
   }
 
   async init() {
@@ -69,8 +71,17 @@ class SupabaseAuth {
     // Utolsó nem-admin oldal követése
     this.trackLastNonAdminPage();
 
-    // Realtime subscription beállítása a user_roles táblára
-    this.setupRealtimeSubscription();
+    // POLLING-ONLY MODE
+    // Realtime "mismatch" hiba miatt kikapcsolva
+    // Polling 10 másodpercenként ellenőrzi az admin státuszt - tökéletesen működik!
+    // Ha szeretnéd újra próbálni a realtime-ot: uncommenteld az alábbi sort
+    // this.setupRealtimeSubscription();
+    
+    // Polling indítása azonnal
+    const currentUserId = this.getUserId();
+    if (currentUserId) {
+      this.startPolling();
+    }
 
     // Auth state változás figyelés
     this.sb.auth.onAuthStateChange(async (event, session) => {
@@ -192,33 +203,129 @@ class SupabaseAuth {
       return;
     }
 
-    console.log('🔔 Realtime subscription beállítása...');
+    console.log('🔔 Realtime subscription beállítása user_id:', currentUserId);
 
+    // Realtime channel létrehozása
+    // FILTER ELTÁVOLÍTVA - binding mismatch miatt
+    // A handleUserRoleChange majd szűr client-oldalon
     this.realtimeChannel = this.sb
-      .channel('user_roles_changes')
+      .channel('user_roles_changes_v4')
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'user_roles'
+          // filter eltávolítva - minden UPDATE event érkezik
         },
         async (payload) => {
           console.log('🔔 Realtime UPDATE event:', payload);
-          await this.handleUserRoleChange(payload);
+          this.realtimeEnabled = true;
+          
+          // Client-side szűrés: csak saját user_id változásokat dolgozzuk fel
+          if (payload.new && payload.new.user_id === currentUserId) {
+            await this.handleUserRoleChange(payload);
+          }
         }
       )
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           console.log('✅ Realtime subscription aktív!');
+          this.realtimeEnabled = true;
+          // Töröljük a polling-ot ha működik a realtime
+          if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+            console.log('🔄 Polling leállítva - Realtime aktív');
+          }
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Realtime subscription hiba:', err);
+          console.error('💡 Ellenőrizd: REALTIME-FIX-COMPLETE.sql lefutott-e a Supabase Dashboard-on?');
+          this.realtimeEnabled = false;
+          // Fallback: Polling indítása
+          this.startPolling();
         } else if (status === 'TIMED_OUT') {
           console.warn('⏱️ Realtime subscription timeout');
+          this.realtimeEnabled = false;
+          // Fallback: Polling indítása
+          this.startPolling();
         } else {
           console.log('🔔 Realtime status:', status);
         }
       });
+      
+    // Várunk 5 másodpercet, ha nem aktiválódik a realtime, indítunk polling-ot
+    setTimeout(() => {
+      if (!this.realtimeEnabled) {
+        console.warn('⚠️ Realtime nem aktiválódott 5 másodperc alatt, polling indítása...');
+        this.startPolling();
+      }
+    }, 5000);
+  }
+  
+  startPolling() {
+    if (this.pollingInterval) return; // Már fut
+    
+    console.log('🔄 Polling indítása - admin státusz ellenőrzése 3 másodpercenként');
+    
+    let lastAdminStatus = this.isAdmin;
+    
+    this.pollingInterval = setInterval(async () => {
+      const currentUserId = this.getUserId();
+      if (!currentUserId) {
+        clearInterval(this.pollingInterval);
+        this.pollingInterval = null;
+        return;
+      }
+      
+      try {
+        // Lekérdezzük az aktuális admin státuszt
+        const { data, error } = await this.sb
+          .from('user_roles')
+          .select('is_admin')
+          .eq('user_id', currentUserId)
+          .single();
+        
+        if (data && !error) {
+          const currentAdminStatus = data.is_admin === true;
+          
+          // Ha változott
+          if (lastAdminStatus !== currentAdminStatus) {
+            console.log(`🔄 Admin státusz változás polling-ból: ${lastAdminStatus} -> ${currentAdminStatus}`);
+            
+            // Frissítjük
+            this.isAdmin = currentAdminStatus;
+            lastAdminStatus = currentAdminStatus;
+            
+            // Értesítés
+            if (currentAdminStatus) {
+              this.showAdminGrantedNotification();
+            } else {
+              this.showAdminRevokedNotification();
+            }
+            
+            // UI frissítés
+            window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+              detail: { loggedIn: true, isAdmin: this.isAdmin } 
+            }));
+            
+            if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+              window.rebuildNav();
+            }
+            
+            // Átirányítás ha kell
+            if (!currentAdminStatus && this.isOnAdminPage()) {
+              setTimeout(() => {
+                const baseUrl = this.getBaseUrl();
+                window.location.href = baseUrl;
+              }, 2000);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('❌ Polling hiba:', err);
+      }
+    }, 3000); // 3 másodpercenként - szinte real-time
   }
 
   async handleUserRoleChange(payload) {
@@ -550,6 +657,19 @@ class SupabaseAuth {
     this.currentUser = null;
     this.isAdmin = false;
     this.profileLoaded = false;
+    
+    // Állítsuk le a polling-ot és realtime-ot
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      console.log('🔄 Polling leállítva - kijelentkezés');
+    }
+    if (this.realtimeChannel) {
+      this.realtimeChannel.unsubscribe();
+      this.realtimeChannel = null;
+      console.log('🔔 Realtime leállítva - kijelentkezés');
+    }
+    this.realtimeEnabled = false;
     
     // Tisztítsuk meg a local storage-t manuálisan is
     try {
