@@ -144,7 +144,7 @@
     window.toggleNav = function () {
       const args = Array.prototype.slice.call(arguments);
       window._agazati_nav_call_queue.push({ name: 'toggleNav', args });
-      console.warn('[agazati] toggleNav called early; queued until initialization completes.');
+      // console.warn('[agazati] toggleNav called early; queued until initialization completes.');
     };
   }
 
@@ -152,7 +152,7 @@
     window.openLoginModal = function () {
       const args = Array.prototype.slice.call(arguments);
       window._agazati_nav_call_queue.push({ name: 'openLoginModal', args });
-      console.warn('[agazati] openLoginModal called early; queued until login modal is ready.');
+      // console.warn('[agazati] openLoginModal called early; queued until login modal is ready.');
     };
   }
 
@@ -430,14 +430,10 @@
   }
 
   async function logoutFromNav() {
-    console.log('🔄 Kijelentkezés indítása...');
-    
     try {
       if (globalAuth) {
         await globalAuth.signOut();
-        console.log('✅ Kijelentkezés sikeres');
       } else {
-        console.warn('⚠️ Nincs auth instance, local storage tisztítása...');
         // Ha nincs auth, legalább tisztítsuk a local storage-t
         Object.keys(localStorage).forEach(key => {
           if (key.startsWith('sb-') || key.includes('supabase')) {
@@ -457,8 +453,6 @@
         detail: { loggedIn: false } 
       }));
       
-      console.log('🔄 Átirányítás...');
-      
       // Ha secret oldalon vagyunk, menjünk a főoldalra
       const currentPathname = window.location.pathname;
       if (currentPathname.includes('secret/')) {
@@ -467,8 +461,7 @@
         window.location.reload();
       }
     } catch (e) {
-      // Ne dobjunk hibát, csak loggoljuk és tisztítsuk meg mindent
-      console.warn('⚠️ Kijelentkezési hiba (ignorálva):', e.message || e);
+      // Ne dobjunk hibát, csak tisztítsuk meg mindent
       
       // Tisztítsuk meg mindent manuálisan
       globalAuthModal = null;
@@ -582,7 +575,7 @@ window.toggleNav = function () {
 
   /* ======= Navigáció újraépítése ======= */
   function rebuildNavigation() {
-    console.log('🔄 Nav újraépítése...');
+    // console.log('🔄 Nav újraépítése...');
     
     // Frissítsük a globalAuth-ot
     if (window.getAuth && typeof window.getAuth === 'function') {
@@ -591,13 +584,13 @@ window.toggleNav = function () {
     
     // Ellenőrizzük az auth state-et
     const loginState = checkLoginState();
-    console.log('Login state:', loginState);
+    // console.log('Login state:', loginState);
     
     const navContainer = document.querySelector('#mySidenav > div');
     if (navContainer) {
       navContainer.removeAttribute('data-nav-built');
       createNavigation();
-      console.log('✅ Nav újraépítve');
+      // console.log('✅ Nav újraépítve');
     } else {
       console.error('Nav container nem található!');
     }
@@ -1000,22 +993,22 @@ window.toggleNav = function () {
     // Ha már betöltött az auth, ne töltsd be újra
     if (window.getAuth && window.getAuth()) {
       globalAuth = window.getAuth();
-      console.log('✅ Auth már inicializálva');
+      // console.log('✅ Auth már inicializálva');
       return globalAuth;
     }
 
-    console.log('🚀 Auth betöltési folyamat indítása...');
+    // console.log('🚀 Auth betöltési folyamat indítása...');
 
     // Ellenőrizzük, hogy be van-e töltve a Supabase library
     if (typeof supabase === 'undefined') {
-      console.log('📦 Supabase library betöltése...');
+      // console.log('📦 Supabase library betöltése...');
       
       // Betöltjük a Supabase library-t
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
         script.onload = () => {
-          console.log('✅ Supabase library betöltve');
+          // console.log('✅ Supabase library betöltve');
           resolve();
         };
         script.onerror = (err) => {
@@ -1037,12 +1030,12 @@ window.toggleNav = function () {
 
     // Betöltjük a Supabase Auth JS-t
     if (!window.initSupabaseAuth) {
-      console.log('📦 Supabase Auth JS betöltése...');
+      // console.log('📦 Supabase Auth JS betöltése...');
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = 'assets/js/supabase-auth.js';
         script.onload = () => {
-          console.log('✅ Supabase Auth JS betöltve');
+          // console.log('✅ Supabase Auth JS betöltve');
           resolve();
         };
         script.onerror = (err) => {
@@ -1058,10 +1051,10 @@ window.toggleNav = function () {
 
     // Auth inicializálása
     if (window.initSupabaseAuth) {
-      console.log('🔐 Auth inicializálása...');
+      // console.log('🔐 Auth inicializálása...');
       try {
         globalAuth = await window.initSupabaseAuth();
-        console.log('✅ Auth sikeresen inicializálva');
+        // console.log('✅ Auth sikeresen inicializálva');
         
         // Exportáljuk globálisan hogy más scriptek is elérhessék
         window._agazati_auth_ready = true;
@@ -1187,7 +1180,7 @@ window.toggleNav = function () {
   // REBUILD NAV - Admin jogosultság változás után
   // ====================================
   window.rebuildNav = function() {
-    console.log('🔄 Nav újraépítése...');
+    // console.log('🔄 Nav újraépítése...');
     
     // Keressük meg a scrollable container-t
     const scrollable = document.querySelector('#mySidenav .nav-scrollable');
@@ -1205,7 +1198,7 @@ window.toggleNav = function () {
     
     // Építsük újra a menüket
     const loginState = checkLoginState();
-    console.log('Login state:', loginState);
+    // console.log('Login state:', loginState);
     const navStructure = getNavStructure(loginState.isLoggedIn, loginState.isAdmin);
     
     Object.entries(navStructure).forEach(([category, data]) => {
@@ -1273,7 +1266,7 @@ window.toggleNav = function () {
       }
     }
     
-    console.log('✅ Nav újraépítve!');
+    // console.log('✅ Nav újraépítve!');
   };
 
 })();

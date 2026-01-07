@@ -117,15 +117,41 @@ Hibajavítások és apró fejlesztések:
 ```
 v1.0.0 - Kezdeti kiadás
 v1.1.0 - Új quiz funkció
-v1.1.1 - Quiz bug javítások
+v1.1.1 - Quiz hibajavítások
 v1.2.0 - HTML runner hozzáadása
 v1.3.0 - Teljes footer újratervezés
 v1.4.0 - Responsive fejlesztések
 v1.4.1 - CSS hibajavítások
 v1.4.2 - Commit tracking hozzáadása
-v1.4.3 - Jelenlegi verzió
-v1.5.0 - GitHub Releases integráció ⬅️ Következő
+v1.5.0 - Admin fejlesztések ⬅️ Következő
 ```
+
+## v1.5.0 - Admin Fejlesztések
+
+### 🎉 Új funkciók
+- **Supabase Dashboard Link**: Admin felhasználók számára megjelenik a Supabase projekt link a footer kapcsolatok között
+  - Csak bejelentkezett admin felhasználóknak látható
+  - Késleltetett betöltés az auth inicializálás után
+  - Zöld Supabase ikon megjelenítése
+
+### 🐛 Hibajavítások
+- **Release Manager Custom Verzió Stílus**: Javítva a custom verzió input mező és gomb elrendezése
+  - Flexbox helyett grid layout használata
+  - Label, input és gomb megfelelő igazítása
+  - Responsive működés mobilon (teljes szélességű gomb)
+  - Input mező kitölti a rendelkezésre álló helyet
+
+### 🔧 Technikai változások
+- Footer.js: `checkAdminAndShowSupabaseLink()` függvény bevezetése
+- HTML struktúra módosítása: `.input-with-button` wrapper hozzáadása
+- CSS optimalizálás: `align-items: center` az input és gomb sorban
+
+### 📝 Megjegyzések
+- A Supabase link célpontja: `https://supabase.com/dashboard/project/ccpuoqrbmldunshaxpes`
+- Admin ellenőrzés a `window.getAuth().isAdminUser()` metódus alapján
+- 500ms késleltetés az auth betöltődésének biztosítására
+
+
 
 ## Hasznos GitHub CLI Parancsok
 

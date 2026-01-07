@@ -298,6 +298,7 @@ async function performCommitCheck() {
   if (!footer) {
     const imagePath = getImagePath();
     footer = document.createElement("footer");
+    
     footer.innerHTML = `
         <p>&copy; 2025 XxHaltiruXx. Minden jog fenntartva. Nem állunk kapcsolatban valós márkákkal.</p>
         <p>Verzió: <span class="version-number">1.0.0</span></p>
@@ -320,9 +321,33 @@ async function performCommitCheck() {
                     <img id="mail" data-filename="mail.webp" src="${imagePath}mail.webp" alt="Email">
                 </a>
             </div>
+            <div id="supabase-admin-link" style="display:none;">
+                <a href="https://supabase.com/dashboard/project/ccpuoqrbmldunshaxpes" target="_blank" rel="noopener" title="Supabase Dashboard (Admin)">
+                    <img data-filename="supabase.webp" src="${imagePath}supabase.webp" alt="Supabase">
+                </a>
+            </div>
         </div>
     `;
     document.body.appendChild(footer);
+    
+    // Admin link megjelenítése ha user admin - késleltetve
+    function checkAdminAndShowSupabaseLink() {
+      if (window.getAuth && typeof window.getAuth === 'function') {
+        const auth = window.getAuth();
+        if (auth && typeof auth.isAdminUser === 'function' && auth.isAdminUser()) {
+          const supabaseLink = document.getElementById('supabase-admin-link');
+          if (supabaseLink) {
+            supabaseLink.style.display = '';
+          }
+        }
+      } else {
+        // Még nincs kész az auth, próbáljuk újra később
+        setTimeout(checkAdminAndShowSupabaseLink, 100);
+      }
+    }
+    
+    // Várunk egy kicsit hogy az auth betöltődjön
+    setTimeout(checkAdminAndShowSupabaseLink, 500);
   } else {
     if (!footer.querySelector(".time")) {
       const p = document.createElement("p");

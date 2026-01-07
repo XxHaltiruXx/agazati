@@ -38,7 +38,7 @@ function getSupabaseClient() {
         storage: window.localStorage // Explicit localStorage használata
       }
     });
-    console.log('✅ Supabase client inicializálva session persistence-szel');
+    // console.log('✅ Supabase client inicializálva session persistence-szel');
   }
   return supabaseClient;
 }
@@ -65,7 +65,7 @@ class SupabaseAuth {
 
     // Auth state változás figyelés
     this.sb.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state change:', event);
+      // console.log('🔄 Auth state change:', event);
       if (event === 'SIGNED_IN' && session) {
         await this.loadUserProfile(session.user);
         
@@ -92,12 +92,12 @@ class SupabaseAuth {
           detail: { loggedIn: false, isAdmin: false } 
         }));
       } else if (event === 'TOKEN_REFRESHED') {
-        console.log('🔄 Token frissítve');
+        // console.log('🔄 Token frissítve');
       } else if (event === 'USER_UPDATED' && session) {
         await this.loadUserProfile(session.user);
       } else if (event === 'INITIAL_SESSION' && session) {
         // Kezdeti session betöltése - már megtörtént az init()-ben
-        console.log('✅ Kezdeti session betöltve');
+        // console.log('✅ Kezdeti session betöltve');
         
         // Frissítsük a navigációt a kezdeti session után is
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -113,11 +113,11 @@ class SupabaseAuth {
   async loadUserProfile(user) {
     this.currentUser = user;
     
-    console.log('🔄 Loading user profile for:', user.email);
+    // console.log('🔄 Loading user profile for:', user.email);
     
     // ELSŐDLEGES: Ellenőrizzük a user metadata-t (ez mindig elérhető)
     const metadataAdmin = user.user_metadata?.is_admin === true;
-    console.log('📋 User metadata is_admin:', metadataAdmin);
+    // console.log('📋 User metadata is_admin:', metadataAdmin);
     
     // MÁSODLAGOS: Próbáljuk lekérdezni a user_roles táblából
     let databaseAdmin = false;
@@ -128,39 +128,39 @@ class SupabaseAuth {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('User roles query result:', { data, error });
+      // console.log('User roles query result:', { data, error });
 
       if (data && !error) {
         databaseAdmin = data.is_admin === true;
-        console.log('✅ Admin status from database:', databaseAdmin);
+        // console.log('✅ Admin status from database:', databaseAdmin);
       } else if (error && error.code === 'PGRST116') {
         // Nincs sor a táblában
-        console.log('ℹ️ Nincs user_roles bejegyzés (ez normális első bejelentkezéskor)');
+        // console.log('ℹ️ Nincs user_roles bejegyzés (ez normális első bejelentkezéskor)');
       } else if (error) {
-        console.warn('⚠️ User_roles tábla lekérdezési hiba:', error.message);
-        console.log('💡 Fallback: metadata használata');
+        // console.warn('⚠️ User_roles tábla lekérdezési hiba:', error.message);
+        // console.log('💡 Fallback: metadata használata');
       }
     } catch (err) {
-      console.warn('⚠️ User_roles tábla nem elérhető:', err.message);
-      console.log('💡 Fallback: metadata használata');
+      // console.warn('⚠️ User_roles tábla nem elérhető:', err.message);
+      // console.log('💡 Fallback: metadata használata');
     }
     
     // Admin jog beállítása: metadata VAGY database
     // Ha bármelyik igaz, akkor admin
     this.isAdmin = metadataAdmin || databaseAdmin;
     
-    console.log('👤 User:', user.email, '| Admin:', this.isAdmin, `(metadata: ${metadataAdmin}, database: ${databaseAdmin})`);
+    // console.log('👤 User:', user.email, '| Admin:', this.isAdmin, `(metadata: ${metadataAdmin}, database: ${databaseAdmin})`);
     
     // Ha van metadata admin jog de nincs database-ben, próbáljuk létrehozni
     if (metadataAdmin && !databaseAdmin) {
-      console.log('🔄 Metadata admin jog megvan, szinkronizálás database-be...');
+      // console.log('🔄 Metadata admin jog megvan, szinkronizálás database-be...');
       await this.createUserRoleEntry(user.id, true);
     }
   }
 
   async createUserRoleEntry(userId, isAdmin) {
     try {
-      console.log('📝 User role bejegyzés létrehozása...');
+      // console.log('📝 User role bejegyzés létrehozása...');
       const { error } = await this.sb
         .from('user_roles')
         .insert({
@@ -171,12 +171,12 @@ class SupabaseAuth {
         });
       
       if (error) {
-        console.warn('⚠️ User_roles bejegyzés létrehozása sikertelen:', error.message);
+        // console.warn('⚠️ User_roles bejegyzés létrehozása sikertelen:', error.message);
       } else {
-        console.log('✅ User role bejegyzés létrehozva');
+        // console.log('✅ User role bejegyzés létrehozva');
       }
     } catch (err) {
-      console.warn('⚠️ Exception creating user_roles entry:', err.message);
+      // console.warn('⚠️ Exception creating user_roles entry:', err.message);
     }
   }
 
@@ -199,11 +199,11 @@ class SupabaseAuth {
     if (error) throw error;
     
     // Log: segít debuggolni az email küldést
-    console.log('Sign up response:', {
-      user: data.user?.email,
-      session: data.session ? 'Session created' : 'No session (email confirmation required)',
-      confirmationSentAt: data.user?.confirmation_sent_at
-    });
+    // console.log('Sign up response:', {
+      // user: data.user?.email,
+      // session: data.session ? 'Session created' : 'No session (email confirmation required)',
+      // confirmationSentAt: data.user?.confirmation_sent_at
+    // });
     
     return data;
   }
@@ -250,11 +250,11 @@ class SupabaseAuth {
       
       // Ha a session már lejárt vagy nincs meg, az nem baj
       if (error && error.message !== 'Auth session missing!') {
-        console.warn('⚠️ Kijelentkezési figyelmeztetés:', error.message);
+        // console.warn('⚠️ Kijelentkezési figyelmeztetés:', error.message);
       }
     } catch (err) {
       // Ha bármi hiba történik, egyszerűen tisztítsuk meg a local storage-t
-      console.warn('⚠️ Kijelentkezési hiba - local storage tisztítása:', err.message);
+      // console.warn('⚠️ Kijelentkezési hiba - local storage tisztítása:', err.message);
     }
     
     // Mindenképp törljük a local state-et
@@ -270,9 +270,9 @@ class SupabaseAuth {
           localStorage.removeItem(key);
         }
       });
-      console.log('✅ Local storage megtisztítva');
+      // console.log('✅ Local storage megtisztítva');
     } catch (e) {
-      console.warn('⚠️ Local storage tisztítási hiba:', e);
+      // console.warn('⚠️ Local storage tisztítási hiba:', e);
     }
     
     return true;
@@ -280,8 +280,8 @@ class SupabaseAuth {
 
   async resetPassword(email) {
     try {
-      console.log('🔄 Jelszó visszaállítás indítása:', email);
-      console.log('📧 Redirect URL:', SUPABASE_CONFIG.REDIRECT_URL);
+      // console.log('🔄 Jelszó visszaállítás indítása:', email);
+      // console.log('📧 Redirect URL:', SUPABASE_CONFIG.REDIRECT_URL);
       
       const { data, error } = await this.sb.auth.resetPasswordForEmail(email, {
         redirectTo: SUPABASE_CONFIG.REDIRECT_URL
@@ -292,8 +292,8 @@ class SupabaseAuth {
         throw error;
       }
       
-      console.log('✅ Jelszó visszaállító email elküldve:', email);
-      console.log('📋 Response data:', data);
+      // console.log('✅ Jelszó visszaállító email elküldve:', email);
+      // console.log('📋 Response data:', data);
       
       return data;
     } catch (error) {
@@ -334,11 +334,11 @@ class SupabaseAuth {
       });
 
       if (funcError) {
-        console.warn('⚠️ Nem sikerült frissíteni a metadata-t:', funcError.message);
-        console.warn('💡 A user_roles tábla frissült, de a metadata nem. Futtasd le a set-admin-metadata-function.sql scriptet!');
+        // console.warn('⚠️ Nem sikerült frissíteni a metadata-t:', funcError.message);
+        // console.warn('💡 A user_roles tábla frissült, de a metadata nem. Futtasd le a set-admin-metadata-function.sql scriptet!');
       }
 
-      console.log(`✅ Admin status updated: ${userId} -> ${isAdmin}`);
+      // console.log(`✅ Admin status updated: ${userId} -> ${isAdmin}`);
       return { success: true };
       
     } catch (error) {
@@ -558,12 +558,12 @@ class SupabaseAuthModal {
   }
 
   showTab(tab) {
-    console.log('🔄 Switching to tab:', tab);
-    console.log('Forms found:', {
-      loginForm: !!this.loginForm,
-      registerForm: !!this.registerForm,
-      forgotPasswordForm: !!this.forgotPasswordForm
-    });
+    // console.log('🔄 Switching to tab:', tab);
+    // console.log('Forms found:', {
+      // loginForm: !!this.loginForm,
+      // registerForm: !!this.registerForm,
+      // forgotPasswordForm: !!this.forgotPasswordForm
+    // });
     
     // Hide all forms
     if (this.loginForm) this.loginForm.style.display = "none";
@@ -579,23 +579,23 @@ class SupabaseAuthModal {
     if (tab === "login") {
       if (this.loginForm) {
         this.loginForm.style.display = "block";
-        console.log('✅ Login form shown');
+        // console.log('✅ Login form shown');
       }
       this.tabButtons.login?.classList.add("active");
       this.clearMessages();
     } else if (tab === "register") {
       if (this.registerForm) {
         this.registerForm.style.display = "block";
-        console.log('✅ Register form shown');
+        // console.log('✅ Register form shown');
       }
       this.tabButtons.register?.classList.add("active");
       this.clearMessages();
     } else if (tab === "forgot") {
       if (this.forgotPasswordForm) {
         this.forgotPasswordForm.style.display = "block";
-        console.log('✅ Forgot password form shown');
-        console.log('Form element:', this.forgotPasswordForm);
-        console.log('Form innerHTML length:', this.forgotPasswordForm.innerHTML?.length);
+        // console.log('✅ Forgot password form shown');
+        // console.log('Form element:', this.forgotPasswordForm);
+        // console.log('Form innerHTML length:', this.forgotPasswordForm.innerHTML?.length);
       } else {
         console.error('❌ Forgot password form NOT FOUND!');
       }
@@ -813,7 +813,7 @@ class SupabaseAuthModal {
       return;
     }
 
-    console.log('🔑 Jelszó visszaállítás kérése:', email);
+    // console.log('🔑 Jelszó visszaállítás kérése:', email);
 
     try {
       this.forgotBtn.disabled = true;
@@ -821,7 +821,7 @@ class SupabaseAuthModal {
 
       const result = await this.auth.resetPassword(email);
       
-      console.log('✅ Jelszó visszaállító email kérés sikeres:', result);
+      // console.log('✅ Jelszó visszaállító email kérés sikeres:', result);
       
       this.showSuccess(this.forgotSuccess, 
         "✅ Jelszó visszaállító email elküldve!\n\n📧 Ellenőrizd az email fiókodat (és a SPAM mappát is).\n\n💡 Ha nem érkezik meg 5 percen belül, próbáld újra vagy ellenőrizd hogy a megadott email cím létezik-e.");
