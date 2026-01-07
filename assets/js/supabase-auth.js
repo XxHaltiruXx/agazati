@@ -188,7 +188,12 @@ class SupabaseAuth {
     // console.log('🔔 Setting up realtime subscription for user_roles...');
 
     this.realtimeChannel = this.sb
-      .channel('user_roles_changes')
+      .channel('user_roles_changes', {
+        config: {
+          broadcast: { self: true },
+          presence: { key: '' }
+        }
+      })
       .on(
         'postgres_changes',
         {
@@ -197,11 +202,19 @@ class SupabaseAuth {
           table: 'user_roles'
         },
         async (payload) => {
-          // console.log('🔔 User roles change detected:', payload);
+          console.log('🔔 Realtime event érkezett:', payload.eventType, payload);
           await this.handleUserRoleChange(payload);
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Realtime subscription aktív!');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Realtime subscription hiba:', err);
+        } else if (status === 'TIMED_OUT') {
+          console.warn('⏱️ Realtime subscription timeout');
+        }
+      });
   }
 
   async handleUserRoleChange(payload) {
@@ -249,15 +262,28 @@ class SupabaseAuth {
         this.showAdminRevokedNotification();
       }
 
-      // UI frissítése
-      this.refreshUI();
+      // UI frissítése - küldjünk CustomEvent-et
+      window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+        detail: { loggedIn: true, isAdmin: this.isAdmin } 
+      }));
+      
+      // Navbar frissítése
+      if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+        window.rebuildNav();
+      }
 
-      // Ha elvették az admin jogot és admin oldalon vagyunk, irányítsuk át
+      // Ha elvették az admin jogot és admin oldalon vagyunk, AZONNAL irányítsuk át
       if (!isNowAdmin && this.isOnAdminPage()) {
+        // Rövid késleltetés csak a notification megjelenítéséhez
         setTimeout(() => {
           const baseUrl = window.location.pathname.includes('/agazati/') ? '/agazati/' : '/';
           const lastPath = this.lastKnownPath || baseUrl;
           window.location.href = lastPath.includes('secret/') ? baseUrl : lastPath;
+        }, 2000);
+      } else if (isNowAdmin) {
+        // Ha admin jogot kaptunk, frissítsük az oldalt 3 másodperc múlva
+        setTimeout(() => {
+          window.location.reload();
         }, 3000);
       }
     }
@@ -281,61 +307,70 @@ class SupabaseAuth {
   }
 
   showNotification(title, message, type = 'info') {
-    // Ellenőrizzük van-e már notification container
-    let container = document.getElementById('authNotificationContainer');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'authNotificationContainer';
-      container.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        z-index: 10000;
-        max-width: 400px;
-      `;
-      document.body.appendChild(container);
+    // Távolítsuk el az összes korábbi notification-t
+    const oldContainer = document.getElementById('authNotificationContainer');
+    if (oldContainer) {
+      oldContainer.remove();
     }
+    
+    // Új container létrehozása
+    const container = document.createElement('div');
+    container.id = 'authNotificationContainer';
+    container.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 100000;
+      max-width: 420px;
+    `;
+    document.body.appendChild(container);
 
     const notification = document.createElement('div');
+    const bgColor = type === 'success' ? '#1a5c36' : type === 'warning' ? '#5c3a1a' : '#1a3a5c';
+    const borderColor = type === 'success' ? '#2ecc71' : type === 'warning' ? '#e74c3c' : '#3498db';
+    
     notification.style.cssText = `
-      background: ${type === 'success' ? '#1a4d2e' : type === 'warning' ? '#4d2a1a' : '#1a2a4d'};
-      border-left: 4px solid ${type === 'success' ? '#45f0a0' : type === 'warning' ? '#ff8c42' : '#7f5af0'};
-      color: #e4e4ff;
-      padding: 16px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      animation: slideIn 0.3s ease-out;
+      background: ${bgColor};
+      border: 2px solid ${borderColor};
+      color: #ffffff;
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      animation: slideInBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
+    
     notification.innerHTML = `
-      <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px;">${title}</div>
-      <div style="font-size: 14px; color: #b8b8d8;">${message}</div>
+      <div style="font-weight: 700; font-size: 18px; margin-bottom: 10px; color: ${borderColor};">${title}</div>
+      <div style="font-size: 15px; line-height: 1.5; color: #e8e8e8;">${message}</div>
     `;
 
     container.appendChild(notification);
 
-    // Animáció
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-      }
-    `;
+    // Animáció CSS hozzáadása (csak egyszer)
     if (!document.getElementById('authNotificationStyles')) {
+      const style = document.createElement('style');
       style.id = 'authNotificationStyles';
+      style.textContent = `
+        @keyframes slideInBounce {
+          from { transform: translateX(500px) scale(0.8); opacity: 0; }
+          to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+        @keyframes fadeOutSlide {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(500px); opacity: 0; }
+        }
+      `;
       document.head.appendChild(style);
     }
 
-    // 5 másodperc után eltűnik
+    // 7 másodperc után eltűnik
     setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease-out';
-      setTimeout(() => notification.remove(), 300);
-    }, 5000);
+      notification.style.animation = 'fadeOutSlide 0.4s ease-out';
+      setTimeout(() => {
+        container.remove();
+      }, 400);
+    }, 7000);
   }
 
   isOnAdminPage() {
@@ -348,13 +383,11 @@ class SupabaseAuth {
     if (window.rebuildNav && typeof window.rebuildNav === 'function') {
       window.rebuildNav();
     }
-
-    // Frissítjük az oldalt ha nem admin oldalon vagyunk
-    if (!this.isOnAdminPage()) {
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    }
+    
+    // Event dispatch a státusz változásról
+    window.dispatchEvent(new CustomEvent('loginStateChanged', { 
+      detail: { loggedIn: this.isAuthenticated(), isAdmin: this.isAdmin } 
+    }));
   }
 
   trackLastNonAdminPage() {
