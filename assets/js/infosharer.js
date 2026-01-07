@@ -1229,10 +1229,23 @@ function setupEventListeners() {
   // Auth Modal inicializálás (SupabaseAuthModal from supabase-auth.js)
   const authModal = new window.SupabaseAuthModal(globalAuth);
   authModal.init({
-    onSuccess: () => {
+    onSuccess: async () => {
       // Sikeres bejelentkezés után
+      console.log('🔐 Bejelentkezés sikeres!');
+      console.log('Admin user:', globalAuth.isAdminUser());
+      console.log('Authenticated:', globalAuth.isAuthenticated());
+      
+      // Várjunk egy kicsit hogy a user_roles betöltődjön
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Admin ellenőrzés újra
+      await globalAuth.loadUserProfile(globalAuth.getCurrentUser());
+      
+      console.log('Admin user (újra):', globalAuth.isAdminUser());
+      
       // Admin ellenőrzés
       if (globalAuth.isAdminUser()) {
+        console.log('✅ Admin jogosultság megvan!');
         canEdit = true;
         ta.readOnly = false;
         saveBtn.disabled = false;
@@ -1240,9 +1253,18 @@ function setupEventListeners() {
         authBtns.style.display = "flex";
         
         // Slot-ok frissítése
-        updateSlots();
+        await updateSlots();
+        
+        // Navigáció frissítése (ha létezik a függvény)
+        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
+          window.rebuildNav();
+        }
+        
+        // Success üzenet
+        setStatus('success', '✅ Admin jogosultság aktiválva! Szerkesztés engedélyezve.');
       } else {
-        alert('❌ Nincs jogosultságod szerkesztéshez! Csak admin felhasználók szerkeszthetnek.');
+        console.log('❌ Nincs admin jog!');
+        setStatus('error', '❌ Nincs jogosultságod szerkesztéshez! Csak admin felhasználók szerkeszthetnek.');
       }
     },
     onCancel: () => {

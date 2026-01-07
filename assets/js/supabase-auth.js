@@ -5,9 +5,19 @@
 // Regisztráció, bejelentkezés, admin role kezelés
 
 const SUPABASE_CONFIG = {
-  URL: "https://rtguezsjtkxjwhipuaqe.supabase.co",
-  ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z3VlenNqdGt4andoaXB1YXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NTY5OTgsImV4cCI6MjA4MzMzMjk5OH0.96ZPMeVMKOEt2nOfflI_pm9-ILLKp-S6x20MGu-9pV8",
-  REDIRECT_URL: window.location.origin + "/agazati/auth-callback.html"
+  URL: "https://ccpuoqrbmldunshaxpes.supabase.co",
+  ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjcHVvcXJibWxkdW5zaGF4cGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MTE2MDUsImV4cCI6MjA3ODA4NzYwNX0.QpVCmzF96Fp5hdgFyR0VkT9RV6qKiLkA8Yv_LArSk5I",
+  // Automatikusan felismeri a környezetet (local/production)
+  REDIRECT_URL: (() => {
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    // Ha a pathname tartalmazza az '/agazati/' mappát, akkor használjuk azt
+    if (pathname.includes('/agazati/')) {
+      return origin + "/agazati/auth-callback.html";
+    }
+    // Különben csak az origin-t használjuk
+    return origin + "/auth-callback.html";
+  })()
 };
 
 // Supabase client inicializálás
@@ -19,7 +29,16 @@ function getSupabaseClient() {
       console.error('Supabase library not loaded!');
       return null;
     }
-    supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY);
+    // Session persistence beállítása - localStorage-ban tárolja a session-t
+    supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY, {
+      auth: {
+        persistSession: true, // Session megőrzése localStorage-ban
+        autoRefreshToken: true, // Token automatikus frissítése
+        detectSessionInUrl: true, // Session felismerése URL-ben (OAuth redirect)
+        storage: window.localStorage // Explicit localStorage használata
+      }
+    });
+    console.log('✅ Supabase client inicializálva session persistence-szel');
   }
   return supabaseClient;
 }
@@ -60,6 +79,8 @@ class SupabaseAuth {
   async loadUserProfile(user) {
     this.currentUser = user;
     
+    console.log('🔄 Loading user profile for:', user.email);
+    
     // Admin role ellenőrzés a user_metadata-ból vagy külön táblából
     const { data, error } = await this.sb
       .from('user_roles')
@@ -67,12 +88,21 @@ class SupabaseAuth {
       .eq('user_id', user.id)
       .single();
 
+    console.log('User roles query result:', { data, error });
+
     if (data && !error) {
       this.isAdmin = data.is_admin === true;
+      console.log('✅ Admin status from database:', this.isAdmin);
     } else {
       // Fallback: ellenőrizzük a user metadata-t
       this.isAdmin = user.user_metadata?.is_admin === true;
+      console.log('⚠️ Admin status from metadata (fallback):', this.isAdmin);
+      if (error) {
+        console.error('❌ Error loading user_roles:', error);
+      }
     }
+    
+    console.log('👤 User:', user.email, '| Admin:', this.isAdmin);
   }
 
   // ====================================
@@ -85,11 +115,21 @@ class SupabaseAuth {
       password,
       options: {
         data: metadata,
-        emailRedirectTo: SUPABASE_CONFIG.REDIRECT_URL
+        emailRedirectTo: SUPABASE_CONFIG.REDIRECT_URL,
+        // Email confirmation beállítások
+        shouldCreateUser: true
       }
     });
 
     if (error) throw error;
+    
+    // Log: segít debuggolni az email küldést
+    console.log('Sign up response:', {
+      user: data.user?.email,
+      session: data.session ? 'Session created' : 'No session (email confirmation required)',
+      confirmationSentAt: data.user?.confirmation_sent_at
+    });
+    
     return data;
   }
 
@@ -142,6 +182,10 @@ class SupabaseAuth {
     });
 
     if (error) throw error;
+    
+    // Log: segít debuggolni az email küldést
+    console.log('Password reset email sent to:', email);
+    
     return data;
   }
 
@@ -537,14 +581,26 @@ class SupabaseAuthModal {
       this.registerBtn.disabled = true;
       this.registerBtn.textContent = "Regisztráció...";
 
-      await this.auth.signUpWithEmail(email, password);
+      const result = await this.auth.signUpWithEmail(email, password);
       
-      this.showSuccess(this.registerSuccess, 
-        "Sikeres regisztráció! 🎉 Ellenőrizd az email fiókodat a megerősítéshez.");
+      // Ellenőrizzük hogy kell-e email confirmation
+      if (result.user && !result.session) {
+        // Email confirmation szükséges
+        this.showSuccess(this.registerSuccess, 
+          "✅ Sikeres regisztráció! 📧 Ellenőrizd az email fiókodat (és a SPAM mappát is) a megerősítő linkért.");
+      } else if (result.session) {
+        // Auto-confirm engedélyezve, azonnal be van jelentkezve
+        this.showSuccess(this.registerSuccess, 
+          "✅ Sikeres regisztráció! 🎉 Azonnal be tudsz jelentkezni.");
+      } else {
+        // Egyéb eset
+        this.showSuccess(this.registerSuccess, 
+          "✅ Sikeres regisztráció! Ellenőrizd az email fiókodat.");
+      }
       
       setTimeout(() => {
         this.showTab("login");
-      }, 3000);
+      }, 4000);
       
     } catch (error) {
       console.error("Register error:", error);
@@ -623,13 +679,24 @@ class SupabaseAuthModal {
 
   getErrorMessage(error) {
     const errorMessages = {
-      'Invalid login credentials': 'Helytelen email vagy jelszó!',
-      'Email not confirmed': 'Kérlek erősítsd meg az email címedet!',
-      'User already registered': 'Ez az email cím már regisztrálva van!',
-      'Password should be at least 6 characters': 'A jelszónak legalább 6 karakter hosszúnak kell lennie!'
+      'Invalid login credentials': '❌ Helytelen email vagy jelszó!',
+      'Email not confirmed': '⚠️ Kérlek erősítsd meg az email címedet! Ellenőrizd a postaládádat (és a SPAM mappát).',
+      'User already registered': '⚠️ Ez az email cím már regisztrálva van! Próbálj bejelentkezni helyette.',
+      'Password should be at least 6 characters': '⚠️ A jelszónak legalább 6 karakter hosszúnak kell lennie!',
+      'Email rate limit exceeded': '⏰ Túl sok email küldési kérés! Várj 1 órát és próbáld újra.',
+      'Invalid email': '❌ Érvénytelen email cím formátum!',
+      'Weak password': '⚠️ A jelszó túl gyenge! Használj számokat és betűket is.',
+      'User not found': '❌ Nem található felhasználó ezzel az email címmel!',
+      'Duplicate email': '⚠️ Ez az email cím már használatban van!'
     };
 
-    return errorMessages[error.message] || error.message || 'Hiba történt. Próbáld újra!';
+    // Ha van custom hibaüzenet, használjuk azt
+    if (errorMessages[error.message]) {
+      return errorMessages[error.message];
+    }
+    
+    // Egyébként az eredeti üzenetet
+    return error.message || '❌ Hiba történt. Próbáld újra!';
   }
 }
 

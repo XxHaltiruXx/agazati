@@ -114,43 +114,83 @@
   </div>
 
   <script>
-    const SUPABASE_URL = "https://rtguezsjtkxjwhipuaqe.supabase.co"
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z3VlenNqdGt4andoaXB1YXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NTY5OTgsImV4cCI6MjA4MzMzMjk5OH0.96ZPMeVMKOEt2nOfflI_pm9-ILLKp-S6x20MGu-9pV8"
+    const SUPABASE_URL = "https://ccpuoqrbmldunshaxpes.supabase.co"
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjcHVvcXJibWxkdW5zaGF4cGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MTE2MDUsImV4cCI6MjA3ODA4NzYwNX0.QpVCmzF96Fp5hdgFyR0VkT9RV6qKiLkA8Yv_LArSk5I"
 
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    // Session persistence beállítása
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: window.localStorage
+      }
+    })
+
+    console.log('✅ Auth callback - Supabase client inicializálva');
 
     async function handleAuthCallback() {
       try {
-        // Feldolgozza a hash-ben lévő access token-t
+        console.log('Auth callback started...');
+        console.log('URL:', window.location.href);
+        console.log('Hash:', window.location.hash);
+        console.log('Search:', window.location.search);
+
+        // Ellenőrizzük hogy van-e error paraméter az URL-ben
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorParam = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+        
+        if (errorParam) {
+          throw new Error(errorDescription || errorParam);
+        }
+
+        // Feldolgozza a hash-ben lévő access token-t vagy a query paramétereket
         const { data: sessionData, error: sessionError } = await sb.auth.getSession()
         
+        console.log('Session data:', sessionData);
+        
         if (sessionError) {
+          console.error('Session error:', sessionError);
           throw sessionError
         }
 
         // Ellenőrizzük a user-t
         const { data: userData, error: userError } = await sb.auth.getUser()
         
-        if (userError || !userData.user) {
+        console.log('User data:', userData);
+        
+        if (userError) {
+          console.error('User error:', userError);
+          throw userError;
+        }
+        
+        if (!userData.user) {
           throw new Error("Nem sikerült a felhasználói adatok lekérése")
         }
 
-        console.log("Sikeres bejelentkezés:", userData.user.email)
+        console.log("✅ Sikeres bejelentkezés:", userData.user.email)
+
+        // Email confirmation ellenőrzés
+        if (!userData.user.email_confirmed_at) {
+          console.warn('⚠️ Email még nincs megerősítve');
+        }
 
         // Visszatérési URL meghatározása
-        // Ellenőrizzük hogy van-e state paraméter a redirect URL-ben
-        const urlParams = new URLSearchParams(window.location.search)
         const returnUrl = urlParams.get('return_to') || localStorage.getItem('auth_return_url') || 'index.html'
+        
+        console.log('Redirecting to:', returnUrl);
         
         // Clean up
         localStorage.removeItem('auth_return_url')
 
-        // Hash eltakarítása és redirect
-        history.replaceState(null, "", returnUrl)
-        window.location.href = returnUrl
+        // Redirect 1.5 másodperc múlva
+        setTimeout(() => {
+          window.location.href = returnUrl;
+        }, 1500);
 
       } catch (err) {
-        console.error("Auth feldolgozás hiba:", err)
+        console.error("❌ Auth feldolgozás hiba:", err)
         
         const errorBox = document.getElementById('errorBox')
         const errorMessage = document.getElementById('errorMessage')

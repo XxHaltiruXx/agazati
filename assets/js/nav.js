@@ -247,7 +247,7 @@
   let globalAuthModal = null; // Globális auth modal instance
 
   /* ======= Nav struktúra ======= */
-  const getNavStructure = (isLoggedIn = false) => {
+  const getNavStructure = (isLoggedIn = false, isAdmin = false) => {
     const baseStructure = {
       "HTML": {
         icon: "assets/images/sidehtml.webp",
@@ -312,13 +312,14 @@
       }
     };
 
-    // Ha be van jelentkezve, adjuk hozzá a titkos menüt
-    if (isLoggedIn) {
+    // Ha be van jelentkezve ÉS admin, adjuk hozzá a titkos menüt
+    if (isLoggedIn && isAdmin) {
       baseStructure["Titkos"] = {
         icon: "assets/images/sidesecret.svg",
         items: [
           { title: "Infosharer", link: "secret/infosharer/" },
-          { title: "Release Manager", link: "secret/releases/" }
+          { title: "Release Manager", link: "secret/releases/" },
+          { title: "Admin Panel", link: "secret/admin/" }
         ]
       };
     }
@@ -404,9 +405,12 @@
 
   function checkLoginState() {
     if (globalAuth) {
-      return globalAuth.isAuthenticated();
+      return {
+        isLoggedIn: globalAuth.isAuthenticated(),
+        isAdmin: globalAuth.isAdminUser()
+      };
     }
-    return false;
+    return { isLoggedIn: false, isAdmin: false };
   }
 
   function setLoginState() {
@@ -702,8 +706,8 @@ window.toggleNav = function () {
     scrollable.appendChild(searchBox);
 
     // Menük létrehozása
-    const isLoggedIn = checkLoginState();
-    const navStructure = getNavStructure(isLoggedIn);
+    const loginState = checkLoginState();
+    const navStructure = getNavStructure(loginState.isLoggedIn, loginState.isAdmin);
     
     Object.entries(navStructure).forEach(([category, data]) => {
       const navGroup = document.createElement('div');
@@ -1029,4 +1033,98 @@ window.toggleNav = function () {
       }
     } catch (e) { /* noop */ }
   }, true);
+
+  // ====================================
+  // REBUILD NAV - Admin jogosultság változás után
+  // ====================================
+  window.rebuildNav = function() {
+    console.log('🔄 Nav újraépítése...');
+    
+    // Keressük meg a scrollable container-t
+    const scrollable = document.querySelector('#mySidenav .nav-scrollable');
+    if (!scrollable) {
+      console.error('Nav scrollable container nem található!');
+      return;
+    }
+    
+    // Távolítsuk el a régi menüket (de hagyjuk a search-t)
+    const searchBox = scrollable.querySelector('.search-container');
+    scrollable.innerHTML = '';
+    if (searchBox) {
+      scrollable.appendChild(searchBox);
+    }
+    
+    // Építsük újra a menüket
+    const loginState = checkLoginState();
+    console.log('Login state:', loginState);
+    const navStructure = getNavStructure(loginState.isLoggedIn, loginState.isAdmin);
+    
+    Object.entries(navStructure).forEach(([category, data]) => {
+      const navGroup = document.createElement('div');
+      navGroup.className = 'subnav';
+      navGroup.setAttribute('data-category', category);
+
+      const button = document.createElement('button');
+      button.className = 'nav-item';
+      button.innerHTML = `<img src="${data.icon}" alt="" class="nav-icon" /> ${category} <span class="arrow">▼</span>`;
+
+      const content = document.createElement('div');
+      content.className = 'subnav-content';
+      content.style.display = 'none';
+      content.style.maxHeight = '0';
+
+      data.items.forEach(item => {
+        const link = document.createElement('a');
+        link.href = item.link;
+        link.textContent = item.title;
+        
+        const absHref = normalizeAbsHref(link.href);
+        const curHref = normalizeAbsHref(window.location.href);
+        if (absHref === curHref) {
+          link.setAttribute('aria-current', 'page');
+        }
+        
+        content.appendChild(link);
+      });
+
+      navGroup.appendChild(button);
+      navGroup.appendChild(content);
+      scrollable.appendChild(navGroup);
+
+      // Event listener a toggle-hez
+      button.addEventListener('click', () => {
+        const isOpen = button.classList.contains('active');
+        if (!isOpen) {
+          button.classList.add('active');
+          content.style.display = 'block';
+          setTimeout(() => {
+            content.style.maxHeight = content.scrollHeight + 'px';
+          }, 10);
+        } else {
+          button.classList.remove('active');
+          content.style.maxHeight = '0';
+          setTimeout(() => {
+            content.style.display = 'none';
+          }, 320);
+        }
+      });
+    });
+    
+    // Nyissuk meg a Titkos menüt ha látszik
+    const secretNav = scrollable.querySelector('.subnav[data-category="Titkos"]');
+    if (secretNav) {
+      const secretBtn = secretNav.querySelector('.nav-item');
+      const secretContent = secretNav.querySelector('.subnav-content');
+      if (secretBtn && secretContent) {
+        secretBtn.classList.add('active');
+        secretContent.style.display = 'block';
+        setTimeout(() => {
+          secretContent.style.maxHeight = secretContent.scrollHeight + 'px';
+        }, 10);
+      }
+    }
+    
+    console.log('✅ Nav újraépítve!');
+  };
+
 })();
