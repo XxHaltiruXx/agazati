@@ -765,7 +765,7 @@ window.toggleNav = function () {
     // kereső (a scrollable részbe)
     const searchBox = document.createElement('div');
     searchBox.className = 'search-container';
-    searchBox.innerHTML = `<input type="text" id="searchNav" placeholder="🔍 Keresés..." />`;
+    searchBox.innerHTML = `<input type="text" id="searchNav" placeholder="🔍 Keresés..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />`;
     scrollable.appendChild(searchBox);
 
     // Menük létrehozása
