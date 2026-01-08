@@ -332,7 +332,7 @@
               <div class="navbar-user-dropdown-email" id="navbarUserEmail"></div>
               <div class="navbar-user-dropdown-divider"></div>
               <div class="navbar-user-dropdown-item" id="navbarLogoutBtn">
-                <span>🚪</span> Kijelentkezés
+                Kijelentkezés
               </div>
             </div>
           </div>

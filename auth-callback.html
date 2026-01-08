@@ -360,9 +360,22 @@
           console.warn('⚠️ Email még nincs megerősítve');
         }
 
-        // Visszatérési URL meghatározása
-        const returnUrl = urlParams.get('return_to') || localStorage.getItem('auth_return_url') || 'index.html'
+        // Visszatérési URL meghatározása - figyelembe vesszük az /agazati/ mappa struktúrát
+        const getBaseUrl = () => {
+          const origin = window.location.origin;
+          const pathname = window.location.pathname;
+          // Ha a pathname tartalmazza az '/agazati/' mappát, akkor használjuk azt
+          if (pathname.includes('/agazati/')) {
+            return origin + '/agazati/';
+          }
+          // Különben csak az origin-t használjuk
+          return origin + '/';
+        };
         
+        const baseUrl = getBaseUrl();
+        const returnUrl = urlParams.get('return_to') || localStorage.getItem('auth_return_url') || (baseUrl + 'index.html');
+        
+        console.log('Base URL:', baseUrl);
         console.log('Redirecting to:', returnUrl);
         
         // Clean up

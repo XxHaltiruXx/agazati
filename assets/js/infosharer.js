@@ -1325,6 +1325,29 @@ async function setupEventListeners() {
   copyBtn.addEventListener("click", () => handleCopy(copyBtn));
   copyBtn2.addEventListener("click", () => handleCopy(copyBtn2));
   
+  // DEBUG: Textarea click esemény - jelzi ha valaki próbál írni de readonly
+  ta.addEventListener("click", () => {
+    if (ta.readOnly && globalAuth && globalAuth.isAuthenticated() && globalAuth.isAdminUser()) {
+      console.error('🐛 [DEBUG] TEXTAREA READONLY BUG! Admin vagy de a textarea readonly!');
+      console.error('🐛 [DEBUG] Állapot:', {
+        readOnly: ta.readOnly,
+        canEdit: canEdit,
+        saveBtnDisabled: saveBtn.disabled,
+        isAdmin: globalAuth.isAdminUser(),
+        isAuthenticated: globalAuth.isAuthenticated()
+      });
+      
+      // Automatikus javítás
+      console.warn('🔧 [DEBUG] Automatikus javítás...');
+      canEdit = true;
+      ta.readOnly = false;
+      saveBtn.disabled = false;
+      mainBtns.style.display = "none";
+      authBtns.style.display = "flex";
+      console.log('✅ [DEBUG] Javítva!');
+    }
+  });
+  
   // Kijelentkezés
   logoutBtn.addEventListener("click", async function () {
     // Supabase logout
@@ -1420,32 +1443,105 @@ async function initialize() {
   await initSupabase();
   
   // Supabase Auth - ellenőrizzük hogy már inicializálva van-e (nav.js betölti)
+  console.log('🔍 [Infosharer Init] 1. Auth ellenőrzése kezdődik', {
+    getAuthExists: !!window.getAuth,
+    initAuthExists: !!window.initSupabaseAuth
+  });
+  
   if (window.getAuth) {
     globalAuth = window.getAuth();
+    console.log('🔍 [Infosharer Init] 2. Auth már betöltve (nav.js-ből)', {
+      hasAuth: !!globalAuth,
+      hasSupabase: !!globalAuth?.sb,
+      profileLoaded: globalAuth?.profileLoaded,
+      isAuthenticated: globalAuth?.isAuthenticated(),
+      isAdmin: globalAuth?.isAdminUser()
+    });
   }
   
   // Ha még nincs inicializálva (pl. nav.js előtt töltődött be), inicializáljuk most
   if (!globalAuth && window.initSupabaseAuth) {
+    console.log('🔍 [Infosharer Init] 3. Auth inicializálása...');
     globalAuth = await window.initSupabaseAuth();
+    console.log('🔍 [Infosharer Init] 4. Auth inicializálva', {
+      hasAuth: !!globalAuth,
+      profileLoaded: globalAuth?.profileLoaded
+    });
+  }
+  
+  // VÁRJUK MEG A PROFIL BETÖLTÉSÉT!
+  // Ez kritikus hogy ne állítsuk be a readonly módot túl korán
+  if (globalAuth) {
+    console.log('⏳ [Infosharer Init] 5. Várakozás a profil betöltésére...', {
+      profileLoaded: globalAuth.profileLoaded,
+      isAuthenticated: globalAuth.isAuthenticated(),
+      isAdmin: globalAuth.isAdminUser()
+    });
+    
+    let attempts = 0;
+    while (!globalAuth.profileLoaded && attempts < 100) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      attempts++;
+      
+      // Log minden 20. kísérlet után (1 másodperc)
+      if (attempts % 20 === 0) {
+        console.log(`⏳ [Infosharer Init] Várakozás... ${attempts * 50}ms`, {
+          profileLoaded: globalAuth.profileLoaded
+        });
+      }
+    }
+    
+    if (globalAuth.profileLoaded) {
+      console.log('✅ [Infosharer Init] 6. Profil betöltve!', {
+        isAuthenticated: globalAuth.isAuthenticated(),
+        isAdmin: globalAuth.isAdminUser(),
+        currentUser: globalAuth.currentUser?.email
+      });
+    } else {
+      console.warn('⚠️ [Infosharer Init] 6. Profil betöltés timeout!');
+    }
+  } else {
+    console.warn('⚠️ [Infosharer Init] Nincs globalAuth!');
   }
   
   // DOM elemek inicializálása
   initDOMElements();
   
+  console.log('🔍 [Infosharer Init] 7. DOM elemek inicializálva');
+  
   // Alapértelmezett beállítások - modal rejtve van CSS-ben, nem kell inline
   ta.readOnly = true;
   saveBtn.disabled = true;
   
+  console.log('🔍 [Infosharer Init] 8. Alapértelmezett readonly beállítva');
+  
   // Ellenőrizzük az authentikációt és admin jogot
-  if (globalAuth && globalAuth.isAuthenticated() && globalAuth.isAdminUser()) {
-    console.log('✅ Infosharer: Admin felhasználó, szerkesztési mód engedélyezve');
+  const isAuthenticated = globalAuth && globalAuth.isAuthenticated();
+  const isAdmin = globalAuth && globalAuth.isAdminUser();
+  
+  console.log('🔍 [Infosharer Init] 9. Admin jogok ellenőrzése:', {
+    hasGlobalAuth: !!globalAuth,
+    isAuthenticated: isAuthenticated,
+    isAdmin: isAdmin,
+    willEnableEdit: isAuthenticated && isAdmin
+  });
+  
+  if (isAuthenticated && isAdmin) {
+    console.log('✅ [Infosharer Init] 10. Admin felhasználó - szerkesztési mód ENGEDÉLYEZVE');
     canEdit = true;
     ta.readOnly = false;
     saveBtn.disabled = false;
     mainBtns.style.display = "none";
     authBtns.style.display = "flex";
+    
+    console.log('✅ [Infosharer Init] Textarea readonly állapot:', ta.readOnly);
   } else {
-    console.log('ℹ️ Infosharer: Csak olvasási mód (nincs admin jog vagy nincs bejelentkezve)');
+    console.log('ℹ️ [Infosharer Init] 10. Csak olvasási mód (nincs admin jog vagy nincs bejelentkezve)');
+    console.log('ℹ️ [Infosharer Init] Részletek:', {
+      isAuthenticated,
+      isAdmin,
+      canEdit: false
+    });
   }
   
   // Eseménykezelők beállítása
@@ -1453,10 +1549,11 @@ async function initialize() {
   
   // Login state változás figyelése
   window.addEventListener('loginStateChanged', async (event) => {
-    console.log('🔄 Infosharer: Login state changed', event.detail);
+    console.log('🔄 [Infosharer Event] Login state changed', event.detail);
     
     if (event.detail.loggedIn && event.detail.isAdmin) {
       // Admin bejelentkezett
+      console.log('✅ [Infosharer Event] Admin aktiválás...');
       canEdit = true;
       ta.readOnly = false;
       saveBtn.disabled = false;
@@ -1464,8 +1561,10 @@ async function initialize() {
       authBtns.style.display = "flex";
       await updateSlots();
       setStatus('success', '✅ Admin jogosultság aktiválva!');
+      console.log('✅ [Infosharer Event] Admin mód beállítva, textarea readonly:', ta.readOnly);
     } else if (!event.detail.loggedIn) {
       // Kijelentkezés
+      console.log('ℹ️ [Infosharer Event] Kijelentkezés...');
       canEdit = false;
       ta.readOnly = true;
       saveBtn.disabled = true;
@@ -1473,11 +1572,43 @@ async function initialize() {
       authBtns.style.display = "none";
       await updateSlots();
       setStatus('info', 'Csak olvasási mód');
+      console.log('ℹ️ [Infosharer Event] Readonly mód beállítva');
     }
   });
   
   // Slotok betöltése
   updateSlots();
+  
+  // VÉGSŐ ÖSSZEFOGLALÓ LOG
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('🏁 [Infosharer Init] INICIALIZÁLÁS BEFEJEZVE');
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('Végső állapot:', {
+    canEdit: canEdit,
+    textareaReadOnly: ta.readOnly,
+    saveBtnDisabled: saveBtn.disabled,
+    isAuthenticated: globalAuth?.isAuthenticated(),
+    isAdmin: globalAuth?.isAdminUser(),
+    profileLoaded: globalAuth?.profileLoaded,
+    currentUser: globalAuth?.currentUser?.email
+  });
+  console.log('═══════════════════════════════════════════════════════');
+  
+  // EXTRA VÉDELEM: Dupla ellenőrzés hogy admin esetén biztosan írható legyen
+  // Ez 500ms késleltetéssel újra ellenőrzi és javítja ha kell
+  setTimeout(() => {
+    if (globalAuth && globalAuth.isAuthenticated() && globalAuth.isAdminUser()) {
+      if (ta.readOnly || saveBtn.disabled || !canEdit) {
+        console.warn('⚠️ [Infosharer] ASYNC FIX: Admin vagy de readonly mód! Javítás...');
+        canEdit = true;
+        ta.readOnly = false;
+        saveBtn.disabled = false;
+        mainBtns.style.display = "none";
+        authBtns.style.display = "flex";
+        console.log('✅ [Infosharer] ASYNC FIX alkalmazva');
+      }
+    }
+  }, 500);
   
   // URL paraméter ellenőrzése - egyedi link alapján automatikus letöltés
   const urlParams = new URLSearchParams(window.location.search);

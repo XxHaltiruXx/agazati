@@ -47,7 +47,6 @@ class ReleaseManager {
     this.cachedCommitDateEl = null;
     this.viewCacheBtn = null;
     this.clearCacheBtn = null;
-    this.testNotificationBtn = null;
   }
 
   // ===================================
@@ -90,14 +89,19 @@ class ReleaseManager {
     this.cachedCommitDateEl = document.getElementById("cachedCommitDate");
     this.viewCacheBtn = document.getElementById("viewCacheBtn");
     this.clearCacheBtn = document.getElementById("clearCacheBtn");
-    this.testNotificationBtn = document.getElementById("testNotificationBtn");
 
     // Event listeners setup
     this.setupEventListeners();
   }
 
   setupEventListeners() {
-    this.refreshBtn?.addEventListener("click", () => this.loadVersionInfo());
+    // Frissítés gomb - cache nélküli lekérdezés
+    this.refreshBtn?.addEventListener("click", async () => {
+      console.log("[Release Manager] Manuális frissítés - cache bypass");
+      // Force refresh: cache bypass
+      this.latestReleaseData = await this.fetchLatestRelease(false);
+      await this.loadVersionInfo(false); // Ne fetcheljen újra
+    });
 
     this.patchBtn?.addEventListener("click", () => {
       const next = this.calculateNextVersion("patch");
@@ -128,7 +132,6 @@ class ReleaseManager {
     this.viewReleaseBtn?.addEventListener("click", () => this.viewLatestRelease());
     this.viewCacheBtn?.addEventListener("click", () => this.viewCache());
     this.clearCacheBtn?.addEventListener("click", () => this.clearVersionCache());
-    this.testNotificationBtn?.addEventListener("click", () => this.testNotification());
 
     this.logoutBtn?.addEventListener("click", () => {
       window.authLogout();
@@ -154,25 +157,81 @@ class ReleaseManager {
   // ===================================
   // GITHUB API
   // ===================================
-  async fetchLatestRelease() {
+  async fetchLatestRelease(useCache = true) {
+    const CACHE_KEY = "latest_release_cache";
+    const CACHE_DURATION = 10 * 60 * 1000; // 10 perc cache
+    
+    // Cache ellenőrzés
+    if (useCache) {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        try {
+          const data = JSON.parse(cached);
+          const age = Date.now() - data.timestamp;
+          
+          if (age < CACHE_DURATION) {
+            console.log(`[Release Manager] Cache használata (${Math.round(age / 1000)}s régi)`);
+            return data.release;
+          } else {
+            console.log(`[Release Manager] Cache lejárt (${Math.round(age / 1000)}s régi)`);
+          }
+        } catch (e) {
+          console.warn("[Release Manager] Cache parse hiba:", e);
+        }
+      }
+    }
+    
+    // GitHub API lekérdezés
     try {
+      console.log("[Release Manager] GitHub API lekérdezés...");
       const response = await fetch(
-        `https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest`
+        `https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest`,
+        { cache: "no-store" }
       );
       
       if (!response.ok) {
         throw new Error(`GitHub API hiba: ${response.status}`);
       }
       
-      return await response.json();
+      const release = await response.json();
+      
+      // Cache mentése
+      const cacheData = {
+        release: release,
+        version: release.tag_name,
+        published_at: release.published_at,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      console.log(`[Release Manager] Cache frissítve: ${release.tag_name}`);
+      
+      return release;
     } catch (error) {
       console.error("Hiba a legfrissebb release lekérésekor:", error);
+      
+      // Próbáljuk meg a régi cache-ből betölteni hiba esetén
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        try {
+          const data = JSON.parse(cached);
+          console.warn("[Release Manager] Hiba történt, régi cache használata");
+          return data.release;
+        } catch (e) {
+          // Nem sikerült a cache-ből sem
+        }
+      }
+      
       return null;
     }
   }
 
-  async loadVersionInfo() {
-    this.latestReleaseData = await this.fetchLatestRelease();
+  async loadVersionInfo(fetchNew = true) {
+    // Ha fetchNew false és már van adat, használjuk azt
+    if (!fetchNew && this.latestReleaseData) {
+      console.log("[Release Manager] Meglévő adat használata");
+    } else {
+      this.latestReleaseData = await this.fetchLatestRelease();
+    }
 
     if (this.latestReleaseData) {
       const latestVersion = this.latestReleaseData.tag_name.replace(/^v/, "");
@@ -187,7 +246,11 @@ class ReleaseManager {
       if (this.versionStatusEl) this.versionStatusEl.textContent = "Naprakész";
       if (this.statusMessageEl) this.statusMessageEl.textContent = "Ez a legfrissebb verzió";
       
+      // Engedélyezzük a GitHub gomb-ot
+      if (this.viewReleaseBtn) this.viewReleaseBtn.disabled = false;
+      
       this.updateVersionButtons();
+      this.updateCacheDisplay();
     } else {
       if (this.versionStatusEl) this.versionStatusEl.textContent = "Ismeretlen";
       if (this.statusMessageEl) this.statusMessageEl.textContent = "Nem sikerült lekérni a verzióinformációkat";
@@ -304,16 +367,6 @@ class ReleaseManager {
     localStorage.removeItem(cacheKey);
     this.updateCacheDisplay();
     alert("Cache törölve!");
-  }
-
-  testNotification() {
-    if (window.showVersionNotification) {
-      const testVersion = this.calculateNextVersion("minor");
-      const testUrl = `https://github.com/${this.repoOwner}/${this.repoName}/releases/tag/v${testVersion}`;
-      window.showVersionNotification(testVersion, testUrl);
-    } else {
-      alert("A showVersionNotification függvény nem érhető el. Ellenőrizd, hogy a footer.js betöltődött-e!");
-    }
   }
 }
 

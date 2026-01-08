@@ -56,19 +56,48 @@ class SupabaseAuth {
     this.profileLoaded = false; // Flag hogy a profil betöltődött-e
     this.realtimeEnabled = false; // Flag hogy a realtime működik-e
     this.pollingInterval = null; // Polling fallback
+    
+    // localStorage cache kulcsok
+    this.ADMIN_CACHE_KEY = '_agazati_admin_cache';
+    this.CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 perc
   }
 
   async init() {
+    console.log('🔍 [Auth Init] 1. Kezdés');
     this.sb = getSupabaseClient();
-    if (!this.sb) return false;
+    if (!this.sb) {
+      console.error('❌ [Auth Init] Supabase client nem érhető el!');
+      return false;
+    }
+
+    // GYORS CACHE ELLENŐRZÉS - azonnal beállítjuk admin jogot ha cache-ben van
+    const cached = this.getCachedAdminStatus();
+    if (cached) {
+      this.isAdmin = cached.isAdmin;
+      console.log('⚡ [Auth Init] 2. Admin státusz cache-ből betöltve:', this.isAdmin);
+    } else {
+      console.log('🔍 [Auth Init] 2. Nincs cache, session ellenőrzés szükséges');
+    }
 
     // Session ellenőrzés
+    console.log('🔍 [Auth Init] 3. Session lekérése...');
     const { data: { session } } = await this.sb.auth.getSession();
+    
     if (session) {
+      console.log('🔍 [Auth Init] 4. Session találva, profil betöltése...', {
+        userId: session.user.id,
+        email: session.user.email
+      });
       await this.loadUserProfile(session.user);
+      console.log('✅ [Auth Init] 5. Profil betöltve!', {
+        isAdmin: this.isAdmin,
+        profileLoaded: this.profileLoaded
+      });
     } else {
+      console.log('ℹ️ [Auth Init] 4. Nincs session (nincs bejelentkezve)');
       // Ha nincs session, jelöljük hogy a "profil betöltve" (üres profil)
       this.profileLoaded = true;
+      this.clearAdminCache(); // Töröljük a cache-t ha nincs session
     }
 
     // Utolsó nem-admin oldal követése
@@ -107,6 +136,7 @@ class SupabaseAuth {
         this.currentUser = null;
         this.isAdmin = false;
         this.profileLoaded = false;
+        this.clearAdminCache(); // Töröljük a cache-t kijelentkezéskor
         // Frissítsük a navigációt amikor kijelentkezünk
         if (window.rebuildNav && typeof window.rebuildNav === 'function') {
           window.rebuildNav();
@@ -134,44 +164,117 @@ class SupabaseAuth {
     return true;
   }
 
+  // ===== ADMIN CACHE KEZELÉS =====
+  
+  // Admin státusz gyors ellenőrzése cache-ből (sync, azonnal elérhető)
+  getCachedAdminStatus() {
+    try {
+      const cached = localStorage.getItem(this.ADMIN_CACHE_KEY);
+      if (!cached) {
+        console.log('🔍 [Cache] Nincs cache');
+        return null;
+      }
+      
+      const { isAdmin, userId, timestamp } = JSON.parse(cached);
+      const now = Date.now();
+      const age = now - timestamp;
+      
+      console.log('🔍 [Cache] Cache találva:', {
+        isAdmin,
+        userId,
+        ageMs: age,
+        expiryMs: this.CACHE_EXPIRY_MS,
+        expired: age > this.CACHE_EXPIRY_MS
+      });
+      
+      // Ellenőrizzük hogy nem járt-e le
+      if (age > this.CACHE_EXPIRY_MS) {
+        console.log('⚠️ [Cache] Cache lejárt, törlés');
+        localStorage.removeItem(this.ADMIN_CACHE_KEY);
+        return null;
+      }
+      
+      // Ellenőrizzük hogy ugyanaz a felhasználó-e
+      const currentUserId = this.getUserId();
+      if (currentUserId && currentUserId !== userId) {
+        console.log('⚠️ [Cache] Másik felhasználó cache-je, törlés');
+        localStorage.removeItem(this.ADMIN_CACHE_KEY);
+        return null;
+      }
+      
+      console.log('✅ [Cache] Cache érvényes, visszaadás');
+      return { isAdmin, userId };
+    } catch (err) {
+      console.warn('⚠️ [Cache] Admin cache olvasási hiba:', err);
+      return null;
+    }
+  }
+  
+  // Admin státusz mentése cache-be
+  setCachedAdminStatus(isAdmin, userId) {
+    try {
+      const data = {
+        isAdmin: isAdmin === true,
+        userId: userId,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(this.ADMIN_CACHE_KEY, JSON.stringify(data));
+      console.log('💾 [Cache] Admin cache írva:', data);
+    } catch (err) {
+      console.warn('⚠️ [Cache] Admin cache írási hiba:', err);
+    }
+  }
+  
+  // Cache törlése (pl. kijelentkezéskor)
+  clearAdminCache() {
+    try {
+      localStorage.removeItem(this.ADMIN_CACHE_KEY);
+      console.log('🗑️ [Cache] Admin cache törölve');
+    } catch (err) {
+      console.warn('⚠️ [Cache] Admin cache törlési hiba:', err);
+    }
+  }
+
   async loadUserProfile(user) {
     this.currentUser = user;
     
-    // console.log('🔄 Loading user profile for:', user.email);
+    console.log('� [LoadProfile] 1. Profil betöltése kezdődik:', user.email);
     
     // MÁSODLAGOS fallback: Ellenőrizzük a user metadata-t
     const metadataAdmin = user.user_metadata?.is_admin === true;
+    console.log('🔍 [LoadProfile] 2. Metadata admin státusz:', metadataAdmin);
     
     // ELSŐDLEGES: Próbáljuk lekérdezni a user_roles táblából - EZ A FŐ FORRÁS!
     let databaseAdmin = false;
     let hadDatabaseEntry = false;
     
     try {
+      console.log('🔍 [LoadProfile] 3. Database lekérdezés user_roles...');
       const { data, error } = await this.sb
         .from('user_roles')
         .select('is_admin')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      // console.log('User roles query result:', { data, error });
+      console.log('🔍 [LoadProfile] 4. User roles query result:', { data, error });
 
       if (data && !error) {
         // VAN database bejegyzés - EZ az IGAZ forrás!
         databaseAdmin = data.is_admin === true;
         hadDatabaseEntry = true;
-        // console.log('✅ Admin status from DATABASE (autoritatív forrás):', databaseAdmin);
+        console.log('✅ [LoadProfile] 5. Admin status from DATABASE:', databaseAdmin);
       } else if (!data && !error) {
         // Nincs még database bejegyzés - hozzuk létre
-        // console.log('ℹ️ Nincs user_roles bejegyzés, létrehozás...');
+        console.log('ℹ️ [LoadProfile] 5. Nincs user_roles bejegyzés, létrehozás...');
         await this.createUserRoleEntry(user.id, metadataAdmin);
         databaseAdmin = metadataAdmin;
         hadDatabaseEntry = true;
       } else if (error) {
-        // console.warn('⚠️ User_roles tábla lekérdezési hiba:', error.message);
+        console.warn('⚠️ [LoadProfile] 5. User_roles tábla lekérdezési hiba:', error.message);
         hadDatabaseEntry = false;
       }
     } catch (err) {
-      // console.warn('⚠️ User_roles tábla nem elérhető:', err.message);
+      console.warn('⚠️ [LoadProfile] 5. User_roles tábla nem elérhető:', err.message);
       hadDatabaseEntry = false;
     }
     
@@ -180,20 +283,34 @@ class SupabaseAuth {
     // Ha nincs DATABASE bejegyzés -> metadata (fallback)
     const newAdminStatus = hadDatabaseEntry ? databaseAdmin : metadataAdmin;
     
-    // console.log(`👤 User: ${user.email} | Admin: ${newAdminStatus} | Source: ${hadDatabaseEntry ? 'DATABASE' : 'METADATA'} | (DB: ${databaseAdmin}, Meta: ${metadataAdmin})`);
+    console.log('� [LoadProfile] 6. Admin státusz meghatározása:', {
+      user: user.email,
+      newAdminStatus: newAdminStatus,
+      source: hadDatabaseEntry ? 'DATABASE' : 'METADATA',
+      databaseAdmin: databaseAdmin,
+      metadataAdmin: metadataAdmin
+    });
     
     // Állítsuk be az admin státuszt
     this.isAdmin = newAdminStatus;
     
+    // CACHE FRISSÍTÉS - mentjük a lokális cache-be
+    this.setCachedAdminStatus(newAdminStatus, user.id);
+    console.log('💾 [LoadProfile] 7. Cache frissítve:', { isAdmin: newAdminStatus, userId: user.id });
+    
     // CSAK akkor hozzunk létre database bejegyzést ha egyáltalán nincs
     // NE írjuk felül a database-t a metadata alapján!
     if (!hadDatabaseEntry) {
-      // console.log('🔄 Nincs database bejegyzés - létrehozás metadata alapján:', metadataAdmin);
+      console.log('🔄 [LoadProfile] 8. Database bejegyzés létrehozása...');
       await this.createUserRoleEntry(user.id, metadataAdmin);
     }
     
     // Jelöljük hogy a profil betöltődött
     this.profileLoaded = true;
+    console.log('✅ [LoadProfile] 9. Profil betöltés KÉSZ!', {
+      isAdmin: this.isAdmin,
+      profileLoaded: this.profileLoaded
+    });
   }
 
   setupRealtimeSubscription() {
@@ -299,6 +416,9 @@ class SupabaseAuth {
             // Frissítjük
             this.isAdmin = currentAdminStatus;
             lastAdminStatus = currentAdminStatus;
+            
+            // CACHE FRISSÍTÉS
+            this.setCachedAdminStatus(currentAdminStatus, currentUserId);
             
             // Értesítés
             if (currentAdminStatus) {
@@ -642,6 +762,18 @@ class SupabaseAuth {
     return data;
   }
 
+  async signInWithDiscord() {
+    const { data, error } = await this.sb.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        redirectTo: SUPABASE_CONFIG.REDIRECT_URL
+      }
+    });
+
+    if (error) throw error;
+    return data;
+  }
+
   async signOut() {
     try {
       // Próbáljuk meg a normál kijelentkezést
@@ -949,10 +1081,12 @@ class SupabaseAuthModal {
     // Social login buttons
     this.googleBtn = document.getElementById("googleBtn");
     this.githubBtn = document.getElementById("githubBtn");
+    this.discordBtn = document.getElementById("discordBtn");
     
     // Social registration buttons
     this.googleRegisterBtn = document.getElementById("googleRegisterBtn");
     this.githubRegisterBtn = document.getElementById("githubRegisterBtn");
+    this.discordRegisterBtn = document.getElementById("discordRegisterBtn");
 
     // Event listeners
     this.setupEventListeners();
@@ -991,10 +1125,12 @@ class SupabaseAuthModal {
     // Social logins
     this.googleBtn?.addEventListener("click", () => this.handleGoogleLogin());
     this.githubBtn?.addEventListener("click", () => this.handleGithubLogin());
+    this.discordBtn?.addEventListener("click", () => this.handleDiscordLogin());
     
     // Social registration (uses same OAuth methods)
     this.googleRegisterBtn?.addEventListener("click", () => this.handleGoogleLogin());
     this.githubRegisterBtn?.addEventListener("click", () => this.handleGithubLogin());
+    this.discordRegisterBtn?.addEventListener("click", () => this.handleDiscordLogin());
 
     // Show login from register
     this.showLoginTab?.addEventListener("click", () => this.showTab("login"));
@@ -1337,6 +1473,16 @@ class SupabaseAuthModal {
       // A redirect automatikusan megtörténik
     } catch (error) {
       console.error("GitHub login error:", error);
+      this.showError(this.loginError, this.getErrorMessage(error));
+    }
+  }
+
+  async handleDiscordLogin() {
+    try {
+      await this.auth.signInWithDiscord();
+      // A redirect automatikusan megtörténik
+    } catch (error) {
+      console.error("Discord login error:", error);
       this.showError(this.loginError, this.getErrorMessage(error));
     }
   }

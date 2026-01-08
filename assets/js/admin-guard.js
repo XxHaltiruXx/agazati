@@ -22,33 +22,56 @@
       return '/';
     }
 
-    // console.log('🔐 Admin guard: Várakozás az auth betöltésére...');
+    console.log('🔐 Admin guard: Várakozás az auth betöltésére...');
+
+    // Előzetes gyors ellenőrzés - ha van cache és az admin, akkor engedélyezzük gyorsan
+    let fastCheckPassed = false;
+    try {
+      const ADMIN_CACHE_KEY = '_agazati_admin_cache';
+      const cached = localStorage.getItem(ADMIN_CACHE_KEY);
+      if (cached) {
+        const { isAdmin, timestamp } = JSON.parse(cached);
+        const now = Date.now();
+        const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 perc
+        
+        if (isAdmin && (now - timestamp < CACHE_EXPIRY_MS)) {
+          console.log('⚡ Admin cache találat - gyors engedélyezés');
+          fastCheckPassed = true;
+          // NEM return-ölünk! Csak felgyorsítjuk az oldal betöltést,
+          // de az auth verifikációt továbbra is végigvisszük
+        }
+      }
+    } catch (err) {
+      // Ha hiba van a cache olvasásban, folytatjuk normál módon
+    }
 
     while (attempts < maxAttempts) {
       // Várjuk meg a window.getAuth() elérhetőségét ÉS hogy be is töltődjön az auth
       if (window.getAuth && typeof window.getAuth === 'function') {
         const auth = window.getAuth();
         
-        // Várjuk meg hogy az auth tényleg inicializálódjon ÉS a profil betöltődjön
-        if (auth && auth.sb && auth.currentUser !== undefined && auth.profileLoaded) {
-          // console.log('🔐 Admin guard: Auth ÉS profil betöltve, ellenőrzés...', { 
-          //   isAuthenticated: auth.isAuthenticated(), 
-          //   isAdmin: auth.isAdminUser() 
-          // });
+        // Várjuk meg hogy az auth tényleg inicializálódjon ÉS a session/profil ellenőrzés befejeződjön
+        // A profileLoaded flag azt jelzi, hogy a session ellenőrzés és profil betöltés befejeződött
+        if (auth && auth.sb && auth.profileLoaded === true) {
+          console.log('🔐 Admin guard: Auth ÉS profil betöltve, ellenőrzés...', { 
+            isAuthenticated: auth.isAuthenticated(), 
+            isAdmin: auth.isAdminUser(),
+            currentUser: !!auth.currentUser
+          });
           
           // Ellenőrizzük hogy be van-e jelentkezve és admin-e
           const isLoggedIn = auth.isAuthenticated();
           const isAdmin = auth.isAdminUser();
           
           if (!isLoggedIn) {
-            // console.warn('⛔ Nem vagy bejelentkezve! Átirányítás a főoldalra...');
+            console.warn('⛔ Nem vagy bejelentkezve! Átirányítás a főoldalra...');
             alert('⛔ Ez az oldal csak bejelentkezett felhasználóknak érhető el!');
             window.location.href = getBaseUrl();
             return;
           }
           
           if (!isAdmin) {
-            // console.warn('⛔ Nem vagy admin! Átirányítás vissza...');
+            console.warn('⛔ Nem vagy admin! Átirányítás vissza...');
             alert('⛔ Ez az oldal csak admin felhasználók számára érhető el!');
             
             // Visszaírányítás az előző oldalra vagy főoldalra
@@ -60,15 +83,20 @@
             return;
           }
           
-          // console.log('✅ Admin hozzáférés engedélyezve');
+          console.log('✅ Admin hozzáférés engedélyezve');
           return; // Minden OK
         }
       }
       
-      // Első 5 másodpercben gyakrabban logoljunk (csak debug módban)
-      // if (attempts % 20 === 0 && attempts <= 50) {
-      //   console.log(`⏳ Admin guard: Várakozás... ${attempts/10}s (getAuth: ${!!window.getAuth}, auth: ${!!window.getAuth?.()}, profileLoaded: ${window.getAuth?.()?.profileLoaded})`);
-      // }
+      // Debug log minden 1 másodpercben (10 attempt) - csak ha sokáig tart
+      if (attempts % 10 === 0 && attempts > 0) {
+        console.log(`⏳ Admin guard: Várakozás... ${attempts/10}s`, {
+          getAuth: !!window.getAuth, 
+          auth: !!window.getAuth?.(), 
+          sb: !!window.getAuth?.()?.sb,
+          profileLoaded: window.getAuth?.()?.profileLoaded
+        });
+      }
       
       // Várunk 100ms-ot
       await new Promise(resolve => setTimeout(resolve, 100));
