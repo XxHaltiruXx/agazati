@@ -66,6 +66,9 @@ class SupabaseAuth {
     const { data: { session } } = await this.sb.auth.getSession();
     if (session) {
       await this.loadUserProfile(session.user);
+    } else {
+      // Ha nincs session, jelöljük hogy a "profil betöltve" (üres profil)
+      this.profileLoaded = true;
     }
 
     // Utolsó nem-admin oldal követése
@@ -722,28 +725,35 @@ class SupabaseAuth {
     }
 
     try {
+      console.log(`🔄 Admin jog változtatás: ${userId} -> ${isAdmin}`);
+      
       // 1. Először próbáljuk meg UPDATE-elni
-      const { error: updateError, count } = await this.sb
+      const { data: updateData, error: updateError } = await this.sb
         .from('user_roles')
         .update({
           is_admin: isAdmin,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', userId)
-        .select('*', { count: 'exact', head: true });
+        .select('*');
 
-      // Ha nem létezett a sor (count === 0), akkor INSERT-eljük
-      if (count === 0 || updateError?.code === 'PGRST116') {
-        const { error: insertError } = await this.sb
+      // Ha nem létezett a sor, akkor INSERT-eljük
+      if (!updateData || updateData.length === 0 || updateError?.code === 'PGRST116') {
+        console.log('💾 Új user_roles sor létrehozása...');
+        const { data: insertData, error: insertError } = await this.sb
           .from('user_roles')
           .insert({
             user_id: userId,
             is_admin: isAdmin,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          });
+          })
+          .select('*');
         
         if (insertError) throw insertError;
+        if (!insertData || insertData.length === 0) {
+          throw new Error('Insert sikertelen - nincs visszaadott adat');
+        }
       } else if (updateError) {
         throw updateError;
       }
@@ -763,14 +773,37 @@ class SupabaseAuth {
         // console.warn('💡 A user_roles tábla frissült, de a metadata nem. Futtasd le a set-admin-metadata-function.sql scriptet!');
       }
 
-      // console.log(`✅ Admin status updated: ${userId} -> ${isAdmin}`);
+      console.log(`✅ Database frissítve: ${userId} -> ${isAdmin}`);
+      
+      // Várunk egy kicsit hogy a database propagálja a változást
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // EXPLICIT ELLENŐRZÉS: Lekérdezzük újra hogy tényleg frissült-e
+      const { data: verifyData, error: verifyError } = await this.sb
+        .from('user_roles')
+        .select('is_admin')
+        .eq('user_id', userId)
+        .single();
+      
+      if (verifyError || !verifyData) {
+        console.error('❌ Verifikáció sikertelen:', verifyError);
+        throw new Error('A változtatás nem ment át - próbáld újra!');
+      }
+      
+      if (verifyData.is_admin !== isAdmin) {
+        console.error('❌ Verifikáció: az érték nem egyezik!', verifyData.is_admin, '!==', isAdmin);
+        throw new Error('A változtatás nem ment át - próbáld újra!');
+      }
+      
+      console.log('✅ Verifikáció sikeres: az admin jog tényleg megváltozott!');
       
       // Ha saját magunkat frissítettük, azonnal töltsük újra a profilt
       if (userId === this.getUserId()) {
         await this.loadUserProfile(this.currentUser);
+        console.log('✅ Saját profil frissítve');
       }
       
-      return { success: true };
+      return { success: true, verified: true };
       
     } catch (error) {
       console.error('❌ setUserAdmin error:', error);

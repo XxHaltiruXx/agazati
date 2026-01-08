@@ -293,24 +293,28 @@ async function performCommitCheck() {
     `;
     document.body.appendChild(footer);
     
-    // Admin link megjelenítése ha user admin - késleltetve
+    // Admin link megjelenítése ha user admin
     function checkAdminAndShowSupabaseLink() {
       if (window.getAuth && typeof window.getAuth === 'function') {
         const auth = window.getAuth();
-        if (auth && typeof auth.isAdminUser === 'function' && auth.isAdminUser()) {
-          const supabaseLink = document.getElementById('supabase-admin-link');
-          if (supabaseLink) {
+        const supabaseLink = document.getElementById('supabase-admin-link');
+        if (supabaseLink) {
+          if (auth && typeof auth.isAdminUser === 'function' && auth.isAdminUser()) {
             supabaseLink.style.display = '';
+          } else {
+            supabaseLink.style.display = 'none';
           }
         }
-      } else {
-        // Még nincs kész az auth, próbáljuk újra később
-        setTimeout(checkAdminAndShowSupabaseLink, 100);
       }
     }
     
-    // Várunk egy kicsit hogy az auth betöltődjön
+    // Első ellenőrzés késleltetéssel
     setTimeout(checkAdminAndShowSupabaseLink, 500);
+    
+    // Figyeljük a loginStateChanged eseményt is
+    window.addEventListener('loginStateChanged', function() {
+      checkAdminAndShowSupabaseLink();
+    });
   } else {
     if (!footer.querySelector(".time")) {
       const p = document.createElement("p");

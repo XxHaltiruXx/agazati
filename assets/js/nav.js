@@ -543,22 +543,29 @@
     const logoutBtn = document.getElementById('navbarLogoutBtn');
     const emailEl = document.getElementById('navbarUserEmail');
     
-    if (!btn) return;
-    
     // Ellenőrizzük hogy a Supabase auth betöltött-e
     if (!globalAuth && window.getAuth && typeof window.getAuth === 'function') {
       globalAuth = window.getAuth();
     }
     
-    const isLoggedIn = globalAuth && globalAuth.isAuthenticated();
+    // Ellenőrizzük hogy be van-e jelentkezve ÉS a profil betöltődött-e
+    const isLoggedIn = globalAuth && globalAuth.isAuthenticated() && globalAuth.profileLoaded;
     
-    // Távolítsuk el a régi event listener-t
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
+    // Ha nincs btn (pl admin oldalon), csak az avatart frissítjük
+    if (!btn && !avatar) return;
+    
+    // Távolítsuk el a régi event listener-t (ha létezik a gomb)
+    let newBtn = btn;
+    if (btn) {
+      newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+    }
     
     if (isLoggedIn) {
-      // Gomb elrejtése bejelentkezés után
-      newBtn.classList.remove('loaded');
+      // Gomb elrejtése bejelentkezés után (ha létezik)
+      if (newBtn) {
+        newBtn.classList.remove('loaded');
+      }
       
       // Profilkép megjelenítése
       if (avatar && initials) {
@@ -576,19 +583,12 @@
           
           // Most jelenítjük meg az avatart (loaded class)
           avatar.classList.add('loaded');
-          // Most jelenítjük meg az avatart (loaded class)
-          avatar.classList.add('loaded');
           
-          // Avatar kattintás - dropdown toggle (NEM klónozzuk, csak eltávolítjuk az event listener-t)
-          // Először távolítsuk el az összes korábbi listener-t
-          avatar.replaceWith(avatar.cloneNode(true));
-          const freshAvatar = document.getElementById('navbarUserAvatar');
-          
-          if (freshAvatar) {
-            // Megtartjuk a loaded class-t
-            freshAvatar.classList.add('loaded');
-            
-            freshAvatar.addEventListener('click', function(e) {
+          // Avatar kattintás - dropdown toggle
+          // Ellenőrizzük hogy már van-e click listener
+          if (!avatar.__hasClickListener) {
+            avatar.__hasClickListener = true;
+            avatar.addEventListener('click', function avatarClickHandler(e) {
               e.stopPropagation();
               const dd = document.getElementById('navbarUserDropdown');
               if (dd) {
@@ -598,9 +598,9 @@
           }
           
           // Kijelentkezés gomb a dropdown-ban
-          const freshLogoutBtn = document.getElementById('navbarLogoutBtn');
-          if (freshLogoutBtn) {
-            freshLogoutBtn.addEventListener('click', function(e) {
+          if (logoutBtn && !logoutBtn.__hasClickListener) {
+            logoutBtn.__hasClickListener = true;
+            logoutBtn.addEventListener('click', function logoutClickHandler(e) {
               e.preventDefault();
               e.stopPropagation();
               logoutFromNav();
@@ -609,13 +609,15 @@
         }
       }
     } else {
-      // Bejelentkezési gomb megjelenítése
-      newBtn.classList.add('loaded');
-      newBtn.setAttribute('aria-pressed', 'false');
-      newBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        openLoginModal();
-      });
+      // Bejelentkezési gomb megjelenítése (ha létezik)
+      if (newBtn) {
+        newBtn.classList.add('loaded');
+        newBtn.setAttribute('aria-pressed', 'false');
+        newBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          openLoginModal();
+        });
+      }
       
       // Profilkép elrejtése
       if (avatar) {
@@ -624,6 +626,13 @@
         if (dropdown) {
           dropdown.classList.remove('show');
         }
+        // Event listener flag törlése hogy újra hozzáadhassuk később
+        delete avatar.__hasClickListener;
+      }
+      
+      // Kijelentkezés gomb listener flag törlése
+      if (logoutBtn) {
+        delete logoutBtn.__hasClickListener;
       }
     }
     
@@ -1206,6 +1215,17 @@ window.toggleNav = function () {
     if (window.getAuth && window.getAuth()) {
       globalAuth = window.getAuth();
       // console.log('✅ Auth már inicializálva');
+      
+      // De várjuk meg hogy a profil is betöltődjön!
+      if (globalAuth) {
+        let attempts = 0;
+        while (!globalAuth.profileLoaded && attempts < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        // console.log('✅ Profil betöltve loadAndInitAuth-ban');
+      }
+      
       return globalAuth;
     }
 
@@ -1305,8 +1325,22 @@ window.toggleNav = function () {
     // Betöltjük és inicializáljuk az auth-ot
     await loadAndInitAuth();
 
+    // FONTOS: Várjuk meg hogy a profil is betöltődjön!
+    // Az admin oldalon az auth már inicializálva van, de a profil még nem biztos hogy betöltődött
+    if (globalAuth) {
+      let attempts = 0;
+      while (!globalAuth.profileLoaded && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      // console.log('✅ Profil betöltve, frissítjük a nav-ot');
+    }
+
     // Létrehozzuk a navigációt (most már az auth be van töltve)
     createNavigation();
+    
+    // Frissítjük a login állapotot (avatar, gomb, stb.)
+    updateLoginStatus();
 
     // Alkalmazzuk a mentett kategóriákat
     setTimeout(() => {
