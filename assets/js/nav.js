@@ -1231,26 +1231,6 @@ window.toggleNav = function () {
 
     // console.log('🚀 Auth betöltési folyamat indítása...');
 
-    // Ellenőrizzük, hogy be van-e töltve a Supabase library
-    if (typeof supabase === 'undefined') {
-      // console.log('📦 Supabase library betöltése...');
-      
-      // Betöltjük a Supabase library-t
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-        script.onload = () => {
-          // console.log('✅ Supabase library betöltve');
-          resolve();
-        };
-        script.onerror = (err) => {
-          console.error('❌ Supabase library betöltési hiba');
-          reject(err);
-        };
-        document.head.appendChild(script);
-      });
-    }
-
     // Auth modal CSS betöltése
     if (!document.getElementById('auth-modal-css-injected')) {
       const link = document.createElement('link');

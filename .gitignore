@@ -1,0 +1,103 @@
+# 🔐 BIZTONSÁGI SZENZITÍV FÁJLOK - SOHA NE COMMITOLAND!
+# SECURITY SENSITIVE FILES - NEVER COMMIT!
+
+# 🔑 Environment variables & Credentials
+.env
+.env.local
+.env.production
+.env.*.local
+.env.*.production
+*.env
+
+# 🔐 Credentials és API kulcsok
+secrets/
+.secrets/
+secret/
+credentials.json
+google-credentials.json
+service-account*.json
+private-key*.json
+*.key
+*.pem
+*.p8
+
+# 🔄 OAuth token-ek
+oauth-token.json
+refresh-token.json
+token*.json
+
+# 🗄️ Database backups
+*.sql.bak
+*.sql.backup
+*.dump
+db-backup/
+database-backups/
+
+# 🔐 Database files with secrets
+database/*-config-table.sql
+database/*-credentials*.sql
+
+# 📦 Supabase
+.supabase/
+supabase/.env
+supabase/.env.local
+
+# 🔑 GitHub Actions Secrets
+.github/secrets/
+.github/*.key
+
+# 💻 IDE Settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 📦 Node
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log
+yarn-error.log
+
+# 🔨 Build output
+dist/
+build/
+.next/
+out/
+
+# 📝 Logs
+*.log
+logs/
+.log
+
+# ⏱️ Temp files
+tmp/
+temp/
+*.tmp
+.cache/
+
+# 🐍 Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+
+# Database backups
+*.sql.bak
+*.sql.backup
+*.dump
+
+# Downloads
+downloads/
+
+# Egy fájlként eltárolt konfigurációk
+config.local.json
+settings.local.json
+
+# GitHub Actions secrets file (ha lokálisan tesztelünk)
+.github/workflows/secrets.env

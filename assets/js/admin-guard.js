@@ -7,6 +7,18 @@
 (function() {
   'use strict';
 
+  // Publikus megosztási mód felismerése (?file=... paraméter)
+  const isPublicShare = new URLSearchParams(window.location.search).has('file');
+
+  // Publikus letöltésnél nem kell admin/auth ellenőrzés
+  if (isPublicShare) {
+    // console.log('🔓 Admin guard kikapcsolva publikus megosztás miatt');
+    return;
+  }
+
+  // Egyszeri értesítés guard – hogy ne jelenjen meg többször az alert
+  let alreadyNotified = false;
+
   // Várjuk meg az auth inicializálását
   async function checkAdminAccess() {
     const maxAttempts = 300; // 30 másodperc (300 x 100ms) - hosszabb timeout
@@ -22,7 +34,7 @@
       return '/';
     }
 
-    console.log('🔐 Admin guard: Várakozás az auth betöltésére...');
+    // console.log('🔐 Admin guard: Várakozás az auth betöltésére...');
 
     // Előzetes gyors ellenőrzés - ha van cache és az admin, akkor engedélyezzük gyorsan
     let fastCheckPassed = false;
@@ -35,7 +47,7 @@
         const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 perc
         
         if (isAdmin && (now - timestamp < CACHE_EXPIRY_MS)) {
-          console.log('⚡ Admin cache találat - gyors engedélyezés');
+          // console.log('⚡ Admin cache találat - gyors engedélyezés');
           fastCheckPassed = true;
           // NEM return-ölünk! Csak felgyorsítjuk az oldal betöltést,
           // de az auth verifikációt továbbra is végigvisszük
@@ -53,26 +65,30 @@
         // Várjuk meg hogy az auth tényleg inicializálódjon ÉS a session/profil ellenőrzés befejeződjön
         // A profileLoaded flag azt jelzi, hogy a session ellenőrzés és profil betöltés befejeződött
         if (auth && auth.sb && auth.profileLoaded === true) {
-          console.log('🔐 Admin guard: Auth ÉS profil betöltve, ellenőrzés...', { 
-            isAuthenticated: auth.isAuthenticated(), 
-            isAdmin: auth.isAdminUser(),
-            currentUser: !!auth.currentUser
-          });
+          // console.log('🔐 Admin guard: Auth ÉS profil betöltve, ellenőrzés...', { 
+            // isAuthenticated: auth.isAuthenticated(), 
+            // isAdmin: auth.isAdminUser(),
+            // currentUser: !!auth.currentUser
+          // });
           
           // Ellenőrizzük hogy be van-e jelentkezve és admin-e
           const isLoggedIn = auth.isAuthenticated();
           const isAdmin = auth.isAdminUser();
           
           if (!isLoggedIn) {
-            console.warn('⛔ Nem vagy bejelentkezve! Átirányítás a főoldalra...');
-            alert('⛔ Ez az oldal csak bejelentkezett felhasználóknak érhető el!');
+            if (!alreadyNotified) {
+              alreadyNotified = true;
+              alert('⛔ Ez az oldal csak bejelentkezett felhasználóknak érhető el!');
+            }
             window.location.href = getBaseUrl();
             return;
           }
           
           if (!isAdmin) {
-            console.warn('⛔ Nem vagy admin! Átirányítás vissza...');
-            alert('⛔ Ez az oldal csak admin felhasználók számára érhető el!');
+            if (!alreadyNotified) {
+              alreadyNotified = true;
+              alert('⛔ Ez az oldal csak admin felhasználók számára érhető el!');
+            }
             
             // Visszaírányítás az előző oldalra vagy főoldalra
             if (document.referrer && !document.referrer.includes('secret/')) {
@@ -83,19 +99,19 @@
             return;
           }
           
-          console.log('✅ Admin hozzáférés engedélyezve');
+          // console.log('✅ Admin hozzáférés engedélyezve');
           return; // Minden OK
         }
       }
       
       // Debug log minden 1 másodpercben (10 attempt) - csak ha sokáig tart
       if (attempts % 10 === 0 && attempts > 0) {
-        console.log(`⏳ Admin guard: Várakozás... ${attempts/10}s`, {
-          getAuth: !!window.getAuth, 
-          auth: !!window.getAuth?.(), 
-          sb: !!window.getAuth?.()?.sb,
-          profileLoaded: window.getAuth?.()?.profileLoaded
-        });
+        // console.log(`⏳ Admin guard: Várakozás... ${attempts/10}s`, {
+          // getAuth: !!window.getAuth, 
+          // auth: !!window.getAuth?.(), 
+          // sb: !!window.getAuth?.()?.sb,
+          // profileLoaded: window.getAuth?.()?.profileLoaded
+        // });
       }
       
       // Várunk 100ms-ot

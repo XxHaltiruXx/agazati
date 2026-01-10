@@ -170,7 +170,8 @@
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: authType !== 'recovery', // KI ha recovery!
-        storage: window.localStorage
+        storage: window.localStorage,
+        storageKey: 'agazati-supabase-auth' // egységes kulcs, hogy a fő app lássa a session-t
       }
     })
 
@@ -307,9 +308,61 @@
         console.log('Hash:', window.location.hash);
         console.log('Search:', window.location.search);
 
+        // Ellenőrizzük hogy Google Drive OAuth-ról van-e szó
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const scope = urlParams.get('scope');
+        
+        // Ha van 'code' paraméter és a scope Google Drive-ra utal, akkor Google OAuth
+        if (code && scope && scope.includes('drive')) {
+          console.log('🔗 Google Drive OAuth detected');
+          
+          // Ellenőrizzük van-e error
+          const error = urlParams.get('error');
+          if (error) {
+            const errorDescription = urlParams.get('error_description') || error;
+            console.error('❌ Google OAuth error:', error, errorDescription);
+            
+            // Küldünk error message-t a parent window-nak
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'GOOGLE_AUTH_ERROR',
+                error: error,
+                description: errorDescription
+              }, window.location.origin);
+            }
+            
+            // Bezárjuk az ablakot 2 másodperc után
+            setTimeout(() => {
+              window.close();
+            }, 2000);
+            return;
+          }
+          
+          // Sikeres Google Drive auth code
+          console.log('✅ Google Drive auth code received:', code.substring(0, 20) + '...');
+          
+          // Küldünk message-t a parent window-nak
+          if (window.opener) {
+            window.opener.postMessage({
+              type: 'GOOGLE_AUTH_CODE',
+              code: code
+            }, window.location.origin);
+            
+            console.log('📤 Auth code sent to parent window');
+          }
+          
+          // Bezárjuk az ablakot 1.5 másodperc után
+          setTimeout(() => {
+            window.close();
+          }, 1500);
+          return;
+        }
+
+        // Ha nem Google Drive OAuth, akkor Supabase OAuth feldolgozás
         // Ellenőrizzük hogy password reset-ről van-e szó
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const urlParams = new URLSearchParams(window.location.search);
         const type = hashParams.get('type') || urlParams.get('type');
         
         console.log('Auth type:', type);

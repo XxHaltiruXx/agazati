@@ -20,26 +20,19 @@ const SUPABASE_CONFIG = {
   })()
 };
 
-// Supabase client inicializálás
+// Supabase client inicializálás - megosztott példány használata
 let supabaseClient = null;
+let supabaseLoader = null; // Promise cache a dinamikus importhoz
 
-function getSupabaseClient() {
-  if (!supabaseClient) {
-    if (typeof supabase === 'undefined') {
-      console.error('Supabase library not loaded!');
-      return null;
-    }
-    // Session persistence beállítása - localStorage-ban tárolja a session-t
-    supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY, {
-      auth: {
-        persistSession: true, // Session megőrzése localStorage-ban
-        autoRefreshToken: true, // Token automatikus frissítése
-        detectSessionInUrl: true, // Session felismerése URL-ben (OAuth redirect)
-        storage: window.localStorage // Explicit localStorage használata
-      }
-    });
-    // console.log('✅ Supabase client inicializálva session persistence-szel');
+async function getSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+
+  // Egyszeri dinamikus import (nem module script-ként töltődik az oldal)
+  if (!supabaseLoader) {
+    supabaseLoader = import('./supabase-client.js').then(mod => mod.getSupabaseClient());
   }
+
+  supabaseClient = await supabaseLoader;
   return supabaseClient;
 }
 
@@ -63,8 +56,8 @@ class SupabaseAuth {
   }
 
   async init() {
-    console.log('🔍 [Auth Init] 1. Kezdés');
-    this.sb = getSupabaseClient();
+    // console.log('🔍 [Auth Init] 1. Kezdés');
+    this.sb = await getSupabaseClient();
     if (!this.sb) {
       console.error('❌ [Auth Init] Supabase client nem érhető el!');
       return false;
@@ -74,27 +67,27 @@ class SupabaseAuth {
     const cached = this.getCachedAdminStatus();
     if (cached) {
       this.isAdmin = cached.isAdmin;
-      console.log('⚡ [Auth Init] 2. Admin státusz cache-ből betöltve:', this.isAdmin);
+      // console.log('⚡ [Auth Init] 2. Admin státusz cache-ből betöltve:', this.isAdmin);
     } else {
-      console.log('🔍 [Auth Init] 2. Nincs cache, session ellenőrzés szükséges');
+      // console.log('🔍 [Auth Init] 2. Nincs cache, session ellenőrzés szükséges');
     }
 
     // Session ellenőrzés
-    console.log('🔍 [Auth Init] 3. Session lekérése...');
+    // console.log('🔍 [Auth Init] 3. Session lekérése...');
     const { data: { session } } = await this.sb.auth.getSession();
     
     if (session) {
-      console.log('🔍 [Auth Init] 4. Session találva, profil betöltése...', {
-        userId: session.user.id,
-        email: session.user.email
-      });
+      // console.log('🔍 [Auth Init] 4. Session találva, profil betöltése...', {
+        // userId: session.user.id,
+        // email: session.user.email
+      // });
       await this.loadUserProfile(session.user);
-      console.log('✅ [Auth Init] 5. Profil betöltve!', {
-        isAdmin: this.isAdmin,
-        profileLoaded: this.profileLoaded
-      });
+      // console.log('✅ [Auth Init] 5. Profil betöltve!', {
+        // isAdmin: this.isAdmin,
+        // profileLoaded: this.profileLoaded
+      // });
     } else {
-      console.log('ℹ️ [Auth Init] 4. Nincs session (nincs bejelentkezve)');
+      // console.log('ℹ️ [Auth Init] 4. Nincs session (nincs bejelentkezve)');
       // Ha nincs session, jelöljük hogy a "profil betöltve" (üres profil)
       this.profileLoaded = true;
       this.clearAdminCache(); // Töröljük a cache-t ha nincs session
@@ -171,7 +164,7 @@ class SupabaseAuth {
     try {
       const cached = localStorage.getItem(this.ADMIN_CACHE_KEY);
       if (!cached) {
-        console.log('🔍 [Cache] Nincs cache');
+        // console.log('🔍 [Cache] Nincs cache');
         return null;
       }
       
@@ -179,17 +172,17 @@ class SupabaseAuth {
       const now = Date.now();
       const age = now - timestamp;
       
-      console.log('🔍 [Cache] Cache találva:', {
-        isAdmin,
-        userId,
-        ageMs: age,
-        expiryMs: this.CACHE_EXPIRY_MS,
-        expired: age > this.CACHE_EXPIRY_MS
-      });
+      // console.log('🔍 [Cache] Cache találva:', {
+        // isAdmin,
+        // userId,
+        // ageMs: age,
+        // expiryMs: this.CACHE_EXPIRY_MS,
+        // expired: age > this.CACHE_EXPIRY_MS
+      // });
       
       // Ellenőrizzük hogy nem járt-e le
       if (age > this.CACHE_EXPIRY_MS) {
-        console.log('⚠️ [Cache] Cache lejárt, törlés');
+        // console.log('⚠️ [Cache] Cache lejárt, törlés');
         localStorage.removeItem(this.ADMIN_CACHE_KEY);
         return null;
       }
@@ -197,15 +190,15 @@ class SupabaseAuth {
       // Ellenőrizzük hogy ugyanaz a felhasználó-e
       const currentUserId = this.getUserId();
       if (currentUserId && currentUserId !== userId) {
-        console.log('⚠️ [Cache] Másik felhasználó cache-je, törlés');
+        // console.log('⚠️ [Cache] Másik felhasználó cache-je, törlés');
         localStorage.removeItem(this.ADMIN_CACHE_KEY);
         return null;
       }
       
-      console.log('✅ [Cache] Cache érvényes, visszaadás');
+      // console.log('✅ [Cache] Cache érvényes, visszaadás');
       return { isAdmin, userId };
     } catch (err) {
-      console.warn('⚠️ [Cache] Admin cache olvasási hiba:', err);
+      // console.warn('⚠️ [Cache] Admin cache olvasási hiba:', err);
       return null;
     }
   }
@@ -219,9 +212,9 @@ class SupabaseAuth {
         timestamp: Date.now()
       };
       localStorage.setItem(this.ADMIN_CACHE_KEY, JSON.stringify(data));
-      console.log('💾 [Cache] Admin cache írva:', data);
+      // console.log('💾 [Cache] Admin cache írva:', data);
     } catch (err) {
-      console.warn('⚠️ [Cache] Admin cache írási hiba:', err);
+      // console.warn('⚠️ [Cache] Admin cache írási hiba:', err);
     }
   }
   
@@ -229,52 +222,52 @@ class SupabaseAuth {
   clearAdminCache() {
     try {
       localStorage.removeItem(this.ADMIN_CACHE_KEY);
-      console.log('🗑️ [Cache] Admin cache törölve');
+      // console.log('🗑️ [Cache] Admin cache törölve');
     } catch (err) {
-      console.warn('⚠️ [Cache] Admin cache törlési hiba:', err);
+      // console.warn('⚠️ [Cache] Admin cache törlési hiba:', err);
     }
   }
 
   async loadUserProfile(user) {
     this.currentUser = user;
     
-    console.log('� [LoadProfile] 1. Profil betöltése kezdődik:', user.email);
+    // console.log('� [LoadProfile] 1. Profil betöltése kezdődik:', user.email);
     
     // MÁSODLAGOS fallback: Ellenőrizzük a user metadata-t
     const metadataAdmin = user.user_metadata?.is_admin === true;
-    console.log('🔍 [LoadProfile] 2. Metadata admin státusz:', metadataAdmin);
+    // console.log('🔍 [LoadProfile] 2. Metadata admin státusz:', metadataAdmin);
     
     // ELSŐDLEGES: Próbáljuk lekérdezni a user_roles táblából - EZ A FŐ FORRÁS!
     let databaseAdmin = false;
     let hadDatabaseEntry = false;
     
     try {
-      console.log('🔍 [LoadProfile] 3. Database lekérdezés user_roles...');
+      // console.log('🔍 [LoadProfile] 3. Database lekérdezés user_roles...');
       const { data, error } = await this.sb
         .from('user_roles')
         .select('is_admin')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('🔍 [LoadProfile] 4. User roles query result:', { data, error });
+      // console.log('🔍 [LoadProfile] 4. User roles query result:', { data, error });
 
       if (data && !error) {
         // VAN database bejegyzés - EZ az IGAZ forrás!
         databaseAdmin = data.is_admin === true;
         hadDatabaseEntry = true;
-        console.log('✅ [LoadProfile] 5. Admin status from DATABASE:', databaseAdmin);
+        // console.log('✅ [LoadProfile] 5. Admin status from DATABASE:', databaseAdmin);
       } else if (!data && !error) {
         // Nincs még database bejegyzés - hozzuk létre
-        console.log('ℹ️ [LoadProfile] 5. Nincs user_roles bejegyzés, létrehozás...');
+        // console.log('ℹ️ [LoadProfile] 5. Nincs user_roles bejegyzés, létrehozás...');
         await this.createUserRoleEntry(user.id, metadataAdmin);
         databaseAdmin = metadataAdmin;
         hadDatabaseEntry = true;
       } else if (error) {
-        console.warn('⚠️ [LoadProfile] 5. User_roles tábla lekérdezési hiba:', error.message);
+        // console.warn('⚠️ [LoadProfile] 5. User_roles tábla lekérdezési hiba:', error.message);
         hadDatabaseEntry = false;
       }
     } catch (err) {
-      console.warn('⚠️ [LoadProfile] 5. User_roles tábla nem elérhető:', err.message);
+      // console.warn('⚠️ [LoadProfile] 5. User_roles tábla nem elérhető:', err.message);
       hadDatabaseEntry = false;
     }
     
@@ -283,34 +276,34 @@ class SupabaseAuth {
     // Ha nincs DATABASE bejegyzés -> metadata (fallback)
     const newAdminStatus = hadDatabaseEntry ? databaseAdmin : metadataAdmin;
     
-    console.log('� [LoadProfile] 6. Admin státusz meghatározása:', {
-      user: user.email,
-      newAdminStatus: newAdminStatus,
-      source: hadDatabaseEntry ? 'DATABASE' : 'METADATA',
-      databaseAdmin: databaseAdmin,
-      metadataAdmin: metadataAdmin
-    });
+    // console.log('� [LoadProfile] 6. Admin státusz meghatározása:', {
+      // user: user.email,
+      // newAdminStatus: newAdminStatus,
+      // source: hadDatabaseEntry ? 'DATABASE' : 'METADATA',
+      // databaseAdmin: databaseAdmin,
+      // metadataAdmin: metadataAdmin
+    // });
     
     // Állítsuk be az admin státuszt
     this.isAdmin = newAdminStatus;
     
     // CACHE FRISSÍTÉS - mentjük a lokális cache-be
     this.setCachedAdminStatus(newAdminStatus, user.id);
-    console.log('💾 [LoadProfile] 7. Cache frissítve:', { isAdmin: newAdminStatus, userId: user.id });
+    // console.log('💾 [LoadProfile] 7. Cache frissítve:', { isAdmin: newAdminStatus, userId: user.id });
     
     // CSAK akkor hozzunk létre database bejegyzést ha egyáltalán nincs
     // NE írjuk felül a database-t a metadata alapján!
     if (!hadDatabaseEntry) {
-      console.log('🔄 [LoadProfile] 8. Database bejegyzés létrehozása...');
+      // console.log('🔄 [LoadProfile] 8. Database bejegyzés létrehozása...');
       await this.createUserRoleEntry(user.id, metadataAdmin);
     }
     
     // Jelöljük hogy a profil betöltődött
     this.profileLoaded = true;
-    console.log('✅ [LoadProfile] 9. Profil betöltés KÉSZ!', {
-      isAdmin: this.isAdmin,
-      profileLoaded: this.profileLoaded
-    });
+    // console.log('✅ [LoadProfile] 9. Profil betöltés KÉSZ!', {
+      // isAdmin: this.isAdmin,
+      // profileLoaded: this.profileLoaded
+    // });
   }
 
   setupRealtimeSubscription() {
@@ -319,11 +312,11 @@ class SupabaseAuth {
     // Csak akkor indítsuk el ha be vagyunk jelentkezve
     const currentUserId = this.getUserId();
     if (!currentUserId) {
-      console.log('⏭️ Realtime subscription kihagyva - nincs bejelentkezett felhasználó');
+      // console.log('⏭️ Realtime subscription kihagyva - nincs bejelentkezett felhasználó');
       return;
     }
 
-    console.log('🔔 Realtime subscription beállítása user_id:', currentUserId);
+    // console.log('🔔 Realtime subscription beállítása user_id:', currentUserId);
 
     // Realtime channel létrehozása
     // FILTER ELTÁVOLÍTVA - binding mismatch miatt
@@ -339,7 +332,7 @@ class SupabaseAuth {
           // filter eltávolítva - minden UPDATE event érkezik
         },
         async (payload) => {
-          console.log('🔔 Realtime UPDATE event:', payload);
+          // console.log('🔔 Realtime UPDATE event:', payload);
           this.realtimeEnabled = true;
           
           // Client-side szűrés: csak saját user_id változásokat dolgozzuk fel
@@ -350,13 +343,13 @@ class SupabaseAuth {
       )
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Realtime subscription aktív!');
+          // console.log('✅ Realtime subscription aktív!');
           this.realtimeEnabled = true;
           // Töröljük a polling-ot ha működik a realtime
           if (this.pollingInterval) {
             clearInterval(this.pollingInterval);
             this.pollingInterval = null;
-            console.log('🔄 Polling leállítva - Realtime aktív');
+            // console.log('🔄 Polling leállítva - Realtime aktív');
           }
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Realtime subscription hiba:', err);
@@ -365,19 +358,19 @@ class SupabaseAuth {
           // Fallback: Polling indítása
           this.startPolling();
         } else if (status === 'TIMED_OUT') {
-          console.warn('⏱️ Realtime subscription timeout');
+          // console.warn('⏱️ Realtime subscription timeout');
           this.realtimeEnabled = false;
           // Fallback: Polling indítása
           this.startPolling();
         } else {
-          console.log('🔔 Realtime status:', status);
+          // console.log('🔔 Realtime status:', status);
         }
       });
       
     // Várunk 5 másodpercet, ha nem aktiválódik a realtime, indítunk polling-ot
     setTimeout(() => {
       if (!this.realtimeEnabled) {
-        console.warn('⚠️ Realtime nem aktiválódott 5 másodperc alatt, polling indítása...');
+        // console.warn('⚠️ Realtime nem aktiválódott 5 másodperc alatt, polling indítása...');
         this.startPolling();
       }
     }, 5000);
@@ -386,7 +379,7 @@ class SupabaseAuth {
   startPolling() {
     if (this.pollingInterval) return; // Már fut
     
-    console.log('🔄 Polling indítása - admin státusz ellenőrzése 3 másodpercenként');
+    // console.log('🔄 Polling indítása - admin státusz ellenőrzése 3 másodpercenként');
     
     let lastAdminStatus = this.isAdmin;
     
@@ -411,7 +404,7 @@ class SupabaseAuth {
           
           // Ha változott
           if (lastAdminStatus !== currentAdminStatus) {
-            console.log(`🔄 Admin státusz változás polling-ból: ${lastAdminStatus} -> ${currentAdminStatus}`);
+            // console.log(`🔄 Admin státusz változás polling-ból: ${lastAdminStatus} -> ${currentAdminStatus}`);
             
             // Frissítjük
             this.isAdmin = currentAdminStatus;
@@ -454,7 +447,7 @@ class SupabaseAuth {
   async handleUserRoleChange(payload) {
     const { eventType, new: newData } = payload;
 
-    console.log('🔔 handleUserRoleChange:', { eventType, newData });
+    // console.log('🔔 handleUserRoleChange:', { eventType, newData });
 
     // Csak akkor foglalkozunk vele, ha a saját user_id-nk érintett
     const currentUserId = this.getUserId();
@@ -465,7 +458,7 @@ class SupabaseAuth {
     if (changedUserId !== currentUserId) {
       // Más felhasználó változott - csak frissítjük a nézetet ha admin oldalon vagyunk
       if (window.location.pathname.includes('secret/admin')) {
-        console.log('👥 Más felhasználó admin státusza változott, frissítés...');
+        // console.log('👥 Más felhasználó admin státusza változott, frissítés...');
         if (window.loadUsers && typeof window.loadUsers === 'function') {
           await window.loadUsers();
         }
@@ -492,23 +485,23 @@ class SupabaseAuth {
     }
 
     // SAJÁT admin státuszunk változott!
-    console.log('🔥 SAJÁT admin státusz változás detektálva!');
+    // console.log('🔥 SAJÁT admin státusz változás detektálva!');
     
     // Lekérdezzük a korábbi állapotot és az újat
     const wasAdmin = this.isAdmin; // Jelenlegi állapot (régi)
     const isNowAdmin = newData?.is_admin === true; // Új állapot
     
-    console.log(`🔄 Státusz változás: ${wasAdmin} -> ${isNowAdmin}`);
+    // console.log(`🔄 Státusz változás: ${wasAdmin} -> ${isNowAdmin}`);
 
     // Csak akkor csináljunk valamit ha TÉNYLEG változott
     if (wasAdmin === isNowAdmin) {
-      console.log('✅ Nincs változás, kihagyva');
+      // console.log('✅ Nincs változás, kihagyva');
       return;
     }
 
     // Frissítsük az isAdmin értéket
     this.isAdmin = isNowAdmin;
-    console.log(`✅ Új admin státusz beállítva: ${this.isAdmin}`);
+    // console.log(`✅ Új admin státusz beállítva: ${this.isAdmin}`);
 
     // Értesítés megjelenítése
     if (isNowAdmin) {
@@ -518,7 +511,7 @@ class SupabaseAuth {
     }
 
     // UI frissítése - küldjünk CustomEvent-et
-    console.log('📡 loginStateChanged event kibocsajtása...');
+    // console.log('📡 loginStateChanged event kibocsajtása...');
     window.dispatchEvent(new CustomEvent('loginStateChanged', { 
       detail: { loggedIn: true, isAdmin: this.isAdmin } 
     }));
@@ -530,7 +523,7 @@ class SupabaseAuth {
 
     // Ha elvették az admin jogot és admin oldalon vagyunk, AZONNAL irányítsuk át
     if (!isNowAdmin && this.isOnAdminPage()) {
-      console.warn('⚠️ Admin jog elvesztve admin oldalon - átirányítás...');
+      // console.warn('⚠️ Admin jog elvesztve admin oldalon - átirányítás...');
       // Rövid késleltetés csak a notification megjelenítéséhez
       setTimeout(() => {
         const baseUrl = this.getBaseUrl();
@@ -539,7 +532,7 @@ class SupabaseAuth {
       }, 2000);
     } else if (isNowAdmin) {
       // Ha admin jogot kaptunk, frissítsük az oldalt 3 másodperc múlva
-      console.log('🎉 Admin jog megkapva - oldal frissítése 3 mp múlva');
+      // console.log('🎉 Admin jog megkapva - oldal frissítése 3 mp múlva');
       setTimeout(() => {
         window.location.reload();
       }, 3000);
@@ -797,12 +790,12 @@ class SupabaseAuth {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
-      console.log('🔄 Polling leállítva - kijelentkezés');
+      // console.log('🔄 Polling leállítva - kijelentkezés');
     }
     if (this.realtimeChannel) {
       this.realtimeChannel.unsubscribe();
       this.realtimeChannel = null;
-      console.log('🔔 Realtime leállítva - kijelentkezés');
+      // console.log('🔔 Realtime leállítva - kijelentkezés');
     }
     this.realtimeEnabled = false;
     
@@ -857,7 +850,7 @@ class SupabaseAuth {
     }
 
     try {
-      console.log(`🔄 Admin jog változtatás: ${userId} -> ${isAdmin}`);
+      // console.log(`🔄 Admin jog változtatás: ${userId} -> ${isAdmin}`);
       
       // 1. Először próbáljuk meg UPDATE-elni
       const { data: updateData, error: updateError } = await this.sb
@@ -871,7 +864,7 @@ class SupabaseAuth {
 
       // Ha nem létezett a sor, akkor INSERT-eljük
       if (!updateData || updateData.length === 0 || updateError?.code === 'PGRST116') {
-        console.log('💾 Új user_roles sor létrehozása...');
+        // console.log('💾 Új user_roles sor létrehozása...');
         const { data: insertData, error: insertError } = await this.sb
           .from('user_roles')
           .insert({
@@ -905,7 +898,7 @@ class SupabaseAuth {
         // console.warn('💡 A user_roles tábla frissült, de a metadata nem. Futtasd le a set-admin-metadata-function.sql scriptet!');
       }
 
-      console.log(`✅ Database frissítve: ${userId} -> ${isAdmin}`);
+      // console.log(`✅ Database frissítve: ${userId} -> ${isAdmin}`);
       
       // Várunk egy kicsit hogy a database propagálja a változást
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -927,12 +920,12 @@ class SupabaseAuth {
         throw new Error('A változtatás nem ment át - próbáld újra!');
       }
       
-      console.log('✅ Verifikáció sikeres: az admin jog tényleg megváltozott!');
+      // console.log('✅ Verifikáció sikeres: az admin jog tényleg megváltozott!');
       
       // Ha saját magunkat frissítettük, azonnal töltsük újra a profilt
       if (userId === this.getUserId()) {
         await this.loadUserProfile(this.currentUser);
-        console.log('✅ Saját profil frissítve');
+        // console.log('✅ Saját profil frissítve');
       }
       
       return { success: true, verified: true };

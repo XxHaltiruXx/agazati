@@ -2,12 +2,22 @@ const fs = require("fs");
 const path = require("path");
 
 const files = [
-  "secret/admin/index.html",
-  "secret/infosharer/index.html",
-  "secret/releases/index.html",
-  "assets/js/nav.js",
-  "assets/js/supabase-auth.js"
-
+  // Admin oldalak
+  "../secret/admin/index.html",
+  "../secret/infosharer/index.html",
+  "../secret/releases/index.html",
+  
+  // JavaScript fájlok
+  "../assets/js/admin-guard.js",
+  "../assets/js/footer.js",
+  "../assets/js/html-runner.js",
+  "../assets/js/infosharer.js",
+  "../assets/js/main.js",
+  "../assets/js/nav.js",
+  "../assets/js/quiz.js",
+  "../assets/js/release-manager.js",
+  "../assets/js/search.js",
+  "../assets/js/supabase-auth.js"
 ];
 
 function commentConsoleLogs(filePath) {

@@ -1,16 +1,61 @@
-// Verzió dinamikusan a GitHub Releases alapján
-let APP_VERSION = "1.4.3"; // Fallback verzió ha nem sikerül lekérdezni
+// Verzió dinamikusan a GitHub Releases alapján - mindig a legfrissebb release-ből
+let APP_VERSION = null;
 
-// Verziószám frissítése
+// Azonnal betöltjük a verziót (szinkron inicializálás)
+(async function initVersion() {
+  try {
+    const cachedVersion = localStorage.getItem("agazati_latestVersion");
+    const lastCheck = parseInt(localStorage.getItem("agazati_versionCheckTs") || "0", 10);
+    const now = Date.now();
+    
+    // Cache ellenőrzés - ha kevesebb mint 1 óra telt el, használjuk a cache-t
+    if (cachedVersion && lastCheck && now - lastCheck < 60 * 60 * 1000) {
+      APP_VERSION = cachedVersion;
+      // console.log(`[agazati] Verzió cache-ből betöltve (init): ${APP_VERSION}`);
+    } else {
+      // GitHub API lekérdezés
+      const url = `https://api.github.com/repos/XxHaltiruXx/agazati/releases/latest`;
+      const res = await fetch(url, { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        APP_VERSION = data.tag_name.replace(/^v/, "");
+        localStorage.setItem("agazati_latestVersion", APP_VERSION);
+        localStorage.setItem("agazati_versionCheckTs", now.toString());
+        // console.log(`[agazati] Verzió GitHub-ról betöltve (init): ${APP_VERSION}`);
+      } else if (cachedVersion) {
+        // Ha nem sikerült a lekérdezés, használjuk a régi cache-t
+        APP_VERSION = cachedVersion;
+        // console.log(`[agazati] GitHub hiba, régi cache használata: ${APP_VERSION}`);
+      } else {
+        // Végső fallback csak ha semmi más nincs
+        APP_VERSION = "1.5.0";
+        // console.warn(`[agazati] Végső fallback verzió: ${APP_VERSION}`);
+      }
+    }
+  } catch (err) {
+    console.error("[agazati] Verzió betöltési hiba:", err);
+    // Próbáljuk a cache-ből
+    const cached = localStorage.getItem("agazati_latestVersion");
+    APP_VERSION = cached || "1.5.0";
+  }
+})();
+
+// Verziószám frissítése a DOM-ban
 document.addEventListener("DOMContentLoaded", async function () {
-  // Először próbáljuk meg lekérdezni a legfrissebb release-t
-  await loadVersionFromReleases();
+  // Várunk amíg az APP_VERSION betöltődik (ha még null)
+  let attempts = 0;
+  while (APP_VERSION === null && attempts < 50) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
   
   // Frissítjük a verziókat a DOM-ban
   const versionElements = document.querySelectorAll(".version-number");
   versionElements.forEach((element) => {
-    element.textContent = APP_VERSION;
+    element.textContent = APP_VERSION || "—";
   });
+  
+  // console.log(`[agazati] Verzió megjelenítve: ${APP_VERSION}`);
 });
 
 const repoOwner = "XxHaltiruXx";
@@ -111,7 +156,7 @@ async function fetchLatestRelease(owner, repo) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) {
     if (res.status === 404) {
-      console.log("[agazati] Még nincs release a repository-ban.");
+      // console.log("[agazati] Még nincs release a repository-ban.");
       return null;
     }
     throw new Error(`GitHub Releases API error ${res.status}`);
@@ -144,33 +189,9 @@ function compareVersions(v1, v2) {
 }
 
 async function loadVersionFromReleases() {
-  try {
-    // Cache ellenőrzés - ha kevesebb mint 1 óra telt el
-    const cachedVersion = localStorage.getItem(KEY_LATEST_VERSION);
-    const lastCheck = parseInt(localStorage.getItem(KEY_VERSION_CHECK_TS) || "0", 10);
-    const now = nowTs();
-    
-    if (cachedVersion && lastCheck && now - lastCheck < 60 * 60 * 1000) {
-      // 1 órás cache
-      APP_VERSION = cachedVersion;
-      console.log(`[agazati] Verzió cache-ből betöltve: ${APP_VERSION}`);
-      return;
-    }
-    
-    // Lekérdezzük a legfrissebb release-t
-    const release = await fetchLatestRelease(repoOwner, repoName);
-    if (release && release.version) {
-      APP_VERSION = release.version.replace(/^v/, ""); // 'v' prefix eltávolítása
-      localStorage.setItem(KEY_LATEST_VERSION, APP_VERSION);
-      localStorage.setItem(KEY_VERSION_CHECK_TS, now.toString());
-      console.log(`[agazati] Verzió GitHub Releases-ből betöltve: ${APP_VERSION}`);
-    } else {
-      console.log(`[agazati] Fallback verzió használata: ${APP_VERSION}`);
-    }
-  } catch (err) {
-    console.error("[agazati] Verzió betöltési hiba:", err);
-    console.log(`[agazati] Fallback verzió használata: ${APP_VERSION}`);
-  }
+  // Ez a függvény már nem szükséges az új inicializálás miatt,
+  // de megtartjuk kompatibilitás céljából
+  // console.log(`[agazati] loadVersionFromReleases() meghívva - APP_VERSION már betöltve: ${APP_VERSION}`);
 }
 
 // checkForNewVersion és showVersionNotification töölve
@@ -184,7 +205,7 @@ async function performCommitCheck() {
   if (skipUntil && now < skipUntil) {
     const cachedFmt = localStorage.getItem(KEY_LAST_COMMIT_FMT);
     if (cachedFmt) {
-      console.log(`[agazati] Skipping check until next day (${new Date(skipUntil).toISOString()}). Using cached date: ${cachedFmt}`);
+      // console.log(`[agazati] Skipping check until next day (${new Date(skipUntil).toISOString()}). Using cached date: ${cachedFmt}`);
       setFooterDate(cachedFmt);
       return;
     }
@@ -194,7 +215,7 @@ async function performCommitCheck() {
   if (lastCheck && now - lastCheck < CHECK_INTERVAL_MS) {
     const cachedFmt = localStorage.getItem(KEY_LAST_COMMIT_FMT);
     if (cachedFmt) {
-      console.log(`[agazati] Last check <4h ago. Using cached date: ${cachedFmt}`);
+      // console.log(`[agazati] Last check <4h ago. Using cached date: ${cachedFmt}`);
       setFooterDate(cachedFmt);
       return;
     }
@@ -212,7 +233,7 @@ async function performCommitCheck() {
       localStorage.setItem(KEY_LAST_COMMIT_ISO, latestIso);
       localStorage.setItem(KEY_LAST_COMMIT_FMT, fmt);
       localStorage.setItem(KEY_LAST_CHECK_TS, now.toString());
-      console.log(`[agazati] First commit fetch. Date: ${latestIso}`);
+      // console.log(`[agazati] First commit fetch. Date: ${latestIso}`);
       setFooterDate(fmt);
       return;
     }
@@ -221,7 +242,7 @@ async function performCommitCheck() {
       localStorage.setItem(KEY_LAST_CHECK_TS, now.toString());
       const fmt = formatDateHU(storedIso);
       localStorage.setItem(KEY_LAST_COMMIT_FMT, fmt);
-      console.log(`[agazati] No new commit today. Stored date remains: ${storedIso}`);
+      // console.log(`[agazati] No new commit today. Stored date remains: ${storedIso}`);
       setFooterDate(fmt);
       return;
     }
@@ -231,14 +252,14 @@ async function performCommitCheck() {
     localStorage.setItem(KEY_LAST_COMMIT_FMT, newFmt);
     localStorage.setItem(KEY_LAST_CHECK_TS, now.toString());
     setFooterDate(newFmt);
-    console.log(`[agazati] New commit detected: ${latestIso}`);
+    // console.log(`[agazati] New commit detected: ${latestIso}`);
     
     const today = new Date();
     const todayPart = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     if (latestDay === todayPart) {
       const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 0, 0, 0, 0);
       localStorage.setItem(KEY_SKIP_UNTIL_TS, tomorrow.getTime().toString());
-      console.log(`[agazati] New commit is today — skipping further checks until: ${tomorrow.toISOString()}`);
+      // console.log(`[agazati] New commit is today — skipping further checks until: ${tomorrow.toISOString()}`);
     } else {
       localStorage.removeItem(KEY_SKIP_UNTIL_TS);
     }
@@ -247,7 +268,7 @@ async function performCommitCheck() {
     console.error("[agazati] Commit check failed:", err);
     const cachedFmt = localStorage.getItem(KEY_LAST_COMMIT_FMT);
     if (cachedFmt) {
-      console.log(`[agazati] Using cached date due to failure: ${cachedFmt}`);
+      // console.log(`[agazati] Using cached date due to failure: ${cachedFmt}`);
       setFooterDate(cachedFmt);
     } else {
       setFooterDate("N/A");
@@ -335,14 +356,14 @@ async function performCommitCheck() {
 
     if (skipUntil && now < skipUntil) {
       if (cachedFmt) {
-        console.log(`[agazati] init: skipUntil active until ${new Date(skipUntil).toISOString()}, using cached date.`);
+        // console.log(`[agazati] init: skipUntil active until ${new Date(skipUntil).toISOString()}, using cached date.`);
         setFooterDate(cachedFmt);
       } else {
-        console.log("[agazati] init: skipUntil active but no cached date available.");
+        // console.log("[agazati] init: skipUntil active but no cached date available.");
         setFooterDate("N/A");
       }
     } else if (lastCheck && now - lastCheck < CHECK_INTERVAL_MS && cachedFmt) {
-      console.log("[agazati] init: last check within 4 hours, using cached date.");
+      // console.log("[agazati] init: last check within 4 hours, using cached date.");
       setFooterDate(cachedFmt);
       performCommitCheck().catch((e) => console.debug("[agazati] background check error", e));
     } else {

@@ -221,9 +221,55 @@ Szívesen fogadunk minden hozzájárulást!
 
 ## 📚 Dokumentáció
 
-- [CHANGES.md](CHANGES.md) - Teljes fejlesztési napló és változtatások
-- [RELEASES.md](RELEASES.md) - GitHub Releases verziókezelési útmutató
-- [RELEASE_NOTES_v1.5.0.md](RELEASE_NOTES_v1.5.0.md) - Legújabb verzió részletei
+### 🚀 Gyorsindítás
+- **Google Drive**: Lásd `docs-archive/GOOGLE-DRIVE-QUICKSTART.md`
+- **OAuth beállítás**: `docs-archive/OAUTH-QUICK-GUIDE.md`
+- **Supabase**: `docs-archive/SUPABASE-SETUP.md`
+
+### 📖 Teljes Dokumentáció
+- `docs-archive/` - **Összes dokumentáció** (27+ útmutató)
+  - Google Drive integrációs útmutatók
+  - Autentikáció és OAuth beállítások
+  - Hibajavítás és FAQ
+- `docs/INDEX.md` - **Adatbázis dokumentáció** (SQL scriptjei)
+- `docs-archive/SECURITY-AUDIT.md` - **Biztonsági audit** ⚠️
+
+### ⚙️ Konfigurációs Fájlok
+- `.env.example` - **Szokott környezeti változók** (másolj `.env.local`-ra)
+- `.gitignore` - **Credential védelmi lista**
+
+### 📝 Verzió & Napló
+- `docs-archive/CHANGES.md` - Teljes fejlesztési napló
+- `docs-archive/RELEASES.md` - GitHub Releases verziókezelés
+- `docs-archive/RELEASE_NOTES_v1.5.0.md` - Legújabb verzió
+
+---
+
+## 🔒 Biztonsági Megjegyzések ⚠️
+
+### ❌ SOHA ne commitolj:
+```
+❌ .env, .env.local, .env.production
+❌ credentials.json, service-account*.json
+❌ API key-ek, OAuth token-ek
+❌ Jelszavak, privát kulcsok
+```
+
+### ✅ MINDIG használj:
+```
+✅ .env.example - Placeholder értékek
+✅ Environment variable-okat deployment-nél
+✅ GitHub Actions Secrets az automatizáláshoz
+✅ Supabase app_config - API kulcsok tárolása
+```
+
+### 🔐 Jelenlegi Biztonsági Szint: ✅ BIZTONSÁGOS
+- Google Drive credentials: **Supabase-ben** (RLS: admin-only)
+- Supabase keys: **Public** (de RLS-vel védett)
+- Refresh token-ek: **Supabase-ben** (encrypted)
+- Semmilyen plaintext secret **nincs** a kódban
+
+Teljes audit: `docs-archive/SECURITY-AUDIT.md`
 
 ---
 

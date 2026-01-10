@@ -2,22 +2,37 @@
 // KONSTANSOK ÉS KONFIGURÁCIÓ
 // ====================================
 
-const SUPABASE_URL = "https://ccpuoqrbmldunshaxpes.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjcHVvcXJibWxkdW5zaGF4cGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MTE2MDUsImV4cCI6MjA3ODA4NzYwNX0.QpVCmzF96Fp5hdgFyR0VkT9RV6qKiLkA8Yv_LArSk5I";
+// Storage Adapter import
+import storageAdapter from './storage-adapter.js';
+import { getSupabaseClient, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase-client.js';
+
 const TABLE = "infosharer";
 const ID = 1;
 const BUCKET_NAME = "infosharer-uploads";
-const MAX_STORAGE_BYTES = 50 * 1024 * 1024; // 50 MB összesen
-const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB per file
 
-// Supabase kliens importálása dinamikusan
+// Storage limitek - dinamikusan a storage adapter-től
+let MAX_STORAGE_BYTES = 50 * 1024 * 1024; // Alapértelmezett
+let MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // Alapértelmezett
+
+// Cache a publikus URL-ekhez (hogy ne kelljen minden 3 másodpercben API hívást csinálni)
+const publicUrlCache = new Map();
+
+// Supabase kliens - megosztott példány használata
 let supabase;
 let globalAuth = null; // Auth instance from supabase-auth.js
 
 async function initSupabase() {
-  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/+esm");
-  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Megosztott Supabase kliens használata (singleton)
+  supabase = await getSupabaseClient();
+  
+  // Storage Adapter inicializálása
+  await storageAdapter.initialize();
+  
+  // Storage limitek beállítása a használt provider alapján
+  const limits = storageAdapter.getLimits();
+  MAX_STORAGE_BYTES = limits.maxTotalStorage;
+  MAX_FILE_SIZE_BYTES = limits.maxFileSize;
+  console.log(`📊 Storage limitek (${storageAdapter.getProviderName()}): ${(MAX_FILE_SIZE_BYTES / (1024*1024*1024)).toFixed(1)} GB/file, ${(MAX_STORAGE_BYTES / (1024*1024*1024)).toFixed(1)} GB összesen`);
 }
 
 // ====================================
@@ -191,14 +206,21 @@ function updateStorageDisplay() {
   
   if (!storageBar || !storageText || !freeSpace) return;
   
-  const usedMB = (totalStorageUsed / (1024 * 1024)).toFixed(2);
-  const totalMB = (MAX_STORAGE_BYTES / (1024 * 1024)).toFixed(0);
-  const freeMB = ((MAX_STORAGE_BYTES - totalStorageUsed) / (1024 * 1024)).toFixed(2);
+  const totalGB = MAX_STORAGE_BYTES / (1024 * 1024 * 1024);
+  const usedGB = totalStorageUsed / (1024 * 1024 * 1024);
+  const freeGB = (MAX_STORAGE_BYTES - totalStorageUsed) / (1024 * 1024 * 1024);
+  
+  // GB vagy MB megjelenítés
+  const displayInGB = totalGB >= 1;
+  const usedDisplay = displayInGB ? `${usedGB.toFixed(2)} GB` : `${(totalStorageUsed / (1024 * 1024)).toFixed(2)} MB`;
+  const totalDisplay = displayInGB ? `${totalGB.toFixed(1)} GB` : `${(MAX_STORAGE_BYTES / (1024 * 1024)).toFixed(0)} MB`;
+  const freeDisplay = displayInGB ? `${freeGB.toFixed(2)} GB` : `${((MAX_STORAGE_BYTES - totalStorageUsed) / (1024 * 1024)).toFixed(2)} MB`;
+  
   const percentage = (totalStorageUsed / MAX_STORAGE_BYTES) * 100;
   
   storageBar.style.width = `${percentage}%`;
-  storageText.textContent = `${usedMB} MB / ${totalMB} MB`;
-  freeSpace.textContent = `${freeMB} MB`;
+  storageText.textContent = `${usedDisplay} / ${totalDisplay}`;
+  freeSpace.textContent = freeDisplay;
   
   // Színváltás a használat alapján
   if (percentage > 90) {
@@ -296,34 +318,30 @@ function subscribeRealtime() {
 // Letöltési link generálása megosztáshoz
 async function getDownloadLink(fileName, originalName, expirySeconds = 86400, slotNumber = 0) {
   try {
-    // Először ellenőrizzük, hogy létezik-e a fájl
-    const { data: fileExists, error: checkError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .list("", {
-        search: fileName
-      });
+    // Először ellenőrizzük, hogy létezik-e a fájl a storage adapter-rel
+    const fileExists = await storageAdapter.fileExists(fileName);
     
-    if (checkError) {
-      console.error("Fájl ellenőrzési hiba:", checkError);
-      throw checkError;
-    }
-    
-    if (!fileExists || fileExists.length === 0) {
+    if (!fileExists) {
       throw new Error("A fájl nem található a tárolóban");
     }
     
-    // Ha létezik, generálunk egy signed URL-t a megadott érvényességgel
-    const { data: signedUrlData, error: signedError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .createSignedUrl(fileName, expirySeconds);
-    
-    if (signedError) {
-      console.error("Signed URL generálási hiba:", signedError);
-      throw signedError;
+    // Ha Google Drive-ot használunk, publikus linket generálunk MOST
+    let publicUrl = null;
+    if (storageAdapter.actualProvider === 'googledrive') {
+      // Google Drive fájlt publikussá tesszük és közvetlen letöltési linket kapunk
+      const GoogleDrive = await import('./google-drive-api.js');
+      const fileId = storageAdapter.fileIdMap[fileName];
+      
+      if (fileId) {
+        publicUrl = await GoogleDrive.createPublicLink(fileId);
+        console.log('✅ Google Drive publikus link létrehozva:', publicUrl);
+      }
     }
     
-    // A signed URL-t emberi olvasható formába csomagoljuk
-    const downloadUrl = signedUrlData.signedUrl;
+    // Fallback: Ha nincs publikus URL, használjuk a storage adapter download URL-jét
+    const downloadUrl = publicUrl || await storageAdapter.getDownloadUrl(fileName, expirySeconds);
+    
+    // A download URL-t emberi olvasható formába csomagoljuk
     const displayName = originalName || fileName.replace(/^slot\d+_/, '');
     
     // Érvényesség szövege
@@ -339,14 +357,30 @@ async function getDownloadLink(fileName, originalName, expirySeconds = 86400, sl
     // Egyedi rövid kód generálása
     const shortCode = generateShortCode(slotNumber, fileName);
     const baseUrl = window.location.origin + window.location.pathname;
-    const customLink = `${baseUrl}?file=${shortCode}`;
+    // Ha van publikus URL (Google Drive), tegyük bele a linkbe is, hogy más böngészőből is működjön
+    const publicUrlParam = publicUrl ? `&publicUrl=${encodeURIComponent(publicUrl)}` : '';
+    const customLink = `${baseUrl}?file=${shortCode}${publicUrlParam}`;
+    
+    // Tárolni kell a publikus URL-t a shortCode-hoz (localStorage)
+    if (publicUrl) {
+      const publicLinks = JSON.parse(localStorage.getItem('infosharer_public_links') || '{}');
+      publicLinks[shortCode] = {
+        url: publicUrl,
+        fileName: fileName,
+        originalName: displayName,
+        createdAt: Date.now(),
+        expirySeconds: expirySeconds
+      };
+      localStorage.setItem('infosharer_public_links', JSON.stringify(publicLinks));
+    }
     
     return {
       url: downloadUrl,
       customLink: customLink,
       displayName: displayName,
       expiryText: expiryText,
-      shortCode: shortCode
+      shortCode: shortCode,
+      publicUrl: publicUrl
     };
   } catch (err) {
     console.error('Download link generálási hiba:', err);
@@ -357,33 +391,17 @@ async function getDownloadLink(fileName, originalName, expirySeconds = 86400, sl
 // Slot-hoz tartozó fájl letöltése
 async function downloadFile(fileName, originalName) {
   try {
-    // Először ellenőrizzük, hogy létezik-e a fájl
-    const { data: fileExists, error: checkError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .list("", {
-        search: fileName
-      });
+    // Először ellenőrizzük, hogy létezik-e a fájl a storage adapter-rel
+    const fileExists = await storageAdapter.fileExists(fileName);
     
-    if (checkError) {
-      console.error("Fájl ellenőrzési hiba:", checkError);
-      throw checkError;
-    }
-    
-    if (!fileExists || fileExists.length === 0) {
+    if (!fileExists) {
       alert("A fájl nem található");
       return;
     }
     
     // Ha létezik, folytatjuk a letöltést
-    // Blob letöltés - ez mindig letölti, nem nyitja meg
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .download(fileName);
-    
-    if (error) {
-      console.error("Letöltési hiba:", error);
-      throw error;
-    }
+    // Blob letöltés a storage adapter-rel
+    const data = await storageAdapter.downloadFile(fileName);
     
     // Blob URL létrehozása
     const url = URL.createObjectURL(data);
@@ -407,44 +425,9 @@ async function downloadFile(fileName, originalName) {
     // Sikeres letöltés visszajelzés
     setFilesStatus("success", "✓ Fájl letöltése elkezdődött");
   } catch (err) {
-    console.error("Blob letöltési hiba, alternatív módszer:", err);
-    
-    // Alternatív módszer: signed URL letöltése
-    try {
-      const { data: signedUrlData, error: signedError } = await supabase.storage
-        .from(BUCKET_NAME)
-        .createSignedUrl(fileName, 60);
-      
-      if (signedError) throw signedError;
-      
-      const a = document.createElement("a");
-      a.href = signedUrlData.signedUrl;
-      a.download = originalName || fileName.replace(/^slot\d+_/, "");
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      
-      setTimeout(() => {
-        document.body.removeChild(a);
-      }, 100);
-    } catch (signedErr) {
-      console.error("Signed URL letöltési hiba, public URL próba:", signedErr);
-      
-      const { data: publicUrlData } = supabase.storage
-        .from(BUCKET_NAME)
-        .getPublicUrl(fileName);
-      
-      const a = document.createElement("a");
-      a.href = publicUrlData.publicUrl;
-      a.download = originalName || fileName.replace(/^slot\d+_/, "");
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      
-      setTimeout(() => {
-        document.body.removeChild(a);
-      }, 100);
-    }
+    console.error("Letöltési hiba:", err);
+    alert("Hiba a fájl letöltése során: " + (err.message || "Ismeretlen hiba"));
+    setFilesStatus("error", "✗ Letöltési hiba");
   }
 }
 
@@ -470,22 +453,18 @@ async function updateSlots(silent = false) {
       setFilesStatus("loading");
     }
     
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .list("");
+    // Auth állapot ellenőrzése
+    const isAuthenticated = globalAuth && globalAuth.isAuthenticated();
     
-    if (error) {
-      console.error("Fájllista hiba:", error);
-      setFilesStatus("error", "Hiba a fájlok betöltésekor");
-      return;
-    }
+    // Használjuk a storage adapter-t a fájlok listázásához
+    const allFiles = await storageAdapter.listFiles();
     
     // Reseteljük a slot leképezéseket
     slotMappings = {};
     
     // Fájlok hozzárendelése a slotokhoz a fájlnév alapján
-    if (data && data.length > 0) {
-      data.forEach((file) => {
+    if (allFiles && allFiles.length > 0) {
+      allFiles.forEach((file) => {
         const match = file.name.match(/slot(\d+)_(.+)/);
         if (match) {
           const slotNum = parseInt(match[1]);
@@ -493,8 +472,10 @@ async function updateSlots(silent = false) {
           slotMappings[slotNum] = {
             fileName: file.name,
             originalName: originalName,
-            metadata: file.metadata,
-            created_at: file.created_at
+            metadata: { 
+              size: file.size || 0
+            },
+            created_at: file.created_at || file.createdTime
           };
         }
       });
@@ -567,14 +548,6 @@ async function updateSlots(silent = false) {
           border-radius: 8px;
         `;
         
-        // Kép URL lekérése
-        const { data: publicUrlData } = supabase.storage
-          .from(BUCKET_NAME)
-          .getPublicUrl(fileData.fileName);
-        
-        img.src = publicUrlData.publicUrl;
-        img.alt = fileData.originalName;
-        
         // Betöltési spinner
         const loadingSpinner = document.createElement("div");
         loadingSpinner.style.cssText = `
@@ -584,14 +557,37 @@ async function updateSlots(silent = false) {
         loadingSpinner.textContent = "⏳";
         imgPreview.appendChild(loadingSpinner);
         
-        img.onload = () => {
-          loadingSpinner.remove();
-        };
-        
-        img.onerror = () => {
-          loadingSpinner.textContent = "🖼️";
-          loadingSpinner.style.fontSize = "3rem";
-        };
+        // Ellenőrizzük a cache-t először
+        const cacheKey = fileData.fileName;
+        if (publicUrlCache.has(cacheKey)) {
+          // Van cache-elt URL
+          img.src = publicUrlCache.get(cacheKey);
+          img.alt = fileData.originalName;
+          loadingSpinner.remove(); // Azonnal eltávolítjuk a spinner-t
+          
+          img.onerror = () => {
+            loadingSpinner.textContent = "🖼️";
+            imgPreview.appendChild(loadingSpinner);
+          };
+        } else {
+          // Nincs cache, töltsd le
+          storageAdapter.getPublicUrl(fileData.fileName).then(publicUrl => {
+            publicUrlCache.set(cacheKey, publicUrl); // Cache-eljük
+            img.src = publicUrl;
+            img.alt = fileData.originalName;
+            
+            img.onload = () => {
+              loadingSpinner.remove();
+            };
+            
+            img.onerror = () => {
+              loadingSpinner.textContent = "🖼️";
+            };
+          }).catch(err => {
+            console.error('Kép betöltési hiba:', err);
+            loadingSpinner.textContent = getFileIcon(fileData.originalName);
+          });
+        }
         
         imgPreview.appendChild(img);
         iconContainer.appendChild(imgPreview);
@@ -653,8 +649,9 @@ async function updateSlots(silent = false) {
         fileInfoContainer.appendChild(emptyText);
       }
       
-      // Kattintható kártya - Info modal megnyitása
+      // Kattintható kártya
       if (isFilled) {
+        // Betöltött slot - Info modal megnyitása
         card.style.cursor = "pointer";
         card.onclick = (e) => {
           if (e.target.tagName === 'BUTTON') return;
@@ -665,6 +662,23 @@ async function updateSlots(silent = false) {
         card.onmouseenter = () => {
           card.style.transform = "translateY(-5px)";
           card.style.boxShadow = "0 8px 25px rgba(127, 90, 240, 0.4)";
+        };
+        card.onmouseleave = () => {
+          card.style.transform = "translateY(0)";
+          card.style.boxShadow = "0 4px 15px rgba(127, 90, 240, 0.2)";
+        };
+      } else if (isAuthenticated) {
+        // Üres slot + bejelentkezve - Feltöltés modal megnyitása
+        card.style.cursor = "pointer";
+        card.onclick = (e) => {
+          if (e.target.tagName === 'BUTTON') return;
+          openUploadModal(i);
+        };
+        
+        // Hover effekt
+        card.onmouseenter = () => {
+          card.style.transform = "translateY(-5px)";
+          card.style.boxShadow = "0 8px 25px rgba(127, 90, 240, 0.3)";
         };
         card.onmouseleave = () => {
           card.style.transform = "translateY(0)";
@@ -804,13 +818,15 @@ function openUploadModal(slotNumber, existingFileName = null) {
   if (dropZone && dropZoneContent) {
     dropZone.style.borderColor = 'var(--accent)';
     dropZone.style.background = 'rgba(127, 90, 240, 0.05)';
+    const maxSizeGB = MAX_FILE_SIZE_BYTES / (1024 * 1024 * 1024);
+    const maxSizeDisplay = maxSizeGB >= 1 ? `${maxSizeGB.toFixed(1)} GB` : `${(MAX_FILE_SIZE_BYTES / (1024 * 1024)).toFixed(0)} MB`;
     dropZoneContent.innerHTML = `
       <div style="font-size: 3rem; margin-bottom: 10px;">📁</div>
       <div style="color: var(--text); font-weight: 500; margin-bottom: 8px;">
         Kattints vagy húzd ide a fájlt
       </div>
       <div style="color: var(--muted); font-size: 0.9rem;">
-        Maximális fájlméret: 50 MB
+        Maximális fájlméret: ${maxSizeDisplay}
       </div>
     `;
   }
@@ -852,11 +868,28 @@ function openFileInfoModal(slotNumber, fileData, isImage) {
     previewSection.style.display = 'block';
     previewImage.style.display = 'block';
     iconSection.style.display = 'none';
-    const { data: publicUrlData } = supabase.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(fileData.fileName);
-    previewImage.src = publicUrlData.publicUrl;
-    previewImage.alt = fileData.originalName;
+    
+    // Ellenőrizzük a cache-t először
+    const cacheKey = fileData.fileName;
+    if (publicUrlCache.has(cacheKey)) {
+      // Van cache-elt URL, használjuk azt
+      previewImage.src = publicUrlCache.get(cacheKey);
+      previewImage.alt = fileData.originalName;
+    } else {
+      // Nincs cache, töltsd le és mentsd el
+      storageAdapter.getPublicUrl(fileData.fileName).then(publicUrl => {
+        publicUrlCache.set(cacheKey, publicUrl); // Cache-eljük
+        previewImage.src = publicUrl;
+        previewImage.alt = fileData.originalName;
+      }).catch(err => {
+        console.error('Kép előnézet hiba:', err);
+        // Ha hiba van, fallback az ikonos nézethez
+        previewSection.style.display = 'none';
+        previewImage.style.display = 'none';
+        iconSection.style.display = 'block';
+        iconLarge.textContent = getFileIcon(fileData.originalName);
+      });
+    }
   } else {
     previewSection.style.display = 'none';
     previewImage.style.display = 'none';
@@ -1062,27 +1095,26 @@ async function handleFileUpload() {
     
     // Ha van meglévő fájl ebben a slotban, töröljük
     if (existingFileData && existingFileData.fileName) {
-      await supabase.storage
-        .from(BUCKET_NAME)
-        .remove([existingFileData.fileName]);
+      publicUrlCache.delete(existingFileData.fileName); // Töröljük a cache-ből
+      await storageAdapter.deleteFile(existingFileData.fileName);
     }
     
-    // Feltöltés
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(slotFileName, file, {
-        cacheControl: "3600",
-        upsert: true,
-      });
+    // Feltöltés a storage adapter-rel (progress callback)
+    const progressCallback = (percent) => {
+      const progress = 60 + (percent * 0.3); // 60-90% közötti progress
+      uploadProgressBar.style.width = `${progress}%`;
+    };
+    
+    const uploadResult = await storageAdapter.uploadFile(file, slotFileName, progressCallback);
     
     uploadProgressBar.style.width = "90%";
     
-    if (error) {
-      console.error("Feltöltési hiba:", error);
+    if (!uploadResult) {
+      console.error("Feltöltési hiba: nincs eredmény");
       uploadProgressText.textContent = "Hiba a feltöltés során";
       uploadProgressText.style.color = "var(--error)";
       uploadProgressBar.style.background = "var(--error)";
-      throw error;
+      throw new Error("Feltöltés sikertelen");
     }
     
     // Sikeres feltöltés
@@ -1122,16 +1154,11 @@ async function handleFileDelete() {
   if (!fileToDelete) return;
   
   try {
-    // Töröljük a fájlt
-    const { error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .remove([fileToDelete]);
+    // Töröljük a cache-ből az URL-t
+    publicUrlCache.delete(fileToDelete);
     
-    if (error) {
-      console.error("Törlési hiba:", error);
-      alert("Hiba a törlés során: " + error.message);
-      return;
-    }
+    // Töröljük a fájlt a storage adapter-rel
+    await storageAdapter.deleteFile(fileToDelete);
     
     // Átrendezzük a fájlokat
     await reorderSlots(currentSlot);
@@ -1151,15 +1178,8 @@ async function handleFileDelete() {
 // Slot átrendezés funkció
 async function reorderSlots(deletedSlotNum) {
   try {
-    // Lekérjük az összes fájlt
-    const { data: allFiles, error: listError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .list("");
-    
-    if (listError) {
-      console.error("Fájllista lekérési hiba:", listError);
-      return;
-    }
+    // Lekérjük az összes fájlt a storage adapter-rel
+    const allFiles = await storageAdapter.listFiles();
     
     // Rendezzük slot szám szerint
     const filesBySlot = {};
@@ -1187,33 +1207,8 @@ async function reorderSlots(deletedSlotNum) {
         const oldFileName = fileData.fileName;
         const newFileName = `slot${newSlotNum}_${fileData.originalName}`;
         
-        // Letöltjük a fájlt
-        const { data: fileBlob, error: downloadError } = await supabase.storage
-          .from(BUCKET_NAME)
-          .download(oldFileName);
-        
-        if (downloadError) {
-          console.error("Fájl letöltési hiba átnevezéskor:", downloadError);
-          continue;
-        }
-        
-        // Feltöltjük az új névvel
-        const { error: uploadError } = await supabase.storage
-          .from(BUCKET_NAME)
-          .upload(newFileName, fileBlob, {
-            cacheControl: "3600",
-            upsert: true
-          });
-        
-        if (uploadError) {
-          console.error("Fájl feltöltési hiba átnevezéskor:", uploadError);
-          continue;
-        }
-        
-        // Töröljük a régit
-        await supabase.storage
-          .from(BUCKET_NAME)
-          .remove([oldFileName]);
+        // Storage adapter moveFile metódus használata
+        await storageAdapter.moveFile(oldFileName, newFileName);
       }
     }
   } catch (err) {
@@ -1227,7 +1222,7 @@ async function reorderSlots(deletedSlotNum) {
 
 async function setupEventListeners() {
   // Várunk amíg a SupabaseAuthModal betöltődik
-  console.log('⏳ Várakozás a SupabaseAuthModal betöltésére...');
+  // console.log('⏳ Várakozás a SupabaseAuthModal betöltésére...');
   let attempts = 0;
   while (!window.SupabaseAuthModal && attempts < 100) {
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -1239,16 +1234,16 @@ async function setupEventListeners() {
     return;
   }
   
-  console.log('✅ SupabaseAuthModal betöltve');
+  // console.log('✅ SupabaseAuthModal betöltve');
   
   // Auth Modal inicializálás (SupabaseAuthModal from supabase-auth.js)
   const authModal = new window.SupabaseAuthModal(globalAuth);
   authModal.init({
     onSuccess: async () => {
       // Sikeres bejelentkezés után
-      console.log('🔐 Bejelentkezés sikeres!');
-      console.log('Admin user:', globalAuth.isAdminUser());
-      console.log('Authenticated:', globalAuth.isAuthenticated());
+      // console.log('🔐 Bejelentkezés sikeres!');
+      // console.log('Admin user:', globalAuth.isAdminUser());
+      // console.log('Authenticated:', globalAuth.isAuthenticated());
       
       // Várjunk egy kicsit hogy a user_roles betöltődjön
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -1256,11 +1251,11 @@ async function setupEventListeners() {
       // Admin ellenőrzés újra
       await globalAuth.loadUserProfile(globalAuth.getCurrentUser());
       
-      console.log('Admin user (újra):', globalAuth.isAdminUser());
+      // console.log('Admin user (újra):', globalAuth.isAdminUser());
       
       // Admin ellenőrzés
       if (globalAuth.isAdminUser()) {
-        console.log('✅ Admin jogosultság megvan!');
+        // console.log('✅ Admin jogosultság megvan!');
         canEdit = true;
         ta.readOnly = false;
         saveBtn.disabled = false;
@@ -1278,7 +1273,7 @@ async function setupEventListeners() {
         // Success üzenet
         setStatus('success', '✅ Admin jogosultság aktiválva! Szerkesztés engedélyezve.');
       } else {
-        console.log('❌ Nincs admin jog!');
+        // console.log('❌ Nincs admin jog!');
         setStatus('error', '❌ Nincs jogosultságod szerkesztéshez! Csak admin felhasználók szerkeszthetnek.');
       }
     },
@@ -1338,13 +1333,13 @@ async function setupEventListeners() {
       });
       
       // Automatikus javítás
-      console.warn('🔧 [DEBUG] Automatikus javítás...');
+      // console.warn('🔧 [DEBUG] Automatikus javítás...');
       canEdit = true;
       ta.readOnly = false;
       saveBtn.disabled = false;
       mainBtns.style.display = "none";
       authBtns.style.display = "flex";
-      console.log('✅ [DEBUG] Javítva!');
+      // console.log('✅ [DEBUG] Javítva!');
     }
   });
   
@@ -1364,7 +1359,7 @@ async function setupEventListeners() {
         channelRef.unsubscribe();
       }
     } catch (e) {
-      console.warn("unsubscribe error", e);
+      // console.warn("unsubscribe error", e);
     }
     channelRef = null;
     setStatusFromState("élő");
@@ -1443,40 +1438,40 @@ async function initialize() {
   await initSupabase();
   
   // Supabase Auth - ellenőrizzük hogy már inicializálva van-e (nav.js betölti)
-  console.log('🔍 [Infosharer Init] 1. Auth ellenőrzése kezdődik', {
-    getAuthExists: !!window.getAuth,
-    initAuthExists: !!window.initSupabaseAuth
-  });
+  // console.log('🔍 [Infosharer Init] 1. Auth ellenőrzése kezdődik', {
+    // getAuthExists: !!window.getAuth,
+    // initAuthExists: !!window.initSupabaseAuth
+  // });
   
   if (window.getAuth) {
     globalAuth = window.getAuth();
-    console.log('🔍 [Infosharer Init] 2. Auth már betöltve (nav.js-ből)', {
-      hasAuth: !!globalAuth,
-      hasSupabase: !!globalAuth?.sb,
-      profileLoaded: globalAuth?.profileLoaded,
-      isAuthenticated: globalAuth?.isAuthenticated(),
-      isAdmin: globalAuth?.isAdminUser()
-    });
+    // console.log('🔍 [Infosharer Init] 2. Auth már betöltve (nav.js-ből)', {
+      // hasAuth: !!globalAuth,
+      // hasSupabase: !!globalAuth?.sb,
+      // profileLoaded: globalAuth?.profileLoaded,
+      // isAuthenticated: globalAuth?.isAuthenticated(),
+      // isAdmin: globalAuth?.isAdminUser()
+    // });
   }
   
   // Ha még nincs inicializálva (pl. nav.js előtt töltődött be), inicializáljuk most
   if (!globalAuth && window.initSupabaseAuth) {
-    console.log('🔍 [Infosharer Init] 3. Auth inicializálása...');
+    // console.log('🔍 [Infosharer Init] 3. Auth inicializálása...');
     globalAuth = await window.initSupabaseAuth();
-    console.log('🔍 [Infosharer Init] 4. Auth inicializálva', {
-      hasAuth: !!globalAuth,
-      profileLoaded: globalAuth?.profileLoaded
-    });
+    // console.log('🔍 [Infosharer Init] 4. Auth inicializálva', {
+      // hasAuth: !!globalAuth,
+      // profileLoaded: globalAuth?.profileLoaded
+    // });
   }
   
   // VÁRJUK MEG A PROFIL BETÖLTÉSÉT!
   // Ez kritikus hogy ne állítsuk be a readonly módot túl korán
   if (globalAuth) {
-    console.log('⏳ [Infosharer Init] 5. Várakozás a profil betöltésére...', {
-      profileLoaded: globalAuth.profileLoaded,
-      isAuthenticated: globalAuth.isAuthenticated(),
-      isAdmin: globalAuth.isAdminUser()
-    });
+    // console.log('⏳ [Infosharer Init] 5. Várakozás a profil betöltésére...', {
+      // profileLoaded: globalAuth.profileLoaded,
+      // isAuthenticated: globalAuth.isAuthenticated(),
+      // isAdmin: globalAuth.isAdminUser()
+    // });
     
     let attempts = 0;
     while (!globalAuth.profileLoaded && attempts < 100) {
@@ -1485,63 +1480,63 @@ async function initialize() {
       
       // Log minden 20. kísérlet után (1 másodperc)
       if (attempts % 20 === 0) {
-        console.log(`⏳ [Infosharer Init] Várakozás... ${attempts * 50}ms`, {
-          profileLoaded: globalAuth.profileLoaded
-        });
+        // console.log(`⏳ [Infosharer Init] Várakozás... ${attempts * 50}ms`, {
+          // profileLoaded: globalAuth.profileLoaded
+        // });
       }
     }
     
     if (globalAuth.profileLoaded) {
-      console.log('✅ [Infosharer Init] 6. Profil betöltve!', {
-        isAuthenticated: globalAuth.isAuthenticated(),
-        isAdmin: globalAuth.isAdminUser(),
-        currentUser: globalAuth.currentUser?.email
-      });
+      // console.log('✅ [Infosharer Init] 6. Profil betöltve!', {
+        // isAuthenticated: globalAuth.isAuthenticated(),
+        // isAdmin: globalAuth.isAdminUser(),
+        // currentUser: globalAuth.currentUser?.email
+      // });
     } else {
-      console.warn('⚠️ [Infosharer Init] 6. Profil betöltés timeout!');
+      // console.warn('⚠️ [Infosharer Init] 6. Profil betöltés timeout!');
     }
   } else {
-    console.warn('⚠️ [Infosharer Init] Nincs globalAuth!');
+    // console.warn('⚠️ [Infosharer Init] Nincs globalAuth!');
   }
   
   // DOM elemek inicializálása
   initDOMElements();
   
-  console.log('🔍 [Infosharer Init] 7. DOM elemek inicializálva');
+  // console.log('🔍 [Infosharer Init] 7. DOM elemek inicializálva');
   
   // Alapértelmezett beállítások - modal rejtve van CSS-ben, nem kell inline
   ta.readOnly = true;
   saveBtn.disabled = true;
   
-  console.log('🔍 [Infosharer Init] 8. Alapértelmezett readonly beállítva');
+  // console.log('🔍 [Infosharer Init] 8. Alapértelmezett readonly beállítva');
   
   // Ellenőrizzük az authentikációt és admin jogot
   const isAuthenticated = globalAuth && globalAuth.isAuthenticated();
   const isAdmin = globalAuth && globalAuth.isAdminUser();
   
-  console.log('🔍 [Infosharer Init] 9. Admin jogok ellenőrzése:', {
-    hasGlobalAuth: !!globalAuth,
-    isAuthenticated: isAuthenticated,
-    isAdmin: isAdmin,
-    willEnableEdit: isAuthenticated && isAdmin
-  });
+  // console.log('🔍 [Infosharer Init] 9. Admin jogok ellenőrzése:', {
+    // hasGlobalAuth: !!globalAuth,
+    // isAuthenticated: isAuthenticated,
+    // isAdmin: isAdmin,
+    // willEnableEdit: isAuthenticated && isAdmin
+  // });
   
   if (isAuthenticated && isAdmin) {
-    console.log('✅ [Infosharer Init] 10. Admin felhasználó - szerkesztési mód ENGEDÉLYEZVE');
+    // console.log('✅ [Infosharer Init] 10. Admin felhasználó - szerkesztési mód ENGEDÉLYEZVE');
     canEdit = true;
     ta.readOnly = false;
     saveBtn.disabled = false;
     mainBtns.style.display = "none";
     authBtns.style.display = "flex";
     
-    console.log('✅ [Infosharer Init] Textarea readonly állapot:', ta.readOnly);
+    // console.log('✅ [Infosharer Init] Textarea readonly állapot:', ta.readOnly);
   } else {
-    console.log('ℹ️ [Infosharer Init] 10. Csak olvasási mód (nincs admin jog vagy nincs bejelentkezve)');
-    console.log('ℹ️ [Infosharer Init] Részletek:', {
-      isAuthenticated,
-      isAdmin,
-      canEdit: false
-    });
+    // console.log('ℹ️ [Infosharer Init] 10. Csak olvasási mód (nincs admin jog vagy nincs bejelentkezve)');
+    // console.log('ℹ️ [Infosharer Init] Részletek:', {
+      // isAuthenticated,
+      // isAdmin,
+      // canEdit: false
+    // });
   }
   
   // Eseménykezelők beállítása
@@ -1549,11 +1544,11 @@ async function initialize() {
   
   // Login state változás figyelése
   window.addEventListener('loginStateChanged', async (event) => {
-    console.log('🔄 [Infosharer Event] Login state changed', event.detail);
+    // console.log('🔄 [Infosharer Event] Login state changed', event.detail);
     
     if (event.detail.loggedIn && event.detail.isAdmin) {
       // Admin bejelentkezett
-      console.log('✅ [Infosharer Event] Admin aktiválás...');
+      // console.log('✅ [Infosharer Event] Admin aktiválás...');
       canEdit = true;
       ta.readOnly = false;
       saveBtn.disabled = false;
@@ -1561,10 +1556,10 @@ async function initialize() {
       authBtns.style.display = "flex";
       await updateSlots();
       setStatus('success', '✅ Admin jogosultság aktiválva!');
-      console.log('✅ [Infosharer Event] Admin mód beállítva, textarea readonly:', ta.readOnly);
+      // console.log('✅ [Infosharer Event] Admin mód beállítva, textarea readonly:', ta.readOnly);
     } else if (!event.detail.loggedIn) {
       // Kijelentkezés
-      console.log('ℹ️ [Infosharer Event] Kijelentkezés...');
+      // console.log('ℹ️ [Infosharer Event] Kijelentkezés...');
       canEdit = false;
       ta.readOnly = true;
       saveBtn.disabled = true;
@@ -1572,7 +1567,7 @@ async function initialize() {
       authBtns.style.display = "none";
       await updateSlots();
       setStatus('info', 'Csak olvasási mód');
-      console.log('ℹ️ [Infosharer Event] Readonly mód beállítva');
+      // console.log('ℹ️ [Infosharer Event] Readonly mód beállítva');
     }
   });
   
@@ -1580,55 +1575,35 @@ async function initialize() {
   updateSlots();
   
   // VÉGSŐ ÖSSZEFOGLALÓ LOG
-  console.log('═══════════════════════════════════════════════════════');
-  console.log('🏁 [Infosharer Init] INICIALIZÁLÁS BEFEJEZVE');
-  console.log('═══════════════════════════════════════════════════════');
-  console.log('Végső állapot:', {
-    canEdit: canEdit,
-    textareaReadOnly: ta.readOnly,
-    saveBtnDisabled: saveBtn.disabled,
-    isAuthenticated: globalAuth?.isAuthenticated(),
-    isAdmin: globalAuth?.isAdminUser(),
-    profileLoaded: globalAuth?.profileLoaded,
-    currentUser: globalAuth?.currentUser?.email
-  });
-  console.log('═══════════════════════════════════════════════════════');
+  // console.log('═══════════════════════════════════════════════════════');
+  // console.log('🏁 [Infosharer Init] INICIALIZÁLÁS BEFEJEZVE');
+  // console.log('═══════════════════════════════════════════════════════');
+  // console.log('Végső állapot:', {
+    // canEdit: canEdit,
+    // textareaReadOnly: ta.readOnly,
+    // saveBtnDisabled: saveBtn.disabled,
+    // isAuthenticated: globalAuth?.isAuthenticated(),
+    // isAdmin: globalAuth?.isAdminUser(),
+    // profileLoaded: globalAuth?.profileLoaded,
+    // currentUser: globalAuth?.currentUser?.email
+  // });
+  // console.log('═══════════════════════════════════════════════════════');
   
   // EXTRA VÉDELEM: Dupla ellenőrzés hogy admin esetén biztosan írható legyen
   // Ez 500ms késleltetéssel újra ellenőrzi és javítja ha kell
   setTimeout(() => {
     if (globalAuth && globalAuth.isAuthenticated() && globalAuth.isAdminUser()) {
       if (ta.readOnly || saveBtn.disabled || !canEdit) {
-        console.warn('⚠️ [Infosharer] ASYNC FIX: Admin vagy de readonly mód! Javítás...');
+        // console.warn('⚠️ [Infosharer] ASYNC FIX: Admin vagy de readonly mód! Javítás...');
         canEdit = true;
         ta.readOnly = false;
         saveBtn.disabled = false;
         mainBtns.style.display = "none";
         authBtns.style.display = "flex";
-        console.log('✅ [Infosharer] ASYNC FIX alkalmazva');
+        // console.log('✅ [Infosharer] ASYNC FIX alkalmazva');
       }
     }
   }, 500);
-  
-  // URL paraméter ellenőrzése - egyedi link alapján automatikus letöltés
-  const urlParams = new URLSearchParams(window.location.search);
-  const fileCode = urlParams.get('file');
-  if (fileCode) {
-    const slotMatch = fileCode.match(/^S(\d+)-/);
-    if (slotMatch) {
-      const targetSlot = parseInt(slotMatch[1]);
-      setTimeout(async () => {
-        const fileData = slotMappings[targetSlot];
-        if (fileData) {
-          setFilesStatus('loading', `Letöltés indul: ${fileData.originalName}...`);
-          await downloadFile(fileData.fileName, fileData.originalName);
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-          setFilesStatus('error', `A fájl nem található (Slot ${targetSlot}). Lehet, hogy törölve lett.`);
-        }
-      }, 1000);
-    }
-  }
   
   // Realtime előfizetések indítása
   subscribeFileRealtime();
@@ -1639,11 +1614,15 @@ async function initialize() {
     const totalStorageBar = document.getElementById('totalStorageBar');
     
     if (totalStorageDisplay && totalStorageBar) {
-      const usedMB = (totalStorageUsed / (1024 * 1024)).toFixed(2);
-      const totalMB = (MAX_STORAGE_BYTES / (1024 * 1024)).toFixed(0);
+      const totalGB = MAX_STORAGE_BYTES / (1024 * 1024 * 1024);
+      const usedGB = totalStorageUsed / (1024 * 1024 * 1024);
+      const displayInGB = totalGB >= 1;
+      
+      const usedDisplay = displayInGB ? `${usedGB.toFixed(2)} GB` : `${(totalStorageUsed / (1024 * 1024)).toFixed(2)} MB`;
+      const totalDisplay = displayInGB ? `${totalGB.toFixed(1)} GB` : `${(MAX_STORAGE_BYTES / (1024 * 1024)).toFixed(0)} MB`;
       const percentage = (totalStorageUsed / MAX_STORAGE_BYTES) * 100;
       
-      totalStorageDisplay.textContent = `${usedMB} MB / ${totalMB} MB`;
+      totalStorageDisplay.textContent = `${usedDisplay} / ${totalDisplay}`;
       totalStorageBar.style.width = `${percentage}%`;
       
       if (percentage > 90) {
@@ -1683,13 +1662,219 @@ async function initialize() {
 }
 
 // ====================================
+// PUBLIKUS FÁJL LETÖLTÉS (BEJELENTKEZÉS NÉLKÜL)
+// ====================================
+
+/**
+ * Publikus fájl letöltés URL paraméter alapján
+ * Ez a függvény futhat BEJELENTKEZÉS NÉLKÜL is
+ */
+async function handlePublicFileDownload() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const fileCode = urlParams.get('file');
+  
+  if (!fileCode) return false; // Nincs file paraméter
+  
+  // Slot szám kinyerése a kódból (pl. S1-xxx)
+  const slotMatch = fileCode.match(/^S(\d+)-/);
+  if (!slotMatch) {
+    alert('❌ Érvénytelen fájl link!');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return true;
+  }
+  
+  const targetSlot = parseInt(slotMatch[1]);
+  
+  // Overlay létrehozása
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(11, 9, 26, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    color: var(--text);
+  `;
+  
+  overlay.innerHTML = `
+    <div style="text-align: center; max-width: 500px; padding: 2rem;">
+      <div style="font-size: 4rem; margin-bottom: 1rem;">⏳</div>
+      <h2 style="color: var(--accent-light); margin-bottom: 1rem;">Fájl betöltése...</h2>
+      <p id="downloadStatus" style="color: var(--muted); margin-bottom: 2rem;">
+        Slot ${targetSlot} fájljának lekérése...
+      </p>
+      <div style="width: 100%; height: 4px; background: rgba(127, 90, 240, 0.2); border-radius: 2px; overflow: hidden;">
+        <div id="downloadProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: width 0.3s;"></div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  
+  const statusEl = document.getElementById('downloadStatus');
+  const progressBar = document.getElementById('downloadProgressBar');
+  
+  try {
+    // ELSŐKÉNT: Ellenőrizzük a localStorage-ban tárolt publikus linkeket
+    statusEl.textContent = 'Link ellenőrzése...';
+    progressBar.style.width = '20%';
+    
+    const publicLinks = JSON.parse(localStorage.getItem('infosharer_public_links') || '{}');
+    const linkData = publicLinks[fileCode];
+    
+    if (linkData && linkData.url) {
+      // Van publikus Google Drive link - ellenőrizzük hogy lejárt-e
+      if (linkData.expirySeconds && linkData.createdAt) {
+        const expiryMs = linkData.createdAt + (linkData.expirySeconds * 1000);
+        if (Date.now() > expiryMs) {
+          statusEl.textContent = '⚠️ A link lejárt';
+          progressBar.style.width = '100%';
+          progressBar.style.background = 'orange';
+          setTimeout(() => {
+            overlay.remove();
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }, 3000);
+          return true;
+        }
+      }
+      
+      // Link érvényes - közvetlen átirányítás a Google Drive-ra
+      statusEl.textContent = `Letöltés: ${linkData.originalName}`;
+      progressBar.style.width = '100%';
+      progressBar.style.background = 'var(--success)';
+      
+      setTimeout(() => {
+        window.location.href = linkData.url;
+      }, 500);
+      
+      return true; // Publikus link használva
+    }
+
+    // Ha a linkben érkezett publikus URL (másik böngészőből), közvetlenül arra irányítunk
+    const urlFromParam = urlParams.get('publicUrl');
+    if (urlFromParam) {
+      statusEl.textContent = 'Átirányítás...';
+      progressBar.style.width = '100%';
+      progressBar.style.background = 'var(--success)';
+      setTimeout(() => {
+        window.location.href = decodeURIComponent(urlFromParam);
+      }, 300);
+      return true;
+    }
+    
+    // NINCS publikus link - fallback Supabase-re
+    statusEl.textContent = 'Fájl betöltése Supabase-ből...';
+    progressBar.style.width = '30%';
+    
+    // Supabase inicializálása
+    if (!supabase) {
+      supabase = await getSupabaseClient();
+    }
+    
+    // Publikus letöltéshez MINDIG Supabase-t használunk (Google Drive-hoz refresh token kellene)
+    const publicStorageAdapter = new (await import('./storage-adapter.js')).StorageAdapter('supabase');
+    await publicStorageAdapter.initialize();
+    
+    statusEl.textContent = 'Fájlok keresése...';
+    progressBar.style.width = '50%';
+    
+    // Fájlok listázása
+    const allFiles = await publicStorageAdapter.listFiles();
+    
+    // Slot mapping
+    let fileData = null;
+    if (allFiles && allFiles.length > 0) {
+      allFiles.forEach((file) => {
+        const match = file.name.match(/slot(\d+)_(.+)/);
+        if (match) {
+          const slotNum = parseInt(match[1]);
+          if (slotNum === targetSlot) {
+            fileData = {
+              fileName: file.name,
+              originalName: match[2],
+              size: file.size || 0
+            };
+          }
+        }
+      });
+    }
+    
+    if (!fileData) {
+      statusEl.textContent = `❌ A fájl nem található (Slot ${targetSlot})`;
+      progressBar.style.width = '100%';
+      progressBar.style.background = 'var(--error)';
+      setTimeout(() => {
+        overlay.remove();
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 3000);
+      return true;
+    }
+    
+    // Supabase letöltés
+    statusEl.textContent = `Letöltés: ${fileData.originalName}`;
+    progressBar.style.width = '70%';
+    
+    const blob = await publicStorageAdapter.downloadFile(fileData.fileName);
+    progressBar.style.width = '90%';
+    
+    // Blob URL
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileData.originalName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Siker
+    statusEl.textContent = `✅ Sikeres letöltés`;
+    progressBar.style.width = '100%';
+    progressBar.style.background = 'var(--success)';
+    
+    setTimeout(() => {
+      overlay.remove();
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Publikus letöltés hiba:', error);
+    statusEl.textContent = `❌ Letöltési hiba: ${error.message}`;
+    progressBar.style.width = '100%';
+    progressBar.style.background = 'var(--error)';
+    
+    setTimeout(() => {
+      overlay.remove();
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }, 4000);
+  }
+  
+  return true; // Jelezzük hogy kezeltük a publikus linketet
+}
+
+// ====================================
 // INDÍTÁS
 // ====================================
 
-// DOMContentLoaded eseményre várunk
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
-} else {
-  // Ha a DOM már betöltődött, azonnal indítunk
-  initialize();
-}
+// Először ellenőrizzük a publikus file download-ot (BEJELENTKEZÉS NÉLKÜL)
+handlePublicFileDownload().then(isPublicDownload => {
+  if (isPublicDownload) {
+    // Ha publikus letöltés volt, ne folytassuk a normál inicializálást
+    console.log('📥 Publikus fájl letöltés mód');
+    return;
+  }
+  
+  // Normál inicializálás
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+  } else {
+    initialize();
+  }
+});
+

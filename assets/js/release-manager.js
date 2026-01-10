@@ -9,7 +9,7 @@ class ReleaseManager {
     this.repoOwner = repoOwner;
     this.repoName = repoName;
     this.latestReleaseData = null;
-    this.currentVersion = "1.0.0"; // Default
+    this.currentVersion = null; // Betöltjük az APP_VERSION-ből
 
     // DOM elemek
     this.loginView = null;
@@ -97,9 +97,11 @@ class ReleaseManager {
   setupEventListeners() {
     // Frissítés gomb - cache nélküli lekérdezés
     this.refreshBtn?.addEventListener("click", async () => {
-      console.log("[Release Manager] Manuális frissítés - cache bypass");
+      // console.log("[Release Manager] Manuális frissítés - cache bypass");
       // Force refresh: cache bypass
       this.latestReleaseData = await this.fetchLatestRelease(false);
+      // Újra betöltjük az aktuális verziót is
+      await this.loadCurrentVersion();
       await this.loadVersionInfo(false); // Ne fetcheljen újra
     });
 
@@ -149,9 +151,13 @@ class ReleaseManager {
   showMainView() {
     if (this.loginView) this.loginView.style.display = "none";
     if (this.mainView) this.mainView.style.display = "block";
-    this.loadVersionInfo();
-    this.updateVersionButtons();
-    this.updateCacheDisplay();
+    
+    // Betöltjük az aktuális APP_VERSION-t (a footer.js-ből)
+    this.loadCurrentVersion().then(() => {
+      this.loadVersionInfo();
+      this.updateVersionButtons();
+      this.updateCacheDisplay();
+    });
   }
 
   // ===================================
@@ -170,20 +176,20 @@ class ReleaseManager {
           const age = Date.now() - data.timestamp;
           
           if (age < CACHE_DURATION) {
-            console.log(`[Release Manager] Cache használata (${Math.round(age / 1000)}s régi)`);
+            // console.log(`[Release Manager] Cache használata (${Math.round(age / 1000)}s régi)`);
             return data.release;
           } else {
-            console.log(`[Release Manager] Cache lejárt (${Math.round(age / 1000)}s régi)`);
+            // console.log(`[Release Manager] Cache lejárt (${Math.round(age / 1000)}s régi)`);
           }
         } catch (e) {
-          console.warn("[Release Manager] Cache parse hiba:", e);
+          // console.warn("[Release Manager] Cache parse hiba:", e);
         }
       }
     }
     
     // GitHub API lekérdezés
     try {
-      console.log("[Release Manager] GitHub API lekérdezés...");
+      // console.log("[Release Manager] GitHub API lekérdezés...");
       const response = await fetch(
         `https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest`,
         { cache: "no-store" }
@@ -203,7 +209,7 @@ class ReleaseManager {
         timestamp: Date.now()
       };
       localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-      console.log(`[Release Manager] Cache frissítve: ${release.tag_name}`);
+      // console.log(`[Release Manager] Cache frissítve: ${release.tag_name}`);
       
       return release;
     } catch (error) {
@@ -214,7 +220,7 @@ class ReleaseManager {
       if (cached) {
         try {
           const data = JSON.parse(cached);
-          console.warn("[Release Manager] Hiba történt, régi cache használata");
+          // console.warn("[Release Manager] Hiba történt, régi cache használata");
           return data.release;
         } catch (e) {
           // Nem sikerült a cache-ből sem
@@ -225,28 +231,97 @@ class ReleaseManager {
     }
   }
 
+  async loadCurrentVersion() {
+    // Várunk amíg az APP_VERSION betöltődik a footer.js-ből
+    let attempts = 0;
+    while ((!APP_VERSION || APP_VERSION === null) && attempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
+    // Betöltjük az APP_VERSION-t a footer.js-ből (globális változó)
+    if (typeof APP_VERSION !== 'undefined' && APP_VERSION) {
+      this.currentVersion = APP_VERSION;
+      // console.log(`[Release Manager] Jelenlegi verzió betöltve: ${this.currentVersion}`);
+    } else {
+      // Végső fallback ha nem sikerült
+      const cached = localStorage.getItem("agazati_latestVersion");
+      this.currentVersion = cached || "1.5.0";
+      // console.warn("[Release Manager] APP_VERSION nem elérhető, fallback használata");
+    }
+    
+    // Frissítjük a megjelenítést
+    if (this.currentVersionEl) {
+      this.currentVersionEl.textContent = this.currentVersion;
+    }
+    
+    // Frissítjük az appVersionDisplay-t is
+    const appVersionDisplay = document.getElementById('appVersionDisplay');
+    if (appVersionDisplay) {
+      appVersionDisplay.textContent = this.currentVersion;
+    }
+  }
+
+  compareVersions(current, latest) {
+    // Összehasonlítja a jelenlegi és legfrissebb verziót
+    const cleanCurrent = current.replace(/^v/, "");
+    const cleanLatest = latest.replace(/^v/, "");
+    
+    const partsCurrent = cleanCurrent.split(".").map(Number);
+    const partsLatest = cleanLatest.split(".").map(Number);
+    
+    let isNewer = false;
+    for (let i = 0; i < Math.max(partsCurrent.length, partsLatest.length); i++) {
+      const p1 = partsCurrent[i] || 0;
+      const p2 = partsLatest[i] || 0;
+      if (p2 > p1) {
+        isNewer = true;
+        break;
+      }
+      if (p2 < p1) break;
+    }
+    
+    // Státusz frissítése
+    if (isNewer) {
+      if (this.versionStatusEl) {
+        this.versionStatusEl.textContent = "Frissítés elérhető";
+        this.versionStatusEl.className = "status-badge update-available";
+      }
+      if (this.statusMessageEl) {
+        this.statusMessageEl.textContent = `Új verzió elérhető: ${latest}`;
+      }
+    } else {
+      if (this.versionStatusEl) {
+        this.versionStatusEl.textContent = "Naprakész";
+        this.versionStatusEl.className = "status-badge up-to-date";
+      }
+      if (this.statusMessageEl) {
+        this.statusMessageEl.textContent = "Az oldal a legfrissebb verzión fut";
+      }
+    }
+  }
+
   async loadVersionInfo(fetchNew = true) {
     // Ha fetchNew false és már van adat, használjuk azt
     if (!fetchNew && this.latestReleaseData) {
-      console.log("[Release Manager] Meglévő adat használata");
+      // console.log("[Release Manager] Meglévő adat használata");
     } else {
       this.latestReleaseData = await this.fetchLatestRelease();
     }
 
     if (this.latestReleaseData) {
       const latestVersion = this.latestReleaseData.tag_name.replace(/^v/, "");
-      this.currentVersion = latestVersion;
 
-      if (this.currentVersionEl) this.currentVersionEl.textContent = this.currentVersion;
+      // A legfrissebb release megjelenítése
       if (this.latestReleaseEl) this.latestReleaseEl.textContent = latestVersion;
       
       const releaseDate = new Date(this.latestReleaseData.published_at);
       if (this.releaseDateEl) this.releaseDateEl.textContent = releaseDate.toLocaleString("hu-HU");
 
-      if (this.versionStatusEl) this.versionStatusEl.textContent = "Naprakész";
-      if (this.statusMessageEl) this.statusMessageEl.textContent = "Ez a legfrissebb verzió";
+      // Verzió összehasonlítás
+      this.compareVersions(this.currentVersion, latestVersion);
       
-      // Engedélyezzük a GitHub gomb-ot
+      // Engedélyezzük a GitHub gombot
       if (this.viewReleaseBtn) this.viewReleaseBtn.disabled = false;
       
       this.updateVersionButtons();
