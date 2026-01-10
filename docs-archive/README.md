@@ -42,20 +42,32 @@ Ez a mappa az Infosharer projekt **összes dokumentációs fájlját** tartalmaz
 - `CHANGES.md` - Változási napló
 - `CREDENTIALS-UPDATED.md` - Credential frissítések
 
-### 🔒 Biztonsági Audit
+### 🔒 Biztonsági & Credential Kezelés
 - `SECURITY-AUDIT.md` - Teljes biztonsági audit
+- `SECURITY-INCIDENT-REPORT.md` - 2026-01-10 incident jelentés ⚠️
+- `CREDENTIAL-MANAGEMENT.md` - Credential kezelési útmutató 🔑
+
+### 🗂️ Projekt Dokumentáció
+- `PROJECT-STRUCTURE.md` - Teljes projekt térképe
+- `SETUP-CHECKLIST.md` - Telepítési útmutató
 
 ## 🚀 Gyorstalálóhoz
 
 **Első lépésekhez:**
-1. Google Drive: `GOOGLE-DRIVE-QUICKSTART.md`
-2. OAuth: `OAUTH-QUICK-GUIDE.md`
-3. Supabase: `SUPABASE-SETUP.md`
+1. Telepítés: `SETUP-CHECKLIST.md` ⭐
+2. Google Drive: `GOOGLE-DRIVE-QUICKSTART.md`
+3. OAuth: `OAUTH-QUICK-GUIDE.md`
+4. Supabase: `SUPABASE-SETUP.md`
+
+**Biztonsági útmutatók:**
+- Credential kezelés: `CREDENTIAL-MANAGEMENT.md` 🔑
+- Biztonsági audit: `SECURITY-AUDIT.md`
+- Legutóbbi incident: `SECURITY-INCIDENT-REPORT.md`
 
 **Problémamegoldáshoz:**
 - Admin problémák: `ADMIN-SETUP-SIMPLE.md`
 - Autentikáció: `AUTH-FIX-README.md`
-- Biztonsági kérdések: `SECURITY-AUDIT.md`
+- Projekt áttekintés: `PROJECT-STRUCTURE.md`
 
 ## ⚠️ Fontos
 
