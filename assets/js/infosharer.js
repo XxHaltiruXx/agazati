@@ -104,6 +104,169 @@ function initDOMElements() {
   confirmUpload = document.getElementById("confirmUpload");
   deleteFileName = document.getElementById("deleteFileName");
   confirmDelete = document.getElementById("confirmDelete");
+  
+  // Keresősáv inicializálása
+  initializeSearchBar();
+}
+
+// Keresősáv inicializálása
+function initializeSearchBar() {
+  const slotContainer = document.getElementById('slotContainer');
+  if (!slotContainer || !slotContainer.parentElement) return;
+  
+  // Ellenőrizzük, hogy már létezik-e
+  if (document.getElementById('infosharerSearchBar')) return;
+  
+  // Keresősáv létrehozása
+  const searchContainer = document.createElement('div');
+  searchContainer.id = 'infosharerSearchBar';
+  searchContainer.style.cssText = `
+    margin: 1.5rem auto;
+    max-width: 600px;
+    position: relative;
+  `;
+  
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.id = 'fileSearchInput';
+  searchInput.placeholder = '🔍 Keresés fájlnév alapján...';
+  searchInput.style.cssText = `
+    width: 100%;
+    padding: 0.75rem 3rem 0.75rem 1rem;
+    border: 2px solid rgba(127, 90, 240, 0.3);
+    border-radius: 8px;
+    background: rgba(127, 90, 240, 0.05);
+    color: var(--text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  `;
+  
+  const clearButton = document.createElement('button');
+  clearButton.innerHTML = '✕';
+  clearButton.style.cssText = `
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: none;
+    transition: color 0.2s;
+  `;
+  clearButton.title = 'Törlés';
+  
+  // Focus/Blur effektek
+  searchInput.addEventListener('focus', () => {
+    searchInput.style.borderColor = 'var(--accent)';
+    searchInput.style.boxShadow = '0 0 0 3px rgba(127, 90, 240, 0.1)';
+  });
+  
+  searchInput.addEventListener('blur', () => {
+    searchInput.style.borderColor = 'rgba(127, 90, 240, 0.3)';
+    searchInput.style.boxShadow = 'none';
+  });
+  
+  // Real-time keresés
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    filterSlots(query);
+    
+    // Clear gomb megjelenítése/elrejtése
+    clearButton.style.display = query ? 'block' : 'none';
+  });
+  
+  // Clear gomb esemény
+  clearButton.addEventListener('click', () => {
+    searchInput.value = '';
+    clearButton.style.display = 'none';
+    filterSlots('');
+    searchInput.focus();
+  });
+  
+  clearButton.addEventListener('mouseenter', () => {
+    clearButton.style.color = 'var(--accent)';
+  });
+  
+  clearButton.addEventListener('mouseleave', () => {
+    clearButton.style.color = 'var(--muted)';
+  });
+  
+  searchContainer.appendChild(searchInput);
+  searchContainer.appendChild(clearButton);
+  
+  // Beszúrás a slotContainer elé
+  slotContainer.parentElement.insertBefore(searchContainer, slotContainer);
+}
+
+// Slot szűrés keresési lekérdezés alapján
+function filterSlots(query) {
+  const slotContainer = document.getElementById('slotContainer');
+  if (!slotContainer) return;
+  
+  const slots = slotContainer.querySelectorAll('.col');
+  let visibleCount = 0;
+  
+  slots.forEach(slot => {
+    const card = slot.querySelector('.card');
+    if (!card) return;
+    
+    // Fájlnév kinyerése
+    const fileNameElement = card.querySelector('[style*="word-break"]');
+    const fileName = fileNameElement ? fileNameElement.textContent.toLowerCase() : '';
+    
+    // Szűrés
+    if (!query || fileName.includes(query)) {
+      slot.style.display = '';
+      visibleCount++;
+      
+      // Highlight a találatokra
+      if (query && fileNameElement) {
+        highlightText(fileNameElement, query);
+      } else if (fileNameElement) {
+        // Eredeti szöveg visszaállítása
+        fileNameElement.innerHTML = fileNameElement.textContent;
+      }
+    } else {
+      slot.style.display = 'none';
+    }
+  });
+  
+  // Találatok száma
+  updateSearchResults(visibleCount, slots.length, query);
+}
+
+// Szöveg kiemelése
+function highlightText(element, query) {
+  const text = element.textContent;
+  const lowerText = text.toLowerCase();
+  const index = lowerText.indexOf(query);
+  
+  if (index === -1) {
+    element.innerHTML = text;
+    return;
+  }
+  
+  const before = text.substring(0, index);
+  const match = text.substring(index, index + query.length);
+  const after = text.substring(index + query.length);
+  
+  element.innerHTML = `${before}<span style="background: var(--accent); color: white; padding: 2px 4px; border-radius: 3px; font-weight: 600;">${match}</span>${after}`;
+}
+
+// Keresési eredmények frissítése
+function updateSearchResults(visibleCount, totalCount, query) {
+  const filesStatus = document.getElementById('filesStatus');
+  if (!filesStatus || !query) return;
+  
+  if (visibleCount === 0) {
+    setFilesStatus('error', `🔍 Nincs találat: "${query}"`);
+  } else if (visibleCount < totalCount) {
+    setFilesStatus('success', `🔍 ${visibleCount} / ${totalCount} fájl találat`);
+  }
 }
 
 // ====================================
@@ -202,18 +365,34 @@ function setFilesStatus(state, message = "") {
 }
 
 // Tárhelyhasználat számítása
-function calculateStorageUsage() {
-  totalStorageUsed = 0;
-  Object.values(slotMappings).forEach(fileData => {
-    if (fileData && fileData.metadata && fileData.metadata.size) {
-      totalStorageUsed += fileData.metadata.size;
-    }
-  });
-  return totalStorageUsed;
+async function calculateStorageUsage() {
+  try {
+    const usage = await storageAdapter.getStorageUsage();
+    totalStorageUsed = usage.visibleUsed; // Csak a látható fájlok számítanak
+    return usage;
+  } catch (error) {
+    console.error('Tárhelyhasználat számítási hiba:', error);
+    // Fallback: számoljuk össze a slotMappings-ből
+    totalStorageUsed = 0;
+    Object.values(slotMappings).forEach(fileData => {
+      if (fileData && fileData.metadata && fileData.metadata.size) {
+        totalStorageUsed += fileData.metadata.size;
+      }
+    });
+    return {
+      visibleUsed: totalStorageUsed,
+      hiddenUsed: 0,
+      totalUsed: totalStorageUsed,
+      maxCapacity: MAX_STORAGE_BYTES,
+      availableForVisible: MAX_STORAGE_BYTES - totalStorageUsed,
+      visibleFiles: Object.keys(slotMappings).length,
+      hiddenFiles: 0
+    };
+  }
 }
 
 // Tárhelyhasználat frissítése a modal-ban
-function updateStorageDisplay() {
+async function updateStorageDisplay() {
   const storageBar = document.getElementById('storageBar');
   const storageText = document.getElementById('storageText');
   const freeSpace = document.getElementById('freeSpace');
@@ -236,15 +415,26 @@ function updateStorageDisplay() {
       return `${bytes} B`;
     }
   };
+
+  // Lekérjük a részletes tárhely információkat
+  const usage = await calculateStorageUsage();
   
-  const usedDisplay = formatSize(totalStorageUsed);
-  const totalDisplay = formatSize(MAX_STORAGE_BYTES);
-  const freeDisplay = formatSize(MAX_STORAGE_BYTES - totalStorageUsed);
+  const usedDisplay = formatSize(usage.visibleUsed);
+  const totalDisplay = formatSize(usage.maxCapacity);
+  const freeDisplay = formatSize(usage.availableForVisible);
+  const hiddenDisplay = formatSize(usage.hiddenUsed);
   
-  const percentage = (totalStorageUsed / MAX_STORAGE_BYTES) * 100;
+  const percentage = (usage.visibleUsed / usage.maxCapacity) * 100;
   
   storageBar.style.width = `${percentage}%`;
-  storageText.textContent = `${usedDisplay} / ${totalDisplay}`;
+  
+  // Frissített szöveg rejtett fájlok megjelenítésével
+  if (usage.hiddenUsed > 0) {
+    storageText.textContent = `${usedDisplay} / ${totalDisplay} (${hiddenDisplay} rejtett)`;
+  } else {
+    storageText.textContent = `${usedDisplay} / ${totalDisplay}`;
+  }
+  
   freeSpace.textContent = freeDisplay;
   
   // Színváltás a használat alapján
@@ -805,9 +995,19 @@ async function updateSlots(silent = false) {
     
     if (!silent) {
       const filledSlots = Object.keys(slotMappings).length;
-      const usedMB = (totalStorageUsed / (1024 * 1024)).toFixed(2);
-      const totalMB = (MAX_STORAGE_BYTES / (1024 * 1024)).toFixed(0);
-      setFilesStatus("success", `${filledSlots} slot • ${usedMB}/${totalMB} MB használva`);
+      
+      // Frissített tárhely info
+      const usage = await calculateStorageUsage();
+      const usedGB = (usage.visibleUsed / (1024 * 1024 * 1024)).toFixed(2);
+      const totalGB = (usage.maxCapacity / (1024 * 1024 * 1024)).toFixed(0);
+      const hiddenGB = (usage.hiddenUsed / (1024 * 1024 * 1024)).toFixed(2);
+      
+      let statusText = `${filledSlots} slot • ${usedGB}/${totalGB} GB használva`;
+      if (usage.hiddenUsed > 0) {
+        statusText += ` (${hiddenGB} GB rejtett)`;
+      }
+      
+      setFilesStatus("success", statusText);
       
       setTimeout(() => {
         setFilesStatus("success", "");

@@ -90,7 +90,10 @@ VALUES (
     'CLIENT_ID', 'your-client-id-here.apps.googleusercontent.com',
     'CLIENT_SECRET', 'your-client-secret-here',
     'REFRESH_TOKEN', null,
-    'SCOPES', jsonb_build_array('https://www.googleapis.com/auth/drive.file')
+    'SCOPES', jsonb_build_array(
+      'https://www.googleapis.com/auth/drive.readonly',
+      'https://www.googleapis.com/auth/userinfo.email'
+    )
   ),
   'Google Drive API konfiguráció OAuth2-vel az Infosharer fájltároláshoz'
 )

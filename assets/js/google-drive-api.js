@@ -478,6 +478,39 @@ async function listFilesInGoogleDrive() {
   }
 }
 
+async function renameFile(fileId, newName) {
+  if (!isGoogleDriveAuthenticated()) {
+    throw new Error('Google Drive nem inicializálva');
+  }
+
+  await ensureValidToken();
+
+  try {
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: newName
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Átnevezési hiba: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log(`✓ Fájl átnevezve: ${data.name}`);
+    return data;
+  } catch (error) {
+    console.error('Átnevezési hiba:', error);
+    throw error;
+  }
+}
+
 async function createPublicLink(fileId) {
   if (!isGoogleDriveAuthenticated()) {
     throw new Error('Google Drive nem inicializálva');
@@ -640,6 +673,7 @@ export {
   deleteFileFromGoogleDrive,
   getFileMetadata,
   listFilesInGoogleDrive,
+  renameFile,
   createPublicLink,
   getDirectDownloadLink,
   ensurePublicAccess,

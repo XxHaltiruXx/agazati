@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔥 Teszt Fájl 🎉</title>
+</head>
+<body>
+    <h1>🚀 Hello World! 👋</h1>
+    <p>Ez egy teszt fájl 📝 emoji karakterekkel 😊</p>
+    <button>✅ OK Gomb</button>
+    <button>❌ Mégse</button>
+    <div>🔐 Biztonsági zóna 🔒</div>
+    
+    <script>
+        console.log('✓ Script működik');
+        const text = "Ez egy string 💾 benne";
+    </script>
+</body>
+</html>

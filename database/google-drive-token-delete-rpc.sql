@@ -14,8 +14,24 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  DELETE FROM app_config WHERE key = 'google_drive_refresh_token';
-  RAISE NOTICE 'Google Drive refresh token törölve';
+  -- A refresh token a google_drive_config JSONB mezőjében van
+  -- Nem töröljük az egész sort, csak a REFRESH_TOKEN mezőt null-ra állítjuk
+  UPDATE app_config 
+  SET value = jsonb_set(
+    value, 
+    '{REFRESH_TOKEN}', 
+    to_jsonb(NULL::text),  -- JSON null érték (nem a "null" string!)
+    true
+  ),
+  updated_at = NOW()
+  WHERE key = 'google_drive_config';
+  
+  -- Ellenőrizzük, hogy sikerült-e
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'google_drive_config sor nem található!';
+  END IF;
+  
+  RAISE NOTICE 'Google Drive refresh token törölve (null-ra állítva)';
 END;
 $$;
 
@@ -32,7 +48,7 @@ GRANT EXECUTE ON FUNCTION delete_google_drive_token() TO authenticated;
 -- SELECT delete_google_drive_token();
 
 -- Ellenőrizd, hogy törölve lett:
--- SELECT * FROM app_config WHERE key = 'google_drive_refresh_token';
+-- SELECT value->>'REFRESH_TOKEN' FROM app_config WHERE key = 'google_drive_config';
 
 -- ====================================
 -- HASZNÁLAT

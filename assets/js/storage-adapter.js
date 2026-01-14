@@ -262,14 +262,52 @@ class StorageAdapter {
         this.fileIdMap[file.name] = file.id;
       });
       this.saveFileIdMap();
-
-      return files.map(file => ({
-        name: file.name,
-        id: file.id,
-        size: parseInt(file.size || 0),
-        created_at: file.createdTime,
-        updated_at: file.modifiedTime
-      }));
+      
+      // Láthatósági szűrés - csak azokat a fájlokat mutatjuk, amik láthatóak az Infoshareren
+      try {
+        const { data: visibilityData, error: visError } = await this.supabase
+          .from('google_drive_file_visibility')
+          .select('file_id, visible_on_infosharer')
+          .eq('visible_on_infosharer', true);
+        
+        if (visError) {
+          console.warn('Láthatósági adatok betöltési hiba:', visError);
+          // Ha hiba van, minden fájlt megmutatunk (fallback)
+          return files.map(file => ({
+            name: file.name,
+            id: file.id,
+            size: parseInt(file.size || 0),
+            created_at: file.createdTime,
+            updated_at: file.modifiedTime
+          }));
+        }
+        
+        // Látható fájlok ID-jainak listája
+        const visibleFileIds = new Set(visibilityData.map(v => v.file_id));
+        
+        // Csak a látható fájlokat szűrjük ki
+        const visibleFiles = files.filter(file => visibleFileIds.has(file.id));
+        
+        console.log(`Látható fájlok: ${visibleFiles.length}/${files.length}`);
+        
+        return visibleFiles.map(file => ({
+          name: file.name,
+          id: file.id,
+          size: parseInt(file.size || 0),
+          created_at: file.createdTime,
+          updated_at: file.modifiedTime
+        }));
+      } catch (error) {
+        console.error('Láthatósági szűrés hiba:', error);
+        // Fallback: minden fájlt megmutatunk
+        return files.map(file => ({
+          name: file.name,
+          id: file.id,
+          size: parseInt(file.size || 0),
+          created_at: file.createdTime,
+          updated_at: file.modifiedTime
+        }));
+      }
     }
   }
 
@@ -407,6 +445,252 @@ class StorageAdapter {
       // Töröljük a régit
       await this.deleteFile(oldFileName);
     }
+  }
+
+  /**
+   * Slot szám kinyerése fájlnévből
+   * @param {string} fileName - Fájlnév
+   * @returns {number|null} - Slot szám vagy null
+   */
+  getSlotNumber(fileName) {
+    const match = fileName.match(/^slot(\d+)_/);
+    return match ? parseInt(match[1]) : null;
+  }
+
+  /**
+   * Eredeti fájlnév kinyerése (slot prefix nélkül)
+   * @param {string} fileName - Teljes fájlnév
+   * @returns {string} - Eredeti fájlnév
+   */
+  getOriginalFileName(fileName) {
+    return fileName.replace(/^slot\d+_/, '');
+  }
+
+  /**
+   * Következő szabad slot szám megkeresése
+   * @returns {Promise<number>} - Következő szabad slot szám
+   */
+  async getNextAvailableSlot() {
+    const allFiles = await this.listAllFiles(); // Minden fájl, láthatósági szűrés nélkül
+    const usedSlots = allFiles
+      .map(file => this.getSlotNumber(file.name))
+      .filter(slot => slot !== null)
+      .sort((a, b) => a - b);
+
+    // Keressük meg a legkisebb nem használt slot számot
+    let nextSlot = 1;
+    for (const slot of usedSlots) {
+      if (slot === nextSlot) {
+        nextSlot++;
+      } else if (slot > nextSlot) {
+        break;
+      }
+    }
+
+    return nextSlot;
+  }
+
+  /**
+   * Összes fájl listázása (láthatósági szűrés NÉLKÜL)
+   * @returns {Promise<Array>} - Minden fájl
+   */
+  async listAllFiles() {
+    if (this.provider === 'supabase') {
+      const { data, error } = await this.supabase.storage
+        .from(SUPABASE_CONFIG.bucketName)
+        .list("");
+
+      if (error) throw error;
+      return data || [];
+    } else if (this.provider === 'googledrive') {
+      const files = await GoogleDrive.listFilesInGoogleDrive();
+      
+      files.forEach(file => {
+        this.fileIdMap[file.name] = file.id;
+      });
+      this.saveFileIdMap();
+      
+      return files.map(file => ({
+        name: file.name,
+        id: file.id,
+        size: parseInt(file.size || 0),
+        created_at: file.createdTime,
+        updated_at: file.modifiedTime
+      }));
+    }
+  }
+
+  /**
+   * Automatikus slot számozás - manuálisan feltöltött fájlokhoz
+   * @param {string} fileId - Google Drive fájl ID
+   * @param {string} fileName - Eredeti fájlnév
+   * @returns {Promise<void>}
+   */
+  async autoAssignSlot(fileId, fileName) {
+    // Ha már van slot prefix, nem csinálunk semmit
+    if (this.getSlotNumber(fileName) !== null) {
+      return;
+    }
+
+    const nextSlot = await this.getNextAvailableSlot();
+    const newFileName = `slot${nextSlot}_${fileName}`;
+
+    console.log(`🎰 Automatikus slot hozzárendelés: ${fileName} -> ${newFileName}`);
+
+    // Google Drive-on átnevezzük a fájlt
+    try {
+      await GoogleDrive.renameFile(fileId, newFileName);
+      
+      // Frissítjük a fileIdMap-et
+      delete this.fileIdMap[fileName];
+      this.fileIdMap[newFileName] = fileId;
+      this.saveFileIdMap();
+    } catch (error) {
+      console.error('Slot hozzárendelési hiba:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Slotok átszámozása láthatóság alapján
+   * Csak a látható fájlok kapnak slot számot, folytonosan 1-től
+   * @returns {Promise<void>}
+   */
+  async renumberSlots() {
+    const allFiles = await this.listAllFiles();
+    
+    // Lekérjük a láthatósági információkat
+    const { data: visibilityData, error } = await this.supabase
+      .from('google_drive_file_visibility')
+      .select('file_id, visible_on_infosharer');
+    
+    if (error) {
+      console.error('Láthatósági adatok betöltési hiba:', error);
+      return;
+    }
+
+    // Map: fileId -> láthatóság
+    const visibilityMap = new Map();
+    visibilityData.forEach(v => visibilityMap.set(v.file_id, v.visible_on_infosharer));
+
+    // Szét válogatjuk a fájlokat: látható vs rejtett
+    const visibleFiles = [];
+    const hiddenFiles = [];
+
+    for (const file of allFiles) {
+      const isVisible = visibilityMap.get(file.id);
+      const slotNumber = this.getSlotNumber(file.name);
+      const originalName = this.getOriginalFileName(file.name);
+
+      if (isVisible) {
+        visibleFiles.push({ ...file, slotNumber, originalName });
+      } else {
+        hiddenFiles.push({ ...file, slotNumber, originalName });
+      }
+    }
+
+    // Látható fájlokat slot szám szerint rendezünk
+    visibleFiles.sort((a, b) => (a.slotNumber || 999) - (b.slotNumber || 999));
+
+    // Átszámozzuk a látható fájlokat folytonosan 1-től
+    const renamePromises = [];
+    for (let i = 0; i < visibleFiles.length; i++) {
+      const file = visibleFiles[i];
+      const targetSlot = i + 1;
+
+      if (file.slotNumber !== targetSlot) {
+        const newFileName = `slot${targetSlot}_${file.originalName}`;
+        console.log(`📝 Átszámozás: ${file.name} -> ${newFileName}`);
+        
+        renamePromises.push(
+          GoogleDrive.renameFile(file.id, newFileName).then(() => {
+            delete this.fileIdMap[file.name];
+            this.fileIdMap[newFileName] = file.id;
+          })
+        );
+      }
+    }
+
+    // Rejtett fájlokról eltávolítjuk a slot prefix-et
+    for (const file of hiddenFiles) {
+      if (file.slotNumber !== null) {
+        const newFileName = file.originalName;
+        console.log(`🔒 Slot eltávolítás (rejtett): ${file.name} -> ${newFileName}`);
+        
+        renamePromises.push(
+          GoogleDrive.renameFile(file.id, newFileName).then(() => {
+            delete this.fileIdMap[file.name];
+            this.fileIdMap[newFileName] = file.id;
+          })
+        );
+      }
+    }
+
+    // Végrehajtjuk az összes átnevezést
+    await Promise.all(renamePromises);
+    this.saveFileIdMap();
+
+    console.log(`✓ Slot átszámozás kész: ${visibleFiles.length} látható, ${hiddenFiles.length} rejtett`);
+  }
+
+  /**
+   * Tárhelyhasználat számítása (látható + rejtett külön)
+   * @returns {Promise<object>} - { visibleUsed, hiddenUsed, totalUsed, maxCapacity }
+   */
+  async getStorageUsage() {
+    const allFiles = await this.listAllFiles();
+    const limits = this.getLimits();
+    
+    // Lekérjük a láthatósági információkat
+    const { data: visibilityData, error } = await this.supabase
+      .from('google_drive_file_visibility')
+      .select('file_id, visible_on_infosharer');
+    
+    if (error) {
+      console.warn('Láthatósági adatok betöltési hiba:', error);
+      // Fallback: minden fájl látható
+      const totalUsed = allFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+      return {
+        visibleUsed: totalUsed,
+        hiddenUsed: 0,
+        totalUsed: totalUsed,
+        maxCapacity: limits.maxTotalStorage,
+        visibleFiles: allFiles.length,
+        hiddenFiles: 0
+      };
+    }
+
+    // Map: fileId -> láthatóság
+    const visibilityMap = new Map();
+    visibilityData.forEach(v => visibilityMap.set(v.file_id, v.visible_on_infosharer));
+
+    let visibleUsed = 0;
+    let hiddenUsed = 0;
+    let visibleCount = 0;
+    let hiddenCount = 0;
+
+    for (const file of allFiles) {
+      const isVisible = visibilityMap.get(file.id);
+      const fileSize = file.size || 0;
+
+      if (isVisible) {
+        visibleUsed += fileSize;
+        visibleCount++;
+      } else {
+        hiddenUsed += fileSize;
+        hiddenCount++;
+      }
+    }
+
+    return {
+      visibleUsed,
+      hiddenUsed,
+      totalUsed: visibleUsed + hiddenUsed,
+      maxCapacity: limits.maxTotalStorage,
+      availableForVisible: limits.maxTotalStorage - visibleUsed, // Csak a látható számít
+      visibleFiles: visibleCount,
+      hiddenFiles: hiddenCount
+    };
   }
 }
 
