@@ -83,14 +83,37 @@ async function initializeGoogleDrive(supabase = null) {
 
 /**
  * OAuth2 bejelentkezési popup (admin használja egyszer)
+ * @param {boolean} forceConsent - Ha true, mindig kéri újra az engedélyeket
  */
-async function signInWithOAuth2() {
+async function signInWithOAuth2(forceConsent = false) {
   if (!GOOGLE_CONFIG) {
     throw new Error('Google Drive konfiguráció nincs betöltve!');
   }
 
-  const redirectUri = `${window.location.origin}/auth-callback.html`;
-  const scope = GOOGLE_CONFIG.SCOPES?.join(' ') || 'https://www.googleapis.com/auth/drive.file';
+  // Base path meghatározása (GitHub Pages vagy alkönyvtár esetén)
+  const basePath = (() => {
+    const pathname = window.location.pathname;
+    if (pathname.includes('/agazati/')) {
+      return '/agazati/';
+    }
+    return '/';
+  })();
+  
+  const redirectUri = `${window.location.origin}${basePath}auth-callback.html`;
+  console.log('🔗 OAuth redirect URI:', redirectUri);
+  
+  // Scope-ok: Drive API + UserInfo (email lekéréséhez)
+  // drive.readonly = minden fájl olvasása a mappában (nem csak az app által létrehozottak)
+  const defaultScopes = [
+    'https://www.googleapis.com/auth/drive.readonly',
+    'https://www.googleapis.com/auth/userinfo.email'
+  ];
+  const scopes = GOOGLE_CONFIG.SCOPES || defaultScopes;
+  const scope = Array.isArray(scopes) ? scopes.join(' ') : scopes;
+  
+  // Prompt: consent = mindig kéri az engedélyeket, select_account = fiók választó
+  const prompt = forceConsent ? 'consent' : 'select_account';
+  console.log(`🔐 OAuth prompt mode: ${prompt}${forceConsent ? ' (FORCE RE-AUTH)' : ''}`);
   
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${encodeURIComponent(GOOGLE_CONFIG.CLIENT_ID)}` +
@@ -98,7 +121,7 @@ async function signInWithOAuth2() {
     `&response_type=code` +
     `&scope=${encodeURIComponent(scope)}` +
     `&access_type=offline` +
-    `&prompt=consent`;
+    `&prompt=${prompt}`;
 
   // Popup ablak
   const width = 500;
@@ -154,7 +177,17 @@ async function signInWithOAuth2() {
  * Authorization code cseréje access + refresh token-re
  */
 async function exchangeCodeForTokens(code) {
-  const redirectUri = `${window.location.origin}/auth-callback.html`;
+  // Base path meghatározása (ugyanaz mint a signInWithOAuth2-ben)
+  const basePath = (() => {
+    const pathname = window.location.pathname;
+    if (pathname.includes('/agazati/')) {
+      return '/agazati/';
+    }
+    return '/';
+  })();
+  
+  const redirectUri = `${window.location.origin}${basePath}auth-callback.html`;
+  console.log('🔄 Token exchange redirect URI:', redirectUri);
   
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -540,6 +573,58 @@ async function ensurePublicAccess(fileId) {
 }
 
 // ====================================
+// USER INFO LEKÉRÉSE
+// ====================================
+
+/**
+ * Bejelentkezett Google felhasználó információinak lekérése
+ */
+async function getUserInfo() {
+  try {
+    // Ellenőrizzük, hogy van-e GOOGLE_CONFIG
+    if (!GOOGLE_CONFIG || !GOOGLE_CONFIG.REFRESH_TOKEN) {
+      console.warn('⚠️ Nincs Google Drive konfiguráció vagy refresh token');
+      return null;
+    }
+    
+    // Frissítjük a tokent ha szükséges
+    await refreshAccessToken();
+    
+    if (!accessToken) {
+      console.warn('⚠️ Nincs érvényes access token');
+      return null;
+    }
+    
+    // Google UserInfo API hívás
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      // Ha 401 Unauthorized, lehet hogy új bejelentkezés kell
+      if (response.status === 401) {
+        console.warn('⚠️ Unauthorized - új bejelentkezés szükséges');
+        return null;
+      }
+      throw new Error(`UserInfo lekérés sikertelen: ${response.status}`);
+    }
+    
+    const userInfo = await response.json();
+    // userInfo tartalmazza: email, name, picture, id, stb.
+    console.log('✓ User info sikeresen lekérve:', userInfo.email);
+    return userInfo;
+    
+  } catch (error) {
+    console.error('❌ Google UserInfo lekérési hiba:', error);
+    return null;
+  }
+}
+
+// ====================================
 // EXPORT
 // ====================================
 
@@ -557,7 +642,8 @@ export {
   listFilesInGoogleDrive,
   createPublicLink,
   getDirectDownloadLink,
-  ensurePublicAccess
+  ensurePublicAccess,
+  getUserInfo
 };
 
 // Config getter (debugging)

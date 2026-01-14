@@ -32,7 +32,21 @@ async function initSupabase() {
   const limits = storageAdapter.getLimits();
   MAX_STORAGE_BYTES = limits.maxTotalStorage;
   MAX_FILE_SIZE_BYTES = limits.maxFileSize;
-  console.log(`📊 Storage limitek (${storageAdapter.getProviderName()}): ${(MAX_FILE_SIZE_BYTES / (1024*1024*1024)).toFixed(1)} GB/file, ${(MAX_STORAGE_BYTES / (1024*1024*1024)).toFixed(1)} GB összesen`);
+  
+  // Dinamikus méret formázás a konzol kiíráshoz
+  const formatSize = (bytes) => {
+    if (bytes >= 1024 * 1024 * 1024) {
+      return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+    } else if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    } else if (bytes >= 1024) {
+      return `${(bytes / 1024).toFixed(1)} kB`;
+    } else {
+      return `${bytes} B`;
+    }
+  };
+  
+  console.log(`📊 Storage limitek (${storageAdapter.getProviderName()}): ${formatSize(MAX_FILE_SIZE_BYTES)}/file, ${formatSize(MAX_STORAGE_BYTES)} összesen`);
 }
 
 // ====================================
@@ -206,15 +220,26 @@ function updateStorageDisplay() {
   
   if (!storageBar || !storageText || !freeSpace) return;
   
-  const totalGB = MAX_STORAGE_BYTES / (1024 * 1024 * 1024);
-  const usedGB = totalStorageUsed / (1024 * 1024 * 1024);
-  const freeGB = (MAX_STORAGE_BYTES - totalStorageUsed) / (1024 * 1024 * 1024);
+  // Dinamikus méretváltás: kB, MB vagy GB
+  const formatSize = (bytes) => {
+    if (bytes >= 1024 * 1024 * 1024) {
+      // GB
+      return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+    } else if (bytes >= 1024 * 1024) {
+      // MB
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    } else if (bytes >= 1024) {
+      // kB
+      return `${(bytes / 1024).toFixed(2)} kB`;
+    } else {
+      // B
+      return `${bytes} B`;
+    }
+  };
   
-  // GB vagy MB megjelenítés
-  const displayInGB = totalGB >= 1;
-  const usedDisplay = displayInGB ? `${usedGB.toFixed(2)} GB` : `${(totalStorageUsed / (1024 * 1024)).toFixed(2)} MB`;
-  const totalDisplay = displayInGB ? `${totalGB.toFixed(1)} GB` : `${(MAX_STORAGE_BYTES / (1024 * 1024)).toFixed(0)} MB`;
-  const freeDisplay = displayInGB ? `${freeGB.toFixed(2)} GB` : `${((MAX_STORAGE_BYTES - totalStorageUsed) / (1024 * 1024)).toFixed(2)} MB`;
+  const usedDisplay = formatSize(totalStorageUsed);
+  const totalDisplay = formatSize(MAX_STORAGE_BYTES);
+  const freeDisplay = formatSize(MAX_STORAGE_BYTES - totalStorageUsed);
   
   const percentage = (totalStorageUsed / MAX_STORAGE_BYTES) * 100;
   
@@ -1614,12 +1639,25 @@ async function initialize() {
     const totalStorageBar = document.getElementById('totalStorageBar');
     
     if (totalStorageDisplay && totalStorageBar) {
-      const totalGB = MAX_STORAGE_BYTES / (1024 * 1024 * 1024);
-      const usedGB = totalStorageUsed / (1024 * 1024 * 1024);
-      const displayInGB = totalGB >= 1;
+      // Dinamikus méretváltás: kB, MB vagy GB
+      const formatSize = (bytes) => {
+        if (bytes >= 1024 * 1024 * 1024) {
+          // GB
+          return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+        } else if (bytes >= 1024 * 1024) {
+          // MB
+          return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+        } else if (bytes >= 1024) {
+          // kB
+          return `${(bytes / 1024).toFixed(2)} kB`;
+        } else {
+          // B
+          return `${bytes} B`;
+        }
+      };
       
-      const usedDisplay = displayInGB ? `${usedGB.toFixed(2)} GB` : `${(totalStorageUsed / (1024 * 1024)).toFixed(2)} MB`;
-      const totalDisplay = displayInGB ? `${totalGB.toFixed(1)} GB` : `${(MAX_STORAGE_BYTES / (1024 * 1024)).toFixed(0)} MB`;
+      const usedDisplay = formatSize(totalStorageUsed);
+      const totalDisplay = formatSize(MAX_STORAGE_BYTES);
       const percentage = (totalStorageUsed / MAX_STORAGE_BYTES) * 100;
       
       totalStorageDisplay.textContent = `${usedDisplay} / ${totalDisplay}`;
