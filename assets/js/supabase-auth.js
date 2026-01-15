@@ -118,8 +118,8 @@ class SupabaseAuth {
         await new Promise(resolve => setTimeout(resolve, 100));
         
         // Frissítsük a navigációt amikor bejelentkezünk
-        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
-          window.rebuildNav();
+        if (window.rebuildNavigation && typeof window.rebuildNavigation === 'function') {
+          await window.rebuildNavigation();
         }
         // Küldjünk eseményt a login state változásról
         window.dispatchEvent(new CustomEvent('loginStateChanged', { 
@@ -129,10 +129,11 @@ class SupabaseAuth {
         this.currentUser = null;
         this.isAdmin = false;
         this.profileLoaded = false;
+        this.userPermissions = null; // Tisztítsuk a permissions-t is!
         this.clearAdminCache(); // Töröljük a cache-t kijelentkezéskor
         // Frissítsük a navigációt amikor kijelentkezünk
-        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
-          window.rebuildNav();
+        if (window.rebuildNavigation && typeof window.rebuildNavigation === 'function') {
+          await window.rebuildNavigation();
         }
         // Küldjünk eseményt a logout-ról
         window.dispatchEvent(new CustomEvent('loginStateChanged', { 
@@ -148,8 +149,8 @@ class SupabaseAuth {
         
         // Frissítsük a navigációt a kezdeti session után is
         await new Promise(resolve => setTimeout(resolve, 200));
-        if (window.rebuildNav && typeof window.rebuildNav === 'function') {
-          window.rebuildNav();
+        if (window.rebuildNavigation && typeof window.rebuildNavigation === 'function') {
+          await window.rebuildNavigation();
         }
       }
     });
@@ -300,8 +301,59 @@ class SupabaseAuth {
     
     // Jelöljük hogy a profil betöltődött
     this.profileLoaded = true;
+    
+    // ====================================
+    // USER PERMISSIONS LEKÉRÉSE
+    // ====================================
+    this.userPermissions = null;
+    
+    try {
+      // console.log('🔍 [LoadProfile] 8.5. Permissions lekérdezése...');
+      const { data: permData, error: permError } = await this.sb
+        .from('user_permissions')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (permData && !permError) {
+        this.userPermissions = permData;
+        // console.log('✅ [LoadProfile] Permissions betöltve:', this.userPermissions);
+      } else if (!permData && !permError) {
+        // Nincs permissions bejegyzés - a trigger majd létrehozza
+        // console.log('ℹ️ [LoadProfile] Nincs permissions bejegyzés (létrehozás folyamatban...)');
+        this.userPermissions = {
+          can_view_infosharer: true,
+          can_view_admin_panel: false,
+          can_manage_admins: false,
+          can_manage_google_drive: false,
+          can_manage_releases: false
+        };
+      } else {
+        // console.warn('⚠️ [LoadProfile] Permissions lekérdezési hiba:', permError);
+        // Alapértelmezett jogosultságok
+        this.userPermissions = {
+          can_view_infosharer: true,
+          can_view_admin_panel: false,
+          can_manage_admins: false,
+          can_manage_google_drive: false,
+          can_manage_releases: false
+        };
+      }
+    } catch (err) {
+      // console.warn('⚠️ [LoadProfile] Permissions lekérdezési hiba:', err);
+      // Alapértelmezett jogosultságok fallback
+      this.userPermissions = {
+        can_view_infosharer: true,
+        can_view_admin_panel: false,
+        can_manage_admins: false,
+        can_manage_google_drive: false,
+        can_manage_releases: false
+      };
+    }
+    
     // console.log('✅ [LoadProfile] 9. Profil betöltés KÉSZ!', {
       // isAdmin: this.isAdmin,
+      // permissions: this.userPermissions,
       // profileLoaded: this.profileLoaded
     // });
   }
@@ -425,8 +477,8 @@ class SupabaseAuth {
               detail: { loggedIn: true, isAdmin: this.isAdmin } 
             }));
             
-            if (window.rebuildNav && typeof window.rebuildNav === 'function') {
-              window.rebuildNav();
+            if (window.rebuildNavigation && typeof window.rebuildNavigation === 'function') {
+              await window.rebuildNavigation();
             }
             
             // Átirányítás ha kell
@@ -517,8 +569,8 @@ class SupabaseAuth {
     }));
     
     // Navbar frissítése
-    if (window.rebuildNav && typeof window.rebuildNav === 'function') {
-      window.rebuildNav();
+    if (window.rebuildNavigation && typeof window.rebuildNavigation === 'function') {
+      await window.rebuildNavigation();
     }
 
     // Ha elvették az admin jogot és admin oldalon vagyunk, AZONNAL irányítsuk át
@@ -641,10 +693,10 @@ class SupabaseAuth {
     return '/';
   }
 
-  refreshUI() {
+  async refreshUI() {
     // Frissítjük a navigációt
-    if (window.rebuildNav && typeof window.rebuildNav === 'function') {
-      window.rebuildNav();
+    if (window.rebuildNavigation && typeof window.rebuildNavigation === 'function') {
+      await window.rebuildNavigation();
     }
     
     // Event dispatch a státusz változásról
@@ -971,6 +1023,68 @@ class SupabaseAuth {
 
   getUserId() {
     return this.currentUser?.id || null;
+  }
+  
+  // ====================================
+  // USER PERMISSIONS GETTER FUNKCIÓK
+  // ====================================
+  
+  getUserPermissions() {
+    return this.userPermissions || null;
+  }
+  
+  async refreshPermissions() {
+    const user = this.getCurrentUser();
+    if (!user) {
+      this.userPermissions = null;
+      return null;
+    }
+    
+    try {
+      const { data: permData, error: permError } = await this.sb
+        .from('user_permissions')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (permData && !permError) {
+        this.userPermissions = permData;
+        return this.userPermissions;
+      } else {
+        // Alapértelmezett jogosultságok ha nincs bejegyzés
+        this.userPermissions = {
+          can_view_infosharer: true,
+          can_view_admin_panel: false,
+          can_manage_admins: false,
+          can_manage_google_drive: false,
+          can_manage_releases: false
+        };
+        return this.userPermissions;
+      }
+    } catch (err) {
+      console.warn('⚠️ Permissions frissítési hiba:', err);
+      return this.userPermissions;
+    }
+  }
+  
+  canViewInfosharer() {
+    return this.userPermissions?.can_view_infosharer ?? true;
+  }
+  
+  canViewAdminPanel() {
+    return this.userPermissions?.can_view_admin_panel ?? false;
+  }
+  
+  canManageAdmins() {
+    return this.userPermissions?.can_manage_admins ?? false;
+  }
+  
+  canManageGoogleDrive() {
+    return this.userPermissions?.can_manage_google_drive ?? false;
+  }
+  
+  canManageReleases() {
+    return this.userPermissions?.can_manage_releases ?? false;
   }
 }
 

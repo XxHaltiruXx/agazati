@@ -466,16 +466,46 @@
       }
     };
 
-    // Ha be van jelentkezve ÉS admin, adjuk hozzá a titkos menüt
-    if (isLoggedIn && isAdmin) {
-      baseStructure["Titkos"] = {
-        icon: "assets/images/sidesecret.svg",
-        items: [
-          { title: "Infosharer", link: "secret/infosharer/" },
-          { title: "Release Manager", link: "secret/releases/" },
-          { title: "Admin Panel", link: "secret/admin/" }
-        ]
-      };
+    // Ha be van jelentkezve, adjuk hozzá a titkos menüt JOGOSULTSÁGOK alapján
+    if (isLoggedIn) {
+      const secretItems = [];
+      
+      // Jogosultságok lekérése (cached, de frissül loginStateChanged-nél)
+      const permissions = globalAuth?.getUserPermissions ? globalAuth.getUserPermissions() : null;
+      
+      console.log('🔍 Nav permissions:', permissions);
+      
+      // Ha permissions még null (betöltés alatt), várunk - ne építsük a menüt
+      if (permissions === null) {
+        console.log('⏳ Permissions még betöltés alatt, navbar később frissül...');
+        // NE adjunk hozzá Titkos menüt, később a loginStateChanged event frissíti
+        return baseStructure;
+      }
+      
+      // Admin Panel - csak ha van jogosultság (STRICT)
+      if (permissions.can_view_admin_panel === true) {
+        secretItems.push({ title: "Admin Panel", link: "secret/admin/" });
+      }
+      
+      // Infosharer - default true, de lehet false
+      if (permissions.can_view_infosharer !== false) {
+        secretItems.push({ title: "Infosharer", link: "secret/infosharer/" });
+      }
+      
+      // Release Manager - csak ha van jogosultság (STRICT)
+      if (permissions.can_manage_releases === true) {
+        secretItems.push({ title: "Release Manager", link: "secret/releases/" });
+      }
+      
+      console.log('📋 Secret menu items:', secretItems.length, secretItems);
+      
+      // Csak akkor adjuk hozzá a "Titkos" kategóriát, ha van legalább 1 elem
+      if (secretItems.length > 0) {
+        baseStructure["Titkos"] = {
+          icon: "assets/images/sidesecret.svg",
+          items: secretItems
+        };
+      }
     }
 
     return baseStructure;
@@ -811,27 +841,40 @@ window.toggleNav = function () {
 };
 
   /* ======= Navigáció újraépítése ======= */
-  function rebuildNavigation() {
-    // console.log('🔄 Nav újraépítése...');
+  async function rebuildNavigation() {
+    console.log('🔄 Nav újraépítése...');
     
     // Frissítsük a globalAuth-ot
     if (window.getAuth && typeof window.getAuth === 'function') {
       globalAuth = window.getAuth();
+      
+      // FONTOS: Frissítsük a permissions-t az adatbázisból ELŐSZÖR!
+      if (globalAuth && globalAuth.isAuthenticated() && globalAuth.refreshPermissions) {
+        try {
+          await globalAuth.refreshPermissions();
+          console.log('✅ Permissions frissítve a navhoz');
+        } catch (err) {
+          console.warn('⚠️ Permission frissítés hiba:', err);
+        }
+      }
     }
     
     // Ellenőrizzük az auth state-et
     const loginState = checkLoginState();
-    // console.log('Login state:', loginState);
+    console.log('🔐 Login state:', loginState);
     
     const navContainer = document.querySelector('#mySidenav > div');
     if (navContainer) {
       navContainer.removeAttribute('data-nav-built');
       createNavigation();
-      // console.log('✅ Nav újraépítve');
+      console.log('✅ Nav újraépítve');
     } else {
-      console.error('Nav container nem található!');
+      console.error('❌ Nav container nem található!');
     }
   }
+  
+  // Globálisan elérhető legyen
+  window.rebuildNavigation = rebuildNavigation;
 
   /* ======= Keresés ======= (nincs változás) ======= */
   function filterNavItems(searchText) {

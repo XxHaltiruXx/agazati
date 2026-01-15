@@ -103,9 +103,10 @@ async function signInWithOAuth2(forceConsent = false) {
   console.log('🔗 OAuth redirect URI:', redirectUri);
   
   // Scope-ok: Drive API + UserInfo (email lekéréséhez)
-  // drive.readonly = minden fájl olvasása a mappában (nem csak az app által létrehozottak)
+  // FONTOS: 'drive' scope kell (nem csak 'drive.readonly') hogy MINDEN fájlt lásson,
+  // még azokat is, amiket nem ez az app töltött fel!
   const defaultScopes = [
-    'https://www.googleapis.com/auth/drive.readonly',
+    'https://www.googleapis.com/auth/drive',  // Teljes hozzáférés (látja az összes fájlt)
     'https://www.googleapis.com/auth/userinfo.email'
   ];
   const scopes = GOOGLE_CONFIG.SCOPES || defaultScopes;
@@ -457,21 +458,35 @@ async function listFilesInGoogleDrive() {
 
   try {
     const query = encodeURIComponent(`'${GOOGLE_CONFIG.FOLDER_ID}' in parents and trashed=false`);
-    const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,mimeType,size,createdTime,modifiedTime)&pageSize=100&orderBy=name`;
+    let allFiles = [];
+    let pageToken = null;
     
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
+    // Pagináció - több oldal betöltése ha szükséges
+    do {
+      const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=nextPageToken,files(id,name,mimeType,size,createdTime,modifiedTime)&pageSize=1000&orderBy=name${pageToken ? `&pageToken=${pageToken}` : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`List hiba: ${response.status}`);
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`List hiba: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log(`✓ ${data.files.length} fájl listázva`);
-    return data.files || [];
+      const data = await response.json();
+      const files = data.files || [];
+      allFiles = allFiles.concat(files);
+      
+      console.log(`✓ ${files.length} fájl betöltve (összesen: ${allFiles.length})`);
+      
+      // Következő oldal token
+      pageToken = data.nextPageToken;
+    } while (pageToken);
+    
+    console.log(`✓ Végső eredmény: ${allFiles.length} fájl listázva`);
+    return allFiles;
   } catch (error) {
     console.error('Listázási hiba:', error);
     throw error;
@@ -657,6 +672,88 @@ async function getUserInfo() {
   }
 }
 
+/**
+ * Fájl keresése az ÖSSZES Google Drive fájl között név alapján
+ * (Diagnosztikai célra - megkeresi, hogy a fájl melyik mappában van)
+ * @param {string} fileName - A keresett fájl neve
+ * @param {boolean} includeTrashed - Keresés a törölt fájlok között is
+ * @returns {Promise<Array>} - Találatok tömbje (fájl + parent mappa információkkal)
+ */
+async function searchFileByName(fileName, includeTrashed = false) {
+  if (!isGoogleDriveAuthenticated()) {
+    throw new Error('Google Drive nem inicializálva');
+  }
+
+  await ensureValidToken();
+
+  try {
+    // Keresés: fájlnév TARTALMAZZA a keresett stringet
+    const trashedCondition = includeTrashed ? '' : ' and trashed=false';
+    const query = encodeURIComponent(`name contains '${fileName}'${trashedCondition}`);
+    const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,mimeType,size,parents,createdTime,modifiedTime,trashed)&pageSize=100`;
+    
+    console.log(`🔍 Keresés: "${fileName}" (töröltek: ${includeTrashed ? 'IGEN' : 'NEM'})`);
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Keresési hiba: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`🔍 "${fileName}" keresési eredmény: ${data.files.length} találat`);
+    
+    if (data.files.length === 0) {
+      console.warn(`⚠️ Nem található "${fileName}" nevű fájl a Google Drive-on!`);
+      return [];
+    }
+    
+    // Minden találathoz lekérjük a szülő mappa nevét
+    const filesWithParentInfo = await Promise.all(
+      data.files.map(async (file) => {
+        if (file.parents && file.parents.length > 0) {
+          try {
+            const parentId = file.parents[0];
+            const parentUrl = `https://www.googleapis.com/drive/v3/files/${parentId}?fields=id,name`;
+            const parentResponse = await fetch(parentUrl, {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            
+            if (parentResponse.ok) {
+              const parentData = await parentResponse.json();
+              return {
+                ...file,
+                parentName: parentData.name,
+                parentId: parentData.id
+              };
+            }
+          } catch (e) {
+            console.warn(`⚠️ Nem sikerült lekérni a szülő mappát: ${file.parents[0]}`);
+          }
+        }
+        return file;
+      })
+    );
+    
+    filesWithParentInfo.forEach(file => {
+      console.log(`  📄 ${file.name}`);
+      console.log(`     ID: ${file.id}`);
+      console.log(`     Mappa: ${file.parentName || 'Ismeretlen'} (${file.parentId || file.parents?.[0] || 'N/A'})`);
+      console.log(`     Törölve: ${file.trashed ? '🗑️ IGEN' : '✅ NEM'}`);
+      console.log(`     Létrehozva: ${new Date(file.createdTime).toLocaleString('hu-HU')}`);
+    });
+    
+    return filesWithParentInfo;
+  } catch (error) {
+    console.error('Keresési hiba:', error);
+    throw error;
+  }
+}
+
 // ====================================
 // EXPORT
 // ====================================
@@ -677,7 +774,8 @@ export {
   createPublicLink,
   getDirectDownloadLink,
   ensurePublicAccess,
-  getUserInfo
+  getUserInfo,
+  searchFileByName
 };
 
 // Config getter (debugging)

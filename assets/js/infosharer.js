@@ -6,9 +6,16 @@
 import storageAdapter from './storage-adapter.js';
 import { getSupabaseClient, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase-client.js';
 
-const TABLE = "infosharer";
-const ID = 1;
+// ====================================
+// KONSTANSOK - DUAL TEXT SYSTEM
+// ====================================
+const TABLE_SHARED = "infosharer";              // KÖZÖS szöveg (bárki szerkeszti)
+const ID_SHARED = 1;                            // KÖZÖS szöveg ID
+const TABLE_USER_TEXTS = "infosharer_user_texts"; // PRIVÁT user szövegek
 const BUCKET_NAME = "infosharer-uploads";
+
+// Szövegdoboz módok
+let currentMode = "shared"; // "shared" vagy "private"
 
 // Storage limitek - dinamikusan a storage adapter-től
 let MAX_STORAGE_BYTES = 50 * 1024 * 1024; // Alapértelmezett
@@ -451,76 +458,236 @@ async function updateStorageDisplay() {
 }
 
 // ====================================
-// SZÖVEGSZERKESZTŐ FUNKCIÓK
+// SZÖVEGSZERKESZTŐ FUNKCIÓK - DUAL MODE (Közös + Privát)
 // ====================================
 
-// Szöveg betöltése
+// Mode váltás (Közös <-> Privát)
+function switchMode(mode) {
+  currentMode = mode;
+  
+  // UI frissítése
+  const sharedBtn = document.getElementById('sharedModeBtn');
+  const privateBtn = document.getElementById('privateModeBtn');
+  const modeDescription = document.getElementById('modeDescription');
+  const infoText = document.getElementById('infoText');
+  
+  if (mode === 'shared') {
+    sharedBtn?.classList.add('active');
+    privateBtn?.classList.remove('active');
+    if (modeDescription) {
+      modeDescription.textContent = 'Bárki szerkesztheti, ha be van jelentkezve';
+    }
+    if (infoText) {
+      infoText.innerHTML = 'A <strong>közös szövegdoboz</strong> bárki által szerkeszthető. Kattints az <strong>Írás engedélyezése</strong>-re a szerkesztéshez.';
+    }
+  } else {
+    sharedBtn?.classList.remove('active');
+    privateBtn?.classList.add('active');
+    if (modeDescription) {
+      modeDescription.textContent = 'Csak te szerkesztheted, mások másolhatnak belőle';
+    }
+    if (infoText) {
+      infoText.innerHTML = 'A <strong>privát szövegdoboz</strong> csak neked látható és szerkeszthető. Jelentkezz be a hozzáféréshez.';
+    }
+  }
+  
+  // Szöveg újratöltése
+  load();
+  
+  // Real-time újraindítása
+  subscribeRealtime();
+}
+
+// Expose to window for HTML onclick
+window.switchTextMode = switchMode;
+
+// Szöveg betöltése - DUAL MODE
 async function load() {
-  try {
-    const { data, error } = await supabase
-      .from(TABLE)
-      .select("content")
-      .eq("id", ID)
-      .maybeSingle();
-    
-    if (error) {
-      console.error("Betöltési hiba:", error);
+  const currentUser = globalAuth?.getCurrentUser();
+  
+  if (currentMode === 'shared') {
+    // KÖZÖS SZÖVEG - bárki szerkesztheti (ha be van jelentkezve)
+    try {
+      const { data, error } = await supabase
+        .from(TABLE_SHARED)
+        .select("content")
+        .eq("id", ID_SHARED)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Közös szöveg betöltési hiba:", error);
+        statusEl.textContent = 'Kapcsolat: Betöltési hiba!';
+        return;
+      }
+      
+      const newContent = (data && data.content) || "";
+      if (newContent !== ta.value) ta.value = newContent;
+      
+      // Szerkeszthetőség: ha be van jelentkezve
+      if (currentUser) {
+        canEdit = true;
+        ta.readOnly = false;
+        statusEl.textContent = 'Közös szöveg - Bárki szerkesztheti ✏️';
+      } else {
+        canEdit = false;
+        ta.readOnly = true;
+        statusEl.textContent = 'Közös szöveg - Bejelentkezés szükséges a szerkesztéshez';
+      }
+    } catch (err) {
+      console.error("Közös szöveg betöltési hiba:", err);
+      statusEl.textContent = 'Kapcsolat: Betöltési hiba!';
+    }
+  } else {
+    // PRIVÁT SZÖVEG - csak a tulajdonos szerkesztheti
+    if (!currentUser) {
+      ta.value = 'Jelentkezz be, hogy hozzáférj a saját privát szövegdobozodhoz!';
+      ta.readOnly = true;
+      canEdit = false;
+      statusEl.textContent = 'Privát szöveg - Bejelentkezés szükséges';
       return;
     }
     
-    const newContent = (data && data.content) || "";
-    if (newContent !== ta.value) ta.value = newContent;
-  } catch (err) {
-    console.error("Load hiba:", err);
+    try {
+      const { data, error } = await supabase
+        .from(TABLE_USER_TEXTS)
+        .select("text")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Privát szöveg betöltési hiba:", error);
+        statusEl.textContent = 'Kapcsolat: Betöltési hiba!';
+        return;
+      }
+      
+      const newContent = (data && data.text) || "";
+      if (newContent !== ta.value) ta.value = newContent;
+      
+      // Privát szöveg mindig szerkeszthető a tulajdonosnak
+      canEdit = true;
+      ta.readOnly = false;
+      statusEl.textContent = 'Saját privát szöveg - Csak te szerkesztheted ✏️';
+    } catch (err) {
+      console.error("Privát szöveg betöltési hiba:", err);
+      statusEl.textContent = 'Kapcsolat: Betöltési hiba!';
+    }
   }
 }
 
-// Szöveg mentése
+// Szöveg mentése - DUAL MODE
 async function upsert(text) {
+  const currentUser = globalAuth?.getCurrentUser();
+  
+  if (!currentUser) {
+    console.warn('Mentés sikertelen: Nincs bejelentkezve!');
+    return;
+  }
+  
   try {
-    const { error } = await supabase
-      .from(TABLE)
-      .upsert({ id: ID, content: text }, { onConflict: "id" });
-    
-    if (error) {
-      console.error("Mentési hiba:", error);
-      alert("Mentés sikertelen: " + error.message);
+    if (currentMode === 'shared') {
+      // KÖZÖS SZÖVEG mentése
+      const { error } = await supabase
+        .from(TABLE_SHARED)
+        .upsert(
+          { id: ID_SHARED, content: text },
+          { onConflict: "id" }
+        );
+      
+      if (error) {
+        console.error("Közös szöveg mentési hiba:", error);
+        alert("Mentés sikertelen: " + error.message);
+      }
+    } else {
+      // PRIVÁT SZÖVEG mentése
+      const { error } = await supabase
+        .from(TABLE_USER_TEXTS)
+        .upsert(
+          { 
+            user_id: currentUser.id, 
+            text: text 
+          }, 
+          { onConflict: "user_id" }
+        );
+      
+      if (error) {
+        console.error("Privát szöveg mentési hiba:", error);
+        alert("Mentés sikertelen: " + error.message);
+      }
     }
   } catch (err) {
-    console.error("Upsert hiba:", err);
+    console.error("Mentési hiba:", err);
     alert("Mentés sikertelen");
   }
 }
 
-// Real-time előfizetés a szöveghez
+// Real-time előfizetés - DUAL MODE
 function subscribeRealtime() {
+  const currentUser = globalAuth?.getCurrentUser();
+  
+  // Töröljük a régi channelt ha van
+  if (channelRef) {
+    channelRef.unsubscribe();
+    channelRef = null;
+  }
+  
   try {
-    channelRef = supabase
-      .channel("infosharer-text-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: TABLE,
-          filter: `id=eq.${ID}`,
-        },
-        (payload) => {
-          if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
-            const newContent = payload.new?.content || "";
-            if (newContent !== ta.value && document.activeElement !== ta) {
-              ta.value = newContent;
+    if (currentMode === 'shared') {
+      // KÖZÖS SZÖVEG real-time
+      channelRef = supabase
+        .channel("infosharer-shared-text")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: TABLE_SHARED,
+            filter: `id=eq.${ID_SHARED}`,
+          },
+          (payload) => {
+            if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
+              const newContent = payload.new?.content || "";
+              if (newContent !== ta.value && document.activeElement !== ta) {
+                ta.value = newContent;
+              }
             }
           }
-        }
-      )
-      .subscribe((status) => {
-        setStatusFromState(status);
-      });
+        )
+        .subscribe((status) => {
+          setStatusFromState(status);
+        });
+    } else {
+      // PRIVÁT SZÖVEG real-time
+      if (!currentUser) return;
+      
+      channelRef = supabase
+        .channel("infosharer-private-text")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: TABLE_USER_TEXTS,
+            filter: `user_id=eq.${currentUser.id}`,
+          },
+          (payload) => {
+            if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
+              const newContent = payload.new?.text || "";
+              if (newContent !== ta.value && document.activeElement !== ta) {
+                ta.value = newContent;
+              }
+            }
+          }
+        )
+        .subscribe((status) => {
+          setStatusFromState(status);
+        });
+    }
     
-    channelRef.on("error", (err) => {
-      setStatusFromState("megszakadt");
-    });
+    if (channelRef) {
+      channelRef.on("error", (err) => {
+        setStatusFromState("megszakadt");
+      });
+    }
   } catch (err) {
     setStatusFromState("megszakadt");
   }
@@ -1496,10 +1663,10 @@ async function setupEventListeners() {
         }
         
         // Success üzenet
-        setStatus('success', '✅ Admin jogosultság aktiválva! Szerkesztés engedélyezve.');
+        statusEl.textContent = 'Admin jogosultság aktiválva! Szerkesztés engedélyezve.';
       } else {
         // console.log('❌ Nincs admin jog!');
-        setStatus('error', '❌ Nincs jogosultságod szerkesztéshez! Csak admin felhasználók szerkeszthetnek.');
+        statusEl.textContent = 'Nincs jogosultságod szerkesztéshez! Csak admin felhasználók szerkeszthetnek.';
       }
     },
     onCancel: () => {
@@ -1780,7 +1947,7 @@ async function initialize() {
       mainBtns.style.display = "none";
       authBtns.style.display = "flex";
       await updateSlots();
-      setStatus('success', '✅ Admin jogosultság aktiválva!');
+      statusEl.textContent = 'Admin jogosultság aktiválva!';
       // console.log('✅ [Infosharer Event] Admin mód beállítva, textarea readonly:', ta.readOnly);
     } else if (!event.detail.loggedIn) {
       // Kijelentkezés
@@ -1791,7 +1958,7 @@ async function initialize() {
       mainBtns.style.display = "flex";
       authBtns.style.display = "none";
       await updateSlots();
-      setStatus('info', 'Csak olvasási mód');
+      statusEl.textContent = 'Csak olvasási mód';
       // console.log('ℹ️ [Infosharer Event] Readonly mód beállítva');
     }
   });
@@ -2095,6 +2262,357 @@ async function handlePublicFileDownload() {
   
   return true; // Jelezzük hogy kezeltük a publikus linketet
 }
+
+// ====================================
+// MÁSOK SZÖVEGDOBOZAI - BÖNGÉSZŐ
+// ====================================
+
+let browseOthersModalInstance = null;
+let allUserTexts = [];
+
+// Modal megnyitása
+window.openBrowseOthersModal = async function() {
+  const modalEl = document.getElementById('browseOthersModal');
+  if (!modalEl) {
+    console.error('Modal elem nem található');
+    return;
+  }
+  
+  // Bootstrap modal inicializálása (ha még nem)
+  if (!browseOthersModalInstance) {
+    browseOthersModalInstance = new bootstrap.Modal(modalEl);
+  }
+  
+  // Modal megnyitása
+  browseOthersModalInstance.show();
+  
+  // Szövegek betöltése
+  await loadOthersTexts();
+  
+  // Keresés event listener
+  const searchInput = document.getElementById('browseSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', filterOthersTexts);
+  }
+};
+
+// Szövegdobozok betöltése
+async function loadOthersTexts() {
+  const loadingSpinner = document.getElementById('browseLoadingSpinner');
+  const textsList = document.getElementById('browseTextsList');
+  const noTexts = document.getElementById('browseNoTexts');
+  const errorMessage = document.getElementById('browseErrorMessage');
+  
+  // Elrejtjük az összes elemet és megjelenítjük a loadert
+  textsList.style.display = 'none';
+  noTexts.style.display = 'none';
+  errorMessage.style.display = 'none';
+  loadingSpinner.style.display = 'block';
+  
+  try {
+    const auth = globalAuth;
+    if (!auth || !auth.isAuthenticated()) {
+      throw new Error('Nincs bejelentkezve');
+    }
+    
+    const currentUser = auth.getCurrentUser();
+    if (!currentUser || !currentUser.id) {
+      throw new Error('Felhasználó azonosító nem elérhető');
+    }
+    
+    const currentUserId = currentUser.id;
+    
+    // Szövegek lekérése (kivéve saját)
+    const { data: texts, error: textsError } = await supabase
+      .from('infosharer_user_texts')
+      .select('user_id, text, updated_at')
+      .neq('user_id', currentUserId)
+      .order('updated_at', { ascending: false });
+    
+    if (textsError) throw textsError;
+    
+    if (!texts || texts.length === 0) {
+      loadingSpinner.style.display = 'none';
+      noTexts.style.display = 'block';
+      allUserTexts = [];
+      return;
+    }
+    
+    // Profiles lekérése külön
+    const userIds = texts.map(t => t.user_id);
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .in('id', userIds);
+    
+    if (profilesError) throw profilesError;
+    
+    // Email map létrehozása
+    const emailMap = {};
+    if (profiles) {
+      profiles.forEach(p => {
+        emailMap[p.id] = p.email;
+      });
+    }
+    
+    loadingSpinner.style.display = 'none';
+    
+    // Szövegek tárolása (szűréshez)
+    allUserTexts = texts.map(t => ({
+      userId: t.user_id,
+      email: emailMap[t.user_id] || 'Ismeretlen',
+      text: t.text || '',
+      updatedAt: t.updated_at
+    }));
+    
+    // Renderelés
+    renderOthersTexts(allUserTexts);
+    textsList.style.display = 'block';
+    
+  } catch (error) {
+    console.error('Szövegdobozok betöltési hiba:', error);
+    loadingSpinner.style.display = 'none';
+    errorMessage.style.display = 'block';
+    errorMessage.textContent = `Hiba: ${error.message}`;
+  }
+}
+
+// Szövegek renderelése
+function renderOthersTexts(texts) {
+  const textsList = document.getElementById('browseTextsList');
+  if (!textsList) return;
+  
+  if (texts.length === 0) {
+    textsList.innerHTML = '<div class="alert alert-info">Nincs találat a keresésre.</div>';
+    return;
+  }
+  
+  textsList.innerHTML = texts.map(item => {
+    const preview = item.text.substring(0, 200) + (item.text.length > 200 ? '...' : '');
+    const date = new Date(item.updatedAt).toLocaleString('hu-HU');
+    const fullTextEncoded = encodeURIComponent(item.text);
+    
+    return `
+      <div class="card mb-3" style="
+        background: var(--bg);
+        border: 1px solid rgba(127, 90, 240, 0.3);
+        border-radius: 8px;
+        padding: 1rem;
+      ">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div style="flex: 1;">
+            <strong style="color: var(--accent-light);">${item.email}</strong>
+            <br>
+            <small style="color: var(--muted);">Utoljára frissítve: ${date}</small>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button 
+              class="btn btn-sm ghost" 
+              onclick="window.copyOthersText('${item.userId}')"
+              style="padding: 4px 12px; font-size: 0.85rem; white-space: nowrap;"
+            >
+              Másolás
+            </button>
+            <button 
+              class="btn btn-sm ghost" 
+              onclick="window.openFullText('${item.email}', \`${fullTextEncoded}\`, '${date}')"
+              style="padding: 4px 12px; font-size: 0.85rem; white-space: nowrap;"
+            >
+              Teljes szöveg
+            </button>
+          </div>
+        </div>
+        <div style="
+          color: var(--text);
+          font-size: 0.9rem;
+          white-space: pre-wrap;
+          word-break: break-word;
+          background: rgba(0,0,0,0.2);
+          padding: 0.75rem;
+          border-radius: 6px;
+          max-height: 150px;
+          overflow-y: auto;
+          text-align: left;
+        ">${preview}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Keresés szűrő
+function filterOthersTexts() {
+  const searchInput = document.getElementById('browseSearchInput');
+  if (!searchInput) return;
+  
+  const query = searchInput.value.toLowerCase().trim();
+  
+  if (!query) {
+    renderOthersTexts(allUserTexts);
+    return;
+  }
+  
+  const filtered = allUserTexts.filter(item => {
+    return item.email.toLowerCase().includes(query) || 
+           item.text.toLowerCase().includes(query);
+  });
+  
+  renderOthersTexts(filtered);
+}
+
+// Szöveg másolása
+window.copyOthersText = function(userId) {
+  const item = allUserTexts.find(t => t.userId === userId);
+  if (!item) return;
+  
+  navigator.clipboard.writeText(item.text).then(() => {
+    alert(`Szöveg másolva: ${item.email}`);
+  }).catch(err => {
+    console.error('Másolási hiba:', err);
+    alert('Hiba történt a másolás során');
+  });
+};
+
+// Teljes szöveg megnyitása új lapon
+window.openFullText = function(email, encodedText, date) {
+  const text = decodeURIComponent(encodedText);
+  
+  const newWindow = window.open('', '_blank');
+  if (!newWindow) {
+    alert('Popup blokkolva! Engedélyezd a popup ablakokat.');
+    return;
+  }
+  
+  newWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="hu">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${email} - Szövegdoboz</title>
+      <style>
+        :root {
+          --bg: #0f0f23;
+          --bg-mid: #1a1a2e;
+          --text: #e0e0e0;
+          --accent: #7f5af0;
+          --accent-light: #9d7ff5;
+          --muted: #72757e;
+        }
+        
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          background: var(--bg);
+          color: var(--text);
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          padding: 2rem;
+          line-height: 1.6;
+        }
+        
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          background: var(--bg-mid);
+          border: 1px solid rgba(127, 90, 240, 0.3);
+          border-radius: 12px;
+          padding: 2rem;
+        }
+        
+        .header {
+          margin-bottom: 2rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid rgba(127, 90, 240, 0.3);
+        }
+        
+        .header h1 {
+          color: var(--accent-light);
+          font-size: 1.5rem;
+          margin-bottom: 0.5rem;
+        }
+        
+        .header .meta {
+          color: var(--muted);
+          font-size: 0.9rem;
+        }
+        
+        .content {
+          background: rgba(0, 0, 0, 0.2);
+          padding: 1.5rem;
+          border-radius: 8px;
+          white-space: pre-wrap;
+          word-break: break-word;
+          font-family: 'Consolas', 'Monaco', monospace;
+          font-size: 0.95rem;
+          line-height: 1.8;
+          text-align: left;
+        }
+        
+        .actions {
+          margin-top: 2rem;
+          display: flex;
+          gap: 1rem;
+        }
+        
+        button {
+          background: var(--accent);
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 0.95rem;
+          font-weight: 600;
+          transition: all 0.3s;
+        }
+        
+        button:hover {
+          background: var(--accent-light);
+          transform: translateY(-2px);
+        }
+        
+        button.secondary {
+          background: transparent;
+          border: 1px solid var(--accent);
+          color: var(--accent);
+        }
+        
+        button.secondary:hover {
+          background: rgba(127, 90, 240, 0.1);
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>${email}</h1>
+          <div class="meta">Utoljára frissítve: ${date}</div>
+        </div>
+        <div class="content">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+        <div class="actions">
+          <button onclick="copyText()">Másolás</button>
+          <button class="secondary" onclick="window.print()">Nyomtatás</button>
+          <button class="secondary" onclick="window.close()">Bezárás</button>
+        </div>
+      </div>
+      <script>
+        function copyText() {
+          const text = document.querySelector('.content').textContent;
+          navigator.clipboard.writeText(text).then(() => {
+            alert('Szöveg a vágólapra másolva!');
+          }).catch(() => {
+            alert('Hiba a másolás során');
+          });
+        }
+      </script>
+    </body>
+    </html>
+  `);
+  newWindow.document.close();
+};
 
 // ====================================
 // INDÍTÁS
