@@ -308,7 +308,7 @@ class SupabaseAuth {
     this.userPermissions = null;
     
     try {
-      // console.log('🔍 [LoadProfile] 8.5. Permissions lekérdezése...');
+      console.log('🔍 [LoadProfile] 8.5. Permissions lekérdezése user_id:', user.id);
       const { data: permData, error: permError } = await this.sb
         .from('user_permissions')
         .select('*')
@@ -317,10 +317,10 @@ class SupabaseAuth {
       
       if (permData && !permError) {
         this.userPermissions = permData;
-        // console.log('✅ [LoadProfile] Permissions betöltve:', this.userPermissions);
+        console.log('✅ [LoadProfile] Permissions betöltve:', this.userPermissions);
       } else if (!permData && !permError) {
         // Nincs permissions bejegyzés - a trigger majd létrehozza
-        // console.log('ℹ️ [LoadProfile] Nincs permissions bejegyzés (létrehozás folyamatban...)');
+        console.log('ℹ️ [LoadProfile] Nincs permissions bejegyzés (trigger létrehozza...)');
         this.userPermissions = {
           can_view_infosharer: true,
           can_view_admin_panel: false,
@@ -329,7 +329,7 @@ class SupabaseAuth {
           can_manage_releases: false
         };
       } else {
-        // console.warn('⚠️ [LoadProfile] Permissions lekérdezési hiba:', permError);
+        console.warn('⚠️ [LoadProfile] Permissions lekérdezési hiba:', permError?.message);
         // Alapértelmezett jogosultságok
         this.userPermissions = {
           can_view_infosharer: true,

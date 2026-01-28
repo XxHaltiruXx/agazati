@@ -471,15 +471,24 @@
       const secretItems = [];
       
       // Jogosultságok lekérése (cached, de frissül loginStateChanged-nél)
-      const permissions = globalAuth?.getUserPermissions ? globalAuth.getUserPermissions() : null;
+      let permissions = globalAuth?.getUserPermissions ? globalAuth.getUserPermissions() : null;
       
-      console.log('🔍 Nav permissions:', permissions);
+      console.log('🔍 Nav permissions (initial):', permissions);
       
-      // Ha permissions még null (betöltés alatt), várunk - ne építsük a menüt
+      // FONTOS: Ha null a permissions, valójában azt jelenti, hogy még nem töltödtek be
+      // Ez nem azt jelenti, hogy nincsenek jogosultságok - éppen csak betöltés alatt vannak
+      // Adjunk alapértelmezett jogosultságokat hogy ne legyen üres a menü
       if (permissions === null) {
-        console.log('⏳ Permissions még betöltés alatt, navbar később frissül...');
-        // NE adjunk hozzá Titkos menüt, később a loginStateChanged event frissíti
-        return baseStructure;
+        console.log('⚠️ Permissions NULL - feltehetően betöltés alatt van');
+        // Alapértelmezetten adjunk meg az Infosharert (mivel az default true)
+        permissions = {
+          can_view_infosharer: true,
+          can_view_admin_panel: false,
+          can_manage_admins: false,
+          can_manage_google_drive: false,
+          can_manage_releases: false
+        };
+        console.log('📋 Alapértelmezett jogosultságok használata:', permissions);
       }
       
       // Admin Panel - csak ha van jogosultság (STRICT)
@@ -849,12 +858,21 @@ window.toggleNav = function () {
       globalAuth = window.getAuth();
       
       // FONTOS: Frissítsük a permissions-t az adatbázisból ELŐSZÖR!
-      if (globalAuth && globalAuth.isAuthenticated() && globalAuth.refreshPermissions) {
-        try {
-          await globalAuth.refreshPermissions();
-          console.log('✅ Permissions frissítve a navhoz');
-        } catch (err) {
-          console.warn('⚠️ Permission frissítés hiba:', err);
+      if (globalAuth) {
+        // MINDIG próbálj frissíteni a permissions-t, ha bejelentkezve van
+        if (globalAuth.isAuthenticated && typeof globalAuth.isAuthenticated === 'function' && globalAuth.isAuthenticated()) {
+          if (globalAuth.refreshPermissions && typeof globalAuth.refreshPermissions === 'function') {
+            try {
+              await globalAuth.refreshPermissions();
+              console.log('✅ Permissions frissítve a navhoz:', globalAuth.getUserPermissions());
+            } catch (err) {
+              console.warn('⚠️ Permission frissítés hiba:', err);
+            }
+          } else {
+            console.warn('⚠️ refreshPermissions metódus nem érhető el');
+          }
+        } else {
+          console.log('ℹ️ Felhasználó nincs bejelentkezve, permissions frissítés kihagyva');
         }
       }
     }
