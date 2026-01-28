@@ -52,8 +52,22 @@
           return false;
         }
         
-        // Jogosultság ellenőrzése - FRISSÍTÉS az adatbázisból
-        const permissions = await auth.refreshPermissions();
+        // Gyors cache ellenőrzés (ne blokkoljon feleslegesen)
+        const cachedPermissions = auth.getPermissionsCached
+          ? auth.getPermissionsCached(30000)
+          : auth.getUserPermissions?.();
+        
+        if (cachedPermissions && !cachedPermissions[requiredPermission]) {
+          if (!alreadyNotified) {
+            alreadyNotified = true;
+            alert(`⛔ Nincs jogosultságod ehhez az oldalhoz!\n\nSzükséges jogosultság: ${requiredPermission}`);
+          }
+          window.location.href = getBaseUrl();
+          return false;
+        }
+        
+        // Jogosultság ellenőrzése - frissítés háttérben, ha kell
+        const permissions = await auth.refreshPermissions({ force: false, maxAgeMs: 30000, timeoutMs: 4000 });
         
         if (!permissions || !permissions[requiredPermission]) {
           // Nincs jogosultság
@@ -127,8 +141,8 @@
     }
     
     if (requiredPermission) {
-      // FRISSÍTÉS az adatbázisból
-      const permissions = await auth.refreshPermissions();
+      // FRISSÍTÉS az adatbázisból (cache-elt, ha friss)
+      const permissions = await auth.refreshPermissions({ force: false, maxAgeMs: 30000, timeoutMs: 4000 });
       if (!permissions || !permissions[requiredPermission]) {
         if (!alreadyNotified) {
           alreadyNotified = true;

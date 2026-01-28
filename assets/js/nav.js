@@ -863,7 +863,7 @@ window.toggleNav = function () {
         if (globalAuth.isAuthenticated && typeof globalAuth.isAuthenticated === 'function' && globalAuth.isAuthenticated()) {
           if (globalAuth.refreshPermissions && typeof globalAuth.refreshPermissions === 'function') {
             try {
-              await globalAuth.refreshPermissions();
+              await globalAuth.refreshPermissions({ force: false, maxAgeMs: 30000, timeoutMs: 4000 });
               console.log('✅ Permissions frissítve a navhoz:', globalAuth.getUserPermissions());
             } catch (err) {
               console.warn('⚠️ Permission frissítés hiba:', err);

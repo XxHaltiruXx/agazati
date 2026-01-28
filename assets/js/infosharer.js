@@ -68,6 +68,239 @@ let fileToDelete = null;
 let fileChannel = null;
 let slotMappings = {};
 let totalStorageUsed = 0; // Bytes
+let renumberInProgress = false;
+let lastRenumberAt = 0;
+let multiUploadInProgress = false;
+let updateSlotsSeq = 0;
+let suppressListUntil = 0;
+const optimisticSlotCache = new Map();
+
+function setOptimisticSlot(slotNumber, file) {
+  if (!slotNumber || !file) return;
+  const safeName = sanitizeFileName(file.name);
+  const slotFileName = `slot${slotNumber}_${safeName}`;
+  optimisticSlotCache.set(slotNumber, {
+    slotNumber,
+    fileName: slotFileName,
+    originalName: safeName,
+    size: file.size || 0,
+    created_at: new Date().toISOString(),
+    expiresAt: Date.now() + 10000
+  });
+  suppressListUntil = Date.now() + 4000;
+  // Ne hívjunk azonnali updateSlots-t, mert a preview még nem elérhető
+}
+
+function setSlotProgress(slotNumber, message = "", isActive = false) {
+  const card = document.querySelector(`[data-slot="${slotNumber}"]`);
+  if (!card) return;
+  const overlay = card.querySelector(".slot-upload-overlay");
+  if (!overlay) return;
+  if (isActive) {
+    overlay.style.display = "flex";
+    overlay.textContent = message || "Feltöltés...";
+  } else {
+    overlay.style.display = "none";
+  }
+}
+
+function scheduleRenumber(reason = "unknown") {
+  const now = Date.now();
+  if (renumberInProgress) return;
+  if (now - lastRenumberAt < 3000) return;
+  if (storageAdapter.provider !== 'googledrive') return;
+  
+  renumberInProgress = true;
+  lastRenumberAt = now;
+  console.log(`🔄 Átszámozás indítása (${reason})...`);
+  
+  storageAdapter.renumberSlots()
+    .then(() => updateSlots(true))
+    .catch(err => console.error("Átszámozási hiba:", err))
+    .finally(() => {
+      renumberInProgress = false;
+    });
+}
+
+function sanitizeFileName(name) {
+  return name
+    .replace(/\s+/g, '_')
+    .replace(/[^\w\.-]/g, '_')
+    .replace(/_+/g, '_');
+}
+
+async function retrySlotRender(slotNumber, attempts = 2, delayMs = 1200) {
+  if (!slotNumber) return;
+  for (let i = 0; i < attempts; i++) {
+    if (slotMappings[slotNumber]) return;
+    console.log('[UPLOAD] retry updateSlots for slot', { slotNumber, attempt: i + 1 });
+    await new Promise(r => setTimeout(r, delayMs));
+    await updateSlots(false);
+    if (slotMappings[slotNumber]) return;
+  }
+}
+
+async function uploadFileToSlot(file, slotNumber, progressCallback = null) {
+  if (!file) return;
+  
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    throw new Error(`A fájl túl nagy! (${file.name})`);
+  }
+  
+  setSlotProgress(slotNumber, "Feltöltés 0%", true);
+  console.log('[UPLOAD] uploadFileToSlot start', { slotNumber, fileName: file.name, size: file.size });
+
+  const existingFileData = slotMappings[slotNumber];
+  if (existingFileData && existingFileData.fileName) {
+    publicUrlCache.delete(existingFileData.fileName);
+    await storageAdapter.deleteFile(existingFileData.fileName);
+  }
+  
+  const safeName = sanitizeFileName(file.name);
+  const slotFileName = `slot${slotNumber}_${safeName}`;
+  let uploadResult = null;
+  try {
+    uploadResult = await storageAdapter.uploadFile(file, slotFileName, (percent) => {
+      if (typeof percent === "number") {
+        const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+        setSlotProgress(slotNumber, `Feltöltés ${clamped}%`, true);
+        if (progressCallback) progressCallback(clamped);
+      }
+    });
+  } catch (err) {
+    console.error('[UPLOAD] uploadFileToSlot error', err);
+    throw err;
+  }
+  
+  // Fallback progress ha nincs callback (pl. Supabase)
+  setSlotProgress(slotNumber, "Feltöltés 90%", true);
+  console.log('[UPLOAD] uploadFileToSlot done', { slotNumber, slotFileName, uploadResult });
+  suppressListUntil = Date.now() + 4000;
+  optimisticSlotCache.set(slotNumber, {
+    slotNumber,
+    fileName: slotFileName,
+    originalName: safeName,
+    size: file.size,
+    created_at: new Date().toISOString(),
+    expiresAt: Date.now() + 10000
+  });
+  
+  // Biztonság: Google Drive esetén legyen látható
+  if (storageAdapter.provider === 'googledrive' && uploadResult?.fileId && storageAdapter.supabase) {
+    try {
+      await storageAdapter.supabase
+        .from('google_drive_file_visibility')
+        .upsert({
+          file_id: uploadResult.fileId,
+          file_name: slotFileName,
+          visible_on_infosharer: true,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'file_id'
+        });
+    } catch (visErr) {
+      console.warn('Lathatosagi bejegyzes mentesi hiba:', visErr);
+    }
+  }
+  setSlotProgress(slotNumber, "Feltöltés 100%", true);
+  setTimeout(() => setSlotProgress(slotNumber, "", false), 300);
+  
+  return {
+    slotNumber,
+    fileName: slotFileName,
+    originalName: safeName,
+    size: file.size,
+    created_at: new Date().toISOString()
+  };
+}
+
+async function uploadFileToSlotWithTimeout(file, slotNumber, timeoutMs = 60000) {
+  return await Promise.race([
+    uploadFileToSlot(file, slotNumber),
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout: ${slotNumber}`)), timeoutMs))
+  ]);
+}
+
+async function uploadFilesToSlots(startSlot, files) {
+  if (!canEdit) return;
+  if (!files || files.length === 0) return;
+  if (!startSlot || Number.isNaN(Number(startSlot))) {
+    console.warn("Nincs érvényes slot szám a feltöltéshez.");
+    return;
+  }
+  
+  if (multiUploadInProgress) {
+    alert("Feltöltés folyamatban, kérlek várj.");
+    return;
+  }
+  
+  multiUploadInProgress = true;
+  
+  try {
+    const fileList = Array.from(files);
+    console.log('[UPLOAD] multi start', { startSlot, count: fileList.length });
+    
+    let usedBytes = totalStorageUsed;
+    const replacedSlots = new Set();
+    
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      const slotNumber = startSlot + i;
+      const existingFileSize = slotMappings[slotNumber] && !replacedSlots.has(slotNumber)
+        ? (slotMappings[slotNumber].metadata?.size || 0)
+        : 0;
+      
+      const nextUsed = usedBytes - existingFileSize + file.size;
+      if (nextUsed > MAX_STORAGE_BYTES) {
+        const needMB = ((nextUsed - MAX_STORAGE_BYTES) / (1024 * 1024)).toFixed(2);
+        throw new Error(`Nincs elég hely! Szükséges további ${needMB} MB.`);
+      }
+      
+      usedBytes = nextUsed;
+      replacedSlots.add(slotNumber);
+    }
+    
+    setFilesStatus("loading", `Feltöltés ${fileList.length} fájl...`);
+    
+    const optimistic = [];
+    const failures = [];
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      const slotNumber = Number(startSlot) + i;
+      setFilesStatus("loading", `Feltöltés ${i + 1}/${fileList.length} (Slot ${slotNumber})...`);
+      setOptimisticSlot(slotNumber, file);
+      try {
+        console.log('[UPLOAD] multi file start', { slotNumber, name: file.name });
+        const result = await uploadFileToSlotWithTimeout(file, slotNumber, 60000);
+        if (result) optimistic.push(result);
+        console.log('[UPLOAD] multi file ok', { slotNumber, name: file.name });
+      } catch (err) {
+        console.warn('[UPLOAD] multi file error', { slotNumber, name: file.name, err });
+        failures.push({ slotNumber, name: file.name, err });
+        optimisticSlotCache.delete(slotNumber);
+      }
+    }
+    
+    await updateSlots(false, optimistic);
+    setTimeout(() => updateSlots(false, optimistic), 1200);
+    setFilesStatus("success", `Feltöltés kész: ${fileList.length} fájl`);
+    
+    const lastSlot = Number(startSlot) + fileList.length - 1;
+    await retrySlotRender(lastSlot);
+    
+    if (failures.length > 0) {
+      console.warn('[UPLOAD] multi completed with failures', { failures: failures.length });
+    }
+    
+  } catch (err) {
+    console.error("Multi feltöltési hiba:", err);
+    alert(err.message || "Feltöltési hiba");
+    setFilesStatus("error", "Feltöltési hiba");
+  } finally {
+    setTimeout(() => setFilesStatus("success", ""), 2000);
+    multiUploadInProgress = false;
+  }
+}
 
 // ====================================
 // DOM ELEMEK
@@ -829,7 +1062,8 @@ function subscribeFileRealtime() {
 }
 
 // Slotok létrehozása és frissítése
-async function updateSlots(silent = false) {
+async function updateSlots(silent = false, optimisticSlots = null) {
+  const callId = ++updateSlotsSeq;
   try {
     if (!silent) {
       setFilesStatus("loading");
@@ -838,14 +1072,17 @@ async function updateSlots(silent = false) {
     // Auth állapot ellenőrzése
     const isAuthenticated = globalAuth && globalAuth.isAuthenticated();
     
+    const prevMappings = slotMappings;
+    const shouldSuppressList = Date.now() < suppressListUntil;
+    
     // Használjuk a storage adapter-t a fájlok listázásához
-    const allFiles = await storageAdapter.listFiles();
+    const allFiles = shouldSuppressList ? [] : await storageAdapter.listFiles();
     
     // Reseteljük a slot leképezéseket
-    slotMappings = {};
+    slotMappings = shouldSuppressList && prevMappings ? { ...prevMappings } : {};
     
     // Fájlok hozzárendelése a slotokhoz a fájlnév alapján
-    if (allFiles && allFiles.length > 0) {
+    if (!shouldSuppressList && allFiles && allFiles.length > 0) {
       allFiles.forEach((file) => {
         const match = file.name.match(/slot(\d+)_(.+)/);
         if (match) {
@@ -859,8 +1096,58 @@ async function updateSlots(silent = false) {
             },
             created_at: file.created_at || file.createdTime
           };
+          optimisticSlotCache.delete(slotNum);
         }
       });
+    }
+    
+    // Optimistic cache merge (ha listázás még nem hozta vissza a fájlt)
+    if (optimisticSlotCache.size > 0) {
+      const now = Date.now();
+      let added = 0;
+      for (const [slotNum, data] of optimisticSlotCache.entries()) {
+        if (data.expiresAt && data.expiresAt < now) {
+          optimisticSlotCache.delete(slotNum);
+          continue;
+        }
+        if (!slotMappings[slotNum]) {
+          slotMappings[slotNum] = {
+            fileName: data.fileName,
+            originalName: data.originalName,
+            metadata: { size: data.size || 0 },
+            created_at: data.created_at || new Date().toISOString(),
+            isOptimistic: true
+          };
+          added++;
+        }
+      }
+      if (added > 0) {
+        console.log('[SLOTS] optimistic cache merge', { added });
+      }
+    }
+    
+    if (Array.isArray(optimisticSlots) && optimisticSlots.length > 0) {
+      let added = 0;
+      optimisticSlots.forEach((slot) => {
+        if (!slot || !slot.slotNumber) return;
+        if (!slotMappings[slot.slotNumber]) {
+          slotMappings[slot.slotNumber] = {
+            fileName: slot.fileName,
+            originalName: slot.originalName,
+            metadata: { size: slot.size || 0 },
+            created_at: slot.created_at || new Date().toISOString(),
+            isOptimistic: true
+          };
+          added++;
+        }
+      });
+      if (added > 0) {
+        console.log('[SLOTS] optimistic merge', { added });
+      }
+    }
+    
+    if (shouldSuppressList) {
+      console.log('[SLOTS] listFiles suppressed (recent upload)');
     }
     
     // Tárhelyhasználat számítása
@@ -871,6 +1158,15 @@ async function updateSlots(silent = false) {
     // Slot számok rendezése
     const slotNumbers = Object.keys(slotMappings).map(n => parseInt(n)).sort((a, b) => a - b);
     const maxSlotNum = slotNumbers.length > 0 ? Math.max(...slotNumbers) : 0;
+    
+    // Ha lyuk van a slotokban, próbáljuk meg gyorsan átszámozni (csak szerkesztésnél, és ne túl gyakran)
+    if (!silent && canEdit && storageAdapter.provider === 'googledrive' && !renumberInProgress) {
+      const hasGap = slotNumbers.some((num, idx) => num !== idx + 1);
+      if (hasGap) {
+        setFilesStatus("loading", "Átszámozás folyamatban...");
+        scheduleRenumber("gap");
+      }
+    }
     
     // Létrehozzuk a slotokat
     const slotsToCreate = canEdit ? maxSlotNum + 1 : maxSlotNum;
@@ -891,6 +1187,102 @@ async function updateSlots(silent = false) {
         overflow: hidden;
         transition: all 0.3s ease;
       `;
+      card.style.position = "relative";
+      card.dataset.slot = String(i);
+      
+      let dropIndicator = null;
+      if (canEdit) {
+        dropIndicator = document.createElement("div");
+        dropIndicator.style.cssText = `
+          position: absolute;
+          inset: 8px;
+          border-radius: 10px;
+          background: rgba(127, 90, 240, 0.15);
+          border: 1px dashed rgba(127, 90, 240, 0.6);
+          color: var(--accent-light);
+          font-size: 0.9rem;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 8px;
+          pointer-events: none;
+        `;
+        dropIndicator.textContent = "Engedd el a feltöltéshez";
+        card.appendChild(dropIndicator);
+      }
+      
+      const uploadOverlay = document.createElement("div");
+      uploadOverlay.className = "slot-upload-overlay";
+      uploadOverlay.style.cssText = `
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 15, 25, 0.75);
+        color: var(--accent-light);
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 12px;
+        z-index: 3;
+      `;
+      uploadOverlay.textContent = "Feltöltés...";
+      card.appendChild(uploadOverlay);
+      
+      if (canEdit) {
+        card.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          card.style.borderColor = "var(--accent-light)";
+          card.style.transform = "scale(1.02)";
+          if (dropIndicator) dropIndicator.style.display = "flex";
+        });
+        card.addEventListener("dragleave", () => {
+          card.style.borderColor = isFilled ? "var(--accent)" : "var(--muted)";
+          card.style.transform = "scale(1)";
+          if (dropIndicator) dropIndicator.style.display = "none";
+        });
+        card.addEventListener("drop", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          card.style.borderColor = isFilled ? "var(--accent)" : "var(--muted)";
+          card.style.transform = "scale(1)";
+          const files = e.dataTransfer?.files;
+          if (files && files.length > 0) {
+            currentSlot = i;
+            console.log('[UPLOAD] slot drop', {
+              slot: i,
+              count: files.length,
+              names: Array.from(files).map(f => f.name)
+            });
+            if (dropIndicator) {
+              dropIndicator.textContent = `Feltöltés indítása: ${files.length} fájl`;
+              dropIndicator.style.display = "flex";
+            }
+            if (files.length === 1) {
+              const file = files[0];
+              setOptimisticSlot(i, file);
+              try {
+                const result = await uploadFileToSlot(file, i);
+                await updateSlots(false, result ? [result] : null);
+                setTimeout(() => updateSlots(false, result ? [result] : null), 1200);
+                await retrySlotRender(i);
+              } catch (err) {
+                optimisticSlotCache.delete(i);
+                await updateSlots(false);
+                throw err;
+              }
+            } else {
+              await uploadFilesToSlots(i, files);
+            }
+            if (dropIndicator) {
+              dropIndicator.textContent = "Engedd el a feltöltéshez";
+              dropIndicator.style.display = "none";
+            }
+          }
+        });
+      }
       
       if (isFilled) {
         card.style.boxShadow = "0 4px 15px rgba(127, 90, 240, 0.2)";
@@ -907,9 +1299,9 @@ async function updateSlots(silent = false) {
       // Ellenőrizzük, hogy kép-e
       const isImage = fileData && fileData.originalName && /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(fileData.originalName);
       
-      if (isFilled && isImage) {
-        // Kép előnézet
-        const imgPreview = document.createElement("div");
+        if (isFilled && isImage) {
+          // Kép előnézet
+          const imgPreview = document.createElement("div");
         imgPreview.style.cssText = `
           width: 100%;
           height: 150px;
@@ -1261,27 +1653,35 @@ function openFileInfoModal(slotNumber, fileData, isImage) {
     previewImage.style.display = 'block';
     iconSection.style.display = 'none';
     
-    // Ellenőrizzük a cache-t először
-    const cacheKey = fileData.fileName;
-    if (publicUrlCache.has(cacheKey)) {
-      // Van cache-elt URL, használjuk azt
-      previewImage.src = publicUrlCache.get(cacheKey);
-      previewImage.alt = fileData.originalName;
-    } else {
-      // Nincs cache, töltsd le és mentsd el
-      storageAdapter.getPublicUrl(fileData.fileName).then(publicUrl => {
-        publicUrlCache.set(cacheKey, publicUrl); // Cache-eljük
-        previewImage.src = publicUrl;
-        previewImage.alt = fileData.originalName;
-      }).catch(err => {
-        console.error('Kép előnézet hiba:', err);
-        // Ha hiba van, fallback az ikonos nézethez
-        previewSection.style.display = 'none';
-        previewImage.style.display = 'none';
-        iconSection.style.display = 'block';
-        iconLarge.textContent = getFileIcon(fileData.originalName);
-      });
-    }
+        if (fileData.isOptimistic) {
+          // Optimista fájl: preview nélküli ikon (még nincs publikus URL)
+          previewSection.style.display = 'none';
+          previewImage.style.display = 'none';
+          iconSection.style.display = 'block';
+          iconLarge.textContent = getFileIcon(fileData.originalName);
+        } else {
+          // Ellenőrizzük a cache-t először
+          const cacheKey = fileData.fileName;
+          if (publicUrlCache.has(cacheKey)) {
+            // Van cache-elt URL, használjuk azt
+            previewImage.src = publicUrlCache.get(cacheKey);
+            previewImage.alt = fileData.originalName;
+          } else {
+            // Nincs cache, töltsd le és mentsd el
+            storageAdapter.getPublicUrl(fileData.fileName).then(publicUrl => {
+              publicUrlCache.set(cacheKey, publicUrl); // Cache-eljük
+              previewImage.src = publicUrl;
+              previewImage.alt = fileData.originalName;
+            }).catch(err => {
+              console.error('Kép előnézet hiba:', err);
+              // Ha hiba van, fallback az ikonos nézethez
+              previewSection.style.display = 'none';
+              previewImage.style.display = 'none';
+              iconSection.style.display = 'block';
+              iconLarge.textContent = getFileIcon(fileData.originalName);
+            });
+          }
+        }
   } else {
     previewSection.style.display = 'none';
     previewImage.style.display = 'none';
@@ -1446,6 +1846,12 @@ async function handleFileUpload() {
     return;
   }
   
+  console.log('[UPLOAD] handleFileUpload start', {
+    fileName: file.name,
+    size: file.size,
+    currentSlot
+  });
+  
   // Ellenőrizzük a fájlméretet
   if (file.size > MAX_FILE_SIZE_BYTES) {
     alert(`A fájl túl nagy! Maximum ${MAX_FILE_SIZE_BYTES / (1024 * 1024)} MB lehet.`);
@@ -1471,11 +1877,9 @@ async function handleFileUpload() {
   confirmUpload.disabled = true;
   
   try {
+    setSlotProgress(currentSlot, "Feltöltés...", true);
     // Fájlnév tisztítása
-    const safeName = file.name
-      .replace(/\s+/g, '_')
-      .replace(/[^\w\.-]/g, '_')
-      .replace(/_+/g, '_');
+    const safeName = sanitizeFileName(file.name);
     
     // Egyedi fájlnév generálása
     const slotFileName = `slot${currentSlot}_${safeName}`;
@@ -1495,9 +1899,31 @@ async function handleFileUpload() {
     const progressCallback = (percent) => {
       const progress = 60 + (percent * 0.3); // 60-90% közötti progress
       uploadProgressBar.style.width = `${progress}%`;
+      const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+      setSlotProgress(currentSlot, `Feltöltés ${clamped}%`, true);
     };
     
     const uploadResult = await storageAdapter.uploadFile(file, slotFileName, progressCallback);
+    console.log('[UPLOAD] Eredmény:', uploadResult, { slotFileName, slot: currentSlot });
+    
+    // Google Drive esetén láthatóság beállítása, hogy azonnal megjelenjen
+    if (storageAdapter.provider === 'googledrive' && uploadResult?.fileId && storageAdapter.supabase) {
+      try {
+        await storageAdapter.supabase
+          .from('google_drive_file_visibility')
+          .upsert({
+            file_id: uploadResult.fileId,
+            file_name: slotFileName,
+            visible_on_infosharer: true,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'file_id'
+          });
+        console.log('[UPLOAD] Visibility upsert OK', { fileId: uploadResult.fileId, slotFileName });
+      } catch (visErr) {
+        console.warn('Lathatosagi bejegyzes mentesi hiba:', visErr);
+      }
+    }
     
     uploadProgressBar.style.width = "90%";
     
@@ -1515,9 +1941,29 @@ async function handleFileUpload() {
     uploadProgressBar.style.width = "100%";
     uploadProgressBar.style.background = "var(--success)";
     
+    // Azonnali frissítés, hogy 100% után látszódjon
+    const uploadedSlot = currentSlot;
+    console.log('[UPLOAD] updateSlots start', { uploadedSlot });
+    await updateSlots(false, [{
+      slotNumber: uploadedSlot,
+      fileName: slotFileName,
+      originalName: safeName,
+      size: file.size,
+      created_at: new Date().toISOString()
+    }]);
+    console.log('[UPLOAD] updateSlots done', { uploadedSlot, hasSlot: !!slotMappings[uploadedSlot] });
+    
+    // Ha még nem látszik (pl. Drive késleltetés), próbáljuk újra röviden
+    if (uploadedSlot && !slotMappings[uploadedSlot]) {
+      setTimeout(async () => {
+        console.log('[UPLOAD] retry updateSlots', { uploadedSlot });
+        await updateSlots(false);
+        console.log('[UPLOAD] retry done', { uploadedSlot, hasSlot: !!slotMappings[uploadedSlot] });
+      }, 1200);
+    }
+    
     setTimeout(() => {
       uploadModal.hide();
-      updateSlots();
       confirmUpload.disabled = false;
       fileUploadInput.value = "";
       uploadProgress.style.display = "none";
@@ -1525,11 +1971,13 @@ async function handleFileUpload() {
       uploadProgressBar.style.background = "var(--accent)";
       uploadProgressText.textContent = "Feltöltés...";
       uploadProgressText.style.color = "var(--muted)";
-    }, 1000);
+      setSlotProgress(currentSlot, "", false);
+    }, 300);
   } catch (err) {
     console.error("Feltöltési hiba:", err);
     alert("Feltöltés sikertelen: " + (err.message || "Ismeretlen hiba"));
     confirmUpload.disabled = false;
+    setSlotProgress(currentSlot, "", false);
     
     setTimeout(() => {
       uploadProgress.style.display = "none";
@@ -1553,7 +2001,7 @@ async function handleFileDelete() {
     await storageAdapter.deleteFile(fileToDelete);
     
     // Átrendezzük a fájlokat
-    await reorderSlots(currentSlot);
+    reorderSlots(currentSlot);
     
     // Frissítjük a megjelenítést
     updateSlots();
@@ -1570,8 +2018,17 @@ async function handleFileDelete() {
 // Slot átrendezés funkció
 async function reorderSlots(deletedSlotNum) {
   try {
+    if (storageAdapter.provider === 'googledrive') {
+      scheduleRenumber('delete');
+      return;
+    }
     // Lekérjük az összes fájlt a storage adapter-rel
     const allFiles = await storageAdapter.listFiles();
+    if (callId !== updateSlotsSeq) {
+      console.log('[SLOTS] stale update ignored', { callId, latest: updateSlotsSeq });
+      return;
+    }
+    console.log('[SLOTS] listFiles', { count: allFiles?.length || 0 });
     
     // Rendezzük slot szám szerint
     const filesBySlot = {};
@@ -1589,6 +2046,7 @@ async function reorderSlots(deletedSlotNum) {
     // Megkeressük a törölt slot utáni slotokat és átnevezzük őket
     const slotNumbers = Object.keys(filesBySlot).map(n => parseInt(n)).sort((a, b) => a - b);
     
+    const moves = [];
     for (let i = 0; i < slotNumbers.length; i++) {
       const currentSlotNum = slotNumbers[i];
       
@@ -1599,9 +2057,12 @@ async function reorderSlots(deletedSlotNum) {
         const oldFileName = fileData.fileName;
         const newFileName = `slot${newSlotNum}_${fileData.originalName}`;
         
-        // Storage adapter moveFile metódus használata
-        await storageAdapter.moveFile(oldFileName, newFileName);
+        moves.push({ oldFileName, newFileName });
       }
+    }
+    
+    for (const move of moves) {
+      await storageAdapter.moveFile(move.oldFileName, move.newFileName);
     }
   } catch (err) {
     console.error("Átrendezési hiba:", err);
@@ -1800,9 +2261,16 @@ async function setupEventListeners() {
       });
     });
     
-    dropZone.addEventListener('drop', (e) => {
+    dropZone.addEventListener('drop', async (e) => {
+      e.preventDefault();
       const files = e.dataTransfer.files;
       if (files.length > 0) {
+        if (files.length > 1 && currentSlot) {
+          uploadModal.hide();
+          await uploadFilesToSlots(currentSlot, files);
+          return;
+        }
+        
         const file = files[0];
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);

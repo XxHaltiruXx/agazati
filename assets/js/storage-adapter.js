@@ -172,10 +172,33 @@ class StorageAdapter {
     } else if (this.provider === 'googledrive') {
       // Google Drive feltöltés
       const result = await GoogleDrive.uploadFileToGoogleDrive(file, fileName, progressCallback);
+      console.log('[GD] uploadFile result', { fileName, id: result?.id });
       
       // Mentjük a fileId-t a fileName-hez
       this.fileIdMap[fileName] = result.id;
       this.saveFileIdMap();
+      
+      // Alapértelmezetten látható legyen az Infoshareren
+      try {
+        if (this.supabase) {
+          const { error: visibilityError } = await this.supabase
+            .from('google_drive_file_visibility')
+            .upsert({
+              file_id: result.id,
+              file_name: fileName,
+              visible_on_infosharer: true,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'file_id'
+            });
+          
+          if (visibilityError) {
+            console.warn('Lathatosagi bejegyzes mentesi hiba:', visibilityError);
+          }
+        }
+      } catch (visibilityErr) {
+        console.warn('Lathatosagi bejegyzes mentesi hiba:', visibilityErr);
+      }
 
       return {
         fileName: fileName,
@@ -226,13 +249,37 @@ class StorageAdapter {
       if (error) throw error;
     } else if (this.provider === 'googledrive') {
       // Google Drive törlés
-      const fileId = this.fileIdMap[fileName];
+      let fileId = this.fileIdMap[fileName];
       if (!fileId) {
-        console.warn(`Fájl nem található a mapben: ${fileName}`);
+        try {
+          const files = await GoogleDrive.listFilesInGoogleDrive();
+          const match = files.find(f => f.name === fileName);
+          fileId = match?.id || null;
+        } catch (err) {
+          console.warn(`Fájl keresési hiba: ${fileName}`, err);
+        }
+      }
+      if (!fileId) {
+        console.warn(`Fájl nem található: ${fileName}`);
         return;
       }
       
       await GoogleDrive.deleteFileFromGoogleDrive(fileId);
+      
+      // Láthatósági bejegyzés törlése (admin panelből is eltűnjön)
+      try {
+        if (this.supabase) {
+          const { error: visDeleteError } = await this.supabase
+            .from('google_drive_file_visibility')
+            .delete()
+            .eq('file_id', fileId);
+          if (visDeleteError) {
+            console.warn('Láthatósági bejegyzés törlési hiba:', visDeleteError);
+          }
+        }
+      } catch (visErr) {
+        console.warn('Láthatósági bejegyzés törlési hiba:', visErr);
+      }
       
       // Töröljük a mapből
       delete this.fileIdMap[fileName];
@@ -256,6 +303,7 @@ class StorageAdapter {
     } else if (this.provider === 'googledrive') {
       // Google Drive lista
       const files = await GoogleDrive.listFilesInGoogleDrive();
+      console.log('[GD] listFilesInGoogleDrive', { count: files?.length || 0 });
       
       // Frissítjük a fileIdMap-et
       files.forEach(file => {
@@ -283,10 +331,43 @@ class StorageAdapter {
         }
         
         // Látható fájlok ID-jainak listája
-        const visibleFileIds = new Set(visibilityData.map(v => v.file_id));
+        const visibilityMap = new Map();
+        visibilityData.forEach(v => {
+          visibilityMap.set(v.file_id, v.visible_on_infosharer === true);
+        });
         
-        // Csak a látható fájlokat szűrjük ki
-        const visibleFiles = files.filter(file => visibleFileIds.has(file.id));
+        const missingVisibility = [];
+        const visibleFiles = files.filter(file => {
+          if (!visibilityMap.has(file.id)) {
+            missingVisibility.push(file);
+            return true; // default: látható
+          }
+          return visibilityMap.get(file.id) === true;
+        });
+        console.log('[GD] visibility', {
+          total: files.length,
+          visible: visibleFiles.length,
+          missingVisibility: missingVisibility.length
+        });
+        
+        // Ha hiányzik a bejegyzés, próbáljuk meg létrehozni (ha van jogosultság)
+        if (missingVisibility.length > 0) {
+          try {
+            await this.supabase
+              .from('google_drive_file_visibility')
+              .upsert(
+                missingVisibility.map(f => ({
+                  file_id: f.id,
+                  file_name: f.name,
+                  visible_on_infosharer: true,
+                  updated_at: new Date().toISOString()
+                })),
+                { onConflict: 'file_id' }
+              );
+          } catch (e) {
+            console.warn('Láthatósági bejegyzés létrehozási hiba:', e);
+          }
+        }
         
         console.log(`Látható fájlok: ${visibleFiles.length}/${files.length}`);
         
@@ -432,17 +513,20 @@ class StorageAdapter {
 
       if (error) throw error;
     } else if (this.provider === 'googledrive') {
-      // Google Drive esetén átnevezés
-      // Letöltjük, feltöltjük új névvel, töröljük a régit
+      // Google Drive esetén: gyors átnevezés fileId alapján, ha elérhető
+      const fileId = this.fileIdMap[oldFileName];
+      if (fileId) {
+        await GoogleDrive.renameFile(fileId, newFileName);
+        delete this.fileIdMap[oldFileName];
+        this.fileIdMap[newFileName] = fileId;
+        this.saveFileIdMap();
+        return;
+      }
+      
+      // Fallback: letöltjük, feltöltjük új névvel, töröljük a régit
       const fileBlob = await this.downloadFile(oldFileName);
-      
-      // Létrehozunk egy új File objektumot
       const file = new File([fileBlob], newFileName, { type: fileBlob.type });
-      
-      // Feltöltjük az új fájlt
       await this.uploadFile(file, newFileName);
-      
-      // Töröljük a régit
       await this.deleteFile(oldFileName);
     }
   }

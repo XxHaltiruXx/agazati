@@ -49,6 +49,7 @@ class SupabaseAuth {
     this.profileLoaded = false; // Flag hogy a profil betöltődött-e
     this.realtimeEnabled = false; // Flag hogy a realtime működik-e
     this.pollingInterval = null; // Polling fallback
+    this.permissionsCacheTs = 0;
     
     // localStorage cache kulcsok
     this.ADMIN_CACHE_KEY = '_agazati_admin_cache';
@@ -62,7 +63,8 @@ class SupabaseAuth {
       console.error('❌ [Auth Init] Supabase client nem érhető el!');
       return false;
     }
-
+    this.permissionsCacheTs = Date.now();
+    
     // GYORS CACHE ELLENŐRZÉS - azonnal beállítjuk admin jogot ha cache-ben van
     const cached = this.getCachedAdminStatus();
     if (cached) {
@@ -1033,22 +1035,47 @@ class SupabaseAuth {
     return this.userPermissions || null;
   }
   
-  async refreshPermissions() {
+  getPermissionsCached(maxAgeMs = 0) {
+    if (!this.userPermissions) return null;
+    if (!maxAgeMs) return this.userPermissions;
+    const age = Date.now() - (this.permissionsCacheTs || 0);
+    return age <= maxAgeMs ? this.userPermissions : null;
+  }
+  
+  async refreshPermissions(options = {}) {
+    const force = options.force !== false;
+    const maxAgeMs = options.maxAgeMs || 0;
+    const timeoutMs = options.timeoutMs || 0;
+    
+    if (!force) {
+      const cached = this.getPermissionsCached(maxAgeMs);
+      if (cached) return cached;
+    }
+    
     const user = this.getCurrentUser();
     if (!user) {
       this.userPermissions = null;
+      this.permissionsCacheTs = 0;
       return null;
     }
     
     try {
-      const { data: permData, error: permError } = await this.sb
+      const queryPromise = this.sb
         .from('user_permissions')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
       
+      const { data: permData, error: permError } = await (timeoutMs > 0
+        ? Promise.race([
+            queryPromise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Permissions timeout')), timeoutMs))
+          ])
+        : queryPromise);
+      
       if (permData && !permError) {
         this.userPermissions = permData;
+        this.permissionsCacheTs = Date.now();
         return this.userPermissions;
       } else {
         // Alapértelmezett jogosultságok ha nincs bejegyzés
@@ -1059,11 +1086,13 @@ class SupabaseAuth {
           can_manage_google_drive: false,
           can_manage_releases: false
         };
+        this.permissionsCacheTs = Date.now();
         return this.userPermissions;
       }
     } catch (err) {
       console.warn('⚠️ Permissions frissítési hiba:', err);
-      return this.userPermissions;
+      const cached = this.getPermissionsCached(maxAgeMs);
+      return cached || this.userPermissions;
     }
   }
   
