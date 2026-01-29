@@ -215,10 +215,16 @@ async function uploadFileToSlot(file, slotNumber, progressCallback = null) {
 }
 
 async function uploadFileToSlotWithTimeout(file, slotNumber, timeoutMs = 60000) {
-  return await Promise.race([
-    uploadFileToSlot(file, slotNumber),
-    new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout: ${slotNumber}`)), timeoutMs))
-  ]);
+  // Ne indítsunk párhuzamos feltöltést: a timeout csak figyelmeztet, de várunk a befejezésre.
+  const uploadPromise = uploadFileToSlot(file, slotNumber);
+  const timeoutHandle = setTimeout(() => {
+    console.warn('[UPLOAD] timeout warning (still waiting)', { slotNumber, timeoutMs });
+  }, timeoutMs);
+  try {
+    return await uploadPromise;
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
 }
 
 async function uploadFilesToSlots(startSlot, files) {
