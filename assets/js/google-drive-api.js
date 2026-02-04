@@ -367,6 +367,114 @@ async function uploadFileToGoogleDrive(file, fileName, progressCallback = null) 
   }
 }
 
+/**
+ * Chunked feltöltés Google Drive-ra (MB-onként)
+ * Erőforrás-takarékos feltöltés nagy fájlokhoz
+ * @param {File} file - A feltöltendő fájl
+ * @param {string} fileName - A fájl neve
+ * @param {Function} progressCallback - Progress callback (0-100%)
+ * @param {number} chunkSize - Chunk méret bytes-ban (alapértelmezett: 1MB)
+ */
+async function uploadFileToGoogleDriveChunked(file, fileName, progressCallback = null, chunkSize = 1024 * 1024) {
+  if (!isGoogleDriveAuthenticated()) {
+    throw new Error('Google Drive nem inicializálva');
+  }
+
+  // Token ellenőrzés
+  await ensureValidToken();
+
+  try {
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    console.log(`[GD] Chunked upload start: ${fileName} (${totalChunks} chunk, ${(file.size / (1024*1024)).toFixed(1)}MB)`);
+
+    // 1. Fájl metaadatok - Google Drive fájl létrehozása
+    const metadata = {
+      name: fileName,
+      mimeType: file.type || 'application/octet-stream',
+      parents: [GOOGLE_CONFIG.FOLDER_ID]
+    };
+
+    const createFileResponse = await fetch('https://www.googleapis.com/drive/v3/files?uploadType=media', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + accessToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(metadata)
+    });
+
+    if (!createFileResponse.ok) {
+      throw new Error(`Fájl létrehozási hiba: ${createFileResponse.status}`);
+    }
+
+    const fileData = await createFileResponse.json();
+    const fileId = fileData.id;
+    console.log(`[GD] Fájl létrehozva: ${fileId}`);
+
+    // 2. Chunkokra bontás és feltöltés
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+      const start = chunkIndex * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const chunk = file.slice(start, end);
+
+      // Progress callback
+      const progress = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+      if (progressCallback) {
+        progressCallback(progress);
+      }
+
+      console.log(`[GD] Chunk feltöltés: ${chunkIndex + 1}/${totalChunks} (${progress}%)`);
+
+      // Chunk feltöltése
+      const uploadResponse = await fetch(
+        `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': 'Bearer ' + accessToken,
+            'Content-Type': file.type || 'application/octet-stream',
+            'Content-Range': `bytes ${start}-${end - 1}/${file.size}`
+          },
+          body: chunk
+        }
+      );
+
+      if (!uploadResponse.ok && uploadResponse.status !== 200 && uploadResponse.status !== 201) {
+        // 308 = Resume Incomplete, 200/201 = Success
+        if (uploadResponse.status !== 308) {
+          throw new Error(`Chunk feltöltési hiba: ${uploadResponse.status}`);
+        }
+      }
+    }
+
+    // 3. Végleges fájl adatok lekérése
+    const finalResponse = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,name,size,mimeType,createdTime`,
+      {
+        headers: {
+          'Authorization': 'Bearer ' + accessToken
+        }
+      }
+    );
+
+    if (!finalResponse.ok) {
+      throw new Error(`Fájl adat lekérési hiba: ${finalResponse.status}`);
+    }
+
+    const result = await finalResponse.json();
+    console.log(`[GD] Chunked upload befejezve: ${fileId} (${totalChunks} chunk)`);
+
+    return {
+      ...result,
+      chunks: totalChunks,
+      chunkSize: chunkSize
+    };
+  } catch (error) {
+    console.error('Chunked feltöltési hiba:', error);
+    throw error;
+  }
+}
+
 async function downloadFileFromGoogleDrive(fileId) {
   if (!isGoogleDriveAuthenticated()) {
     throw new Error('Google Drive nem inicializálva');
@@ -766,6 +874,7 @@ export {
   signOutFromGoogleDrive,
   isGoogleDriveAuthenticated,
   uploadFileToGoogleDrive,
+  uploadFileToGoogleDriveChunked,
   downloadFileFromGoogleDrive,
   deleteFileFromGoogleDrive,
   getFileMetadata,

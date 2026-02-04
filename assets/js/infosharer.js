@@ -53,7 +53,13 @@ async function initSupabase() {
     }
   };
   
+  // Chunked upload információ
+  const chunkedUploadInfo = storageAdapter.provider === 'googledrive' 
+    ? '✓ Chunked upload (1MB-onként) aktív >5MB-os fájlokhoz'
+    : '⚠️ Chunked upload nem támogatott ezen a provideren';
+  
   console.log(`📊 Storage limitek (${storageAdapter.getProviderName()}): ${formatSize(MAX_FILE_SIZE_BYTES)}/file, ${formatSize(MAX_STORAGE_BYTES)} összesen`);
+  console.log(`⬆️ ${chunkedUploadInfo}`);
 }
 
 // ====================================
@@ -160,13 +166,27 @@ async function uploadFileToSlot(file, slotNumber, progressCallback = null) {
   const slotFileName = `slot${slotNumber}_${safeName}`;
   let uploadResult = null;
   try {
-    uploadResult = await storageAdapter.uploadFile(file, slotFileName, (percent) => {
-      if (typeof percent === "number") {
-        const clamped = Math.max(0, Math.min(100, Math.round(percent)));
-        setSlotProgress(slotNumber, `Feltöltés ${clamped}%`, true);
-        if (progressCallback) progressCallback(clamped);
-      }
-    });
+    // Chunked feltöltés nagy fájlokhoz (>5MB) - erőforrás takarékos
+    const CHUNK_SIZE = 1024 * 1024; // 1 MB chunk size
+    const useChunkedUpload = file.size > 5 * 1024 * 1024; // >5MB-nál chunkelj
+    
+    if (useChunkedUpload) {
+      uploadResult = await storageAdapter.uploadFileChunked(file, slotFileName, (percent) => {
+        if (typeof percent === "number") {
+          const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+          setSlotProgress(slotNumber, `Feltöltés ${clamped}%`, true);
+          if (progressCallback) progressCallback(clamped);
+        }
+      }, CHUNK_SIZE);
+    } else {
+      uploadResult = await storageAdapter.uploadFile(file, slotFileName, (percent) => {
+        if (typeof percent === "number") {
+          const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+          setSlotProgress(slotNumber, `Feltöltés ${clamped}%`, true);
+          if (progressCallback) progressCallback(clamped);
+        }
+      });
+    }
   } catch (err) {
     console.error('[UPLOAD] uploadFileToSlot error', err);
     throw err;
@@ -1999,23 +2019,40 @@ async function handleFileUpload() {
 async function handleFileDelete() {
   if (!fileToDelete) return;
   
+  const slotToDelete = currentSlot;
+  const fileNameToDelete = fileToDelete;
+  
   try {
     // Töröljük a cache-ből az URL-t
-    publicUrlCache.delete(fileToDelete);
+    publicUrlCache.delete(fileNameToDelete);
     
     // Töröljük a fájlt a storage adapter-rel
-    await storageAdapter.deleteFile(fileToDelete);
+    await storageAdapter.deleteFile(fileNameToDelete);
     
-    // Átrendezzük a fájlokat
-    reorderSlots(currentSlot);
+    // Csak ha a törlés sikeres volt, akkor átrendezzük a fájlokat
+    await reorderSlots(slotToDelete);
     
     // Frissítjük a megjelenítést
-    updateSlots();
+    await updateSlots();
+    
+    // Sikeres törlés után azonnal bezárjuk a modalt
+    deleteModal.hide();
+    
+    // Rövid siker visszajelzés (rögtön eltűnik)
+    const deleteBtn = document.getElementById('confirmDelete');
+    const originalText = deleteBtn.textContent;
+    deleteBtn.textContent = '✓ Törölve!';
+    deleteBtn.style.background = 'var(--success)';
+    setTimeout(() => {
+      deleteBtn.textContent = originalText;
+      deleteBtn.style.background = 'var(--error)';
+    }, 500);
   } catch (err) {
     console.error("Törlési hiba:", err);
-    alert("Hiba a törlés során");
+    alert("Hiba a törlés során! A fájl nem lett törölve.");
+    // Ne bezárjuk a modalt, hogy a felhasználó újra próbálkozhassa
+    return;
   } finally {
-    deleteModal.hide();
     fileToDelete = null;
     currentSlot = null;
   }

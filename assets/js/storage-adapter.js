@@ -212,6 +212,68 @@ class StorageAdapter {
   }
 
   /**
+   * Fájl chunked feltöltése (MB-onként, erőforrás-takarékos)
+   * Nagy fájlokhoz javasolt (>5MB)
+   * @param {File} file - A feltöltendő fájl
+   * @param {string} fileName - A fájl neve
+   * @param {Function} progressCallback - Progress callback (0-100%)
+   * @param {number} chunkSize - Chunk méret bytes-ban (alapértelmezett: 1MB)
+   */
+  async uploadFileChunked(file, fileName, progressCallback = null, chunkSize = 1024 * 1024) {
+    if (this.provider === 'supabase') {
+      // Supabase nem támogatja a chunked uploadot, normál feltöltést használunk
+      console.log('[UPLOAD] Supabase nem támogatja a chunked uploadot, normál feltöltést használok');
+      return this.uploadFile(file, fileName, progressCallback);
+    } else if (this.provider === 'googledrive') {
+      // Google Drive chunked feltöltés
+      const result = await GoogleDrive.uploadFileToGoogleDriveChunked(
+        file,
+        fileName,
+        progressCallback,
+        chunkSize
+      );
+      
+      console.log('[GD] uploadFileChunked result', { fileName, id: result?.id, chunks: result?.chunks });
+      
+      // Mentjük a fileId-t
+      this.fileIdMap[fileName] = result.id;
+      this.saveFileIdMap();
+      
+      // Alapértelmezetten látható legyen
+      try {
+        if (this.supabase) {
+          const { error: visibilityError } = await this.supabase
+            .from('google_drive_file_visibility')
+            .upsert({
+              file_id: result.id,
+              file_name: fileName,
+              visible_on_infosharer: true,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'file_id'
+            });
+          
+          if (visibilityError) {
+            console.warn('Lathatosagi bejegyzes mentesi hiba:', visibilityError);
+          }
+        }
+      } catch (visibilityErr) {
+        console.warn('Lathatosagi bejegyzes mentesi hiba:', visibilityErr);
+      }
+
+      return {
+        fileName: fileName,
+        fileId: result.id,
+        path: result.id,
+        size: parseInt(result.size || file.size),
+        mimeType: result.mimeType || file.type,
+        created_at: result.createdTime || new Date().toISOString(),
+        chunks: result.chunks
+      };
+    }
+  }
+
+  /**
    * Fájl letöltése
    * @param {string} fileName - A fájl neve
    * @returns {Promise<Blob>} - A fájl tartalma Blob-ként
